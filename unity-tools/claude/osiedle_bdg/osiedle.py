@@ -172,6 +172,28 @@ def budki_market(d, dst):
 Y_KOSTKI = 0.0
 
 
+def zapisz_maske_trawy(trawa, drzewa, plik, krok=.32):
+    """Maska trawnika dla trawy 3D w grze (BraxClaudeTrawaMaska): 1 bit na krok × krok j. gry, bez pierścieni ziemi pod
+    drzewami (0,8 m). Format (gzip): 'BTM1', float32 x0 z0 krok y, int32 szer wys, bity (wiersze od z0, bit = x % 8)."""
+    import gzip, struct
+    from PIL import Image, ImageDraw
+    x0m, z0m, x1m, z1m = trawa.bounds
+    gx0, gz0 = O[0] + x0m * K, O[1] + z0m * K
+    W = int(math.ceil((x1m - x0m) * K / krok)) + 1; H = int(math.ceil((z1m - z0m) * K / krok)) + 1
+    img = Image.new("1", (W, H), 0); dr = ImageDraw.Draw(img)
+    px = lambda x, z: ((O[0] + x * K - gx0) / krok, (O[1] + z * K - gz0) / krok)
+    for g in getattr(trawa, "geoms", [trawa]):
+        if g.is_empty: continue
+        dr.polygon([px(x, z) for x, z in g.exterior.coords], fill=1)
+        for r in g.interiors: dr.polygon([px(x, z) for x, z in r.coords], fill=0)
+    for (x, z, _) in drzewa:
+        cx, cz = px(x, z); rr = .8 * K / krok; dr.ellipse((cx - rr, cz - rr, cx + rr, cz + rr), fill=0)
+    bity = np.packbits(np.asarray(img, dtype=np.uint8), axis=1, bitorder="little")
+    with gzip.open(plik, "wb") as f:
+        f.write(b"BTM1" + struct.pack("<4f2i", gx0, gz0, krok, teren.Y_TRAWA * K, bity.shape[1] * 8, H)); f.write(bity.tobytes())
+    return W, H
+
+
 def wczytaj():
     """Mapa osiedla w metrach. Najpierw pełny wycinek (pobierz_osm.py: do ronda i szpitala), inaczej wycinek kolegi (gra)."""
     pelny = DANE.parent / "osiedle_osm.json"
@@ -353,6 +375,7 @@ if __name__ == "__main__":
     T, pola, G = teren.zbuduj(d, MODELE, PRZEDPOLA, boiska_asfalt(d), wyposazenie.zebry(pkt_osm, d["ulice"], teren.SZER), las=las_poly())
     przenies(T, D, "teren", 0.0, 0.0, 0.0)
     drzewa, latarnie = teren.punkty(d, G)
+    zapisz_maske_trawy(G["TRAWA"], drzewa, out / "osiedle_trawa_maska.bin")
     opis["teren"] = pola; opis["drzew"] = len(drzewa); opis["latarni"] = len(latarnie)
     Wy, opis["wyposazenie"] = wyposazenie.zbuduj(d, G, teren.SZER, teren.OKNO, drzewa, latarnie)
     przenies(Wy, D, "wyposazenie", 0.0, 0.0, 0.0)

@@ -18,12 +18,19 @@ using UnityEngine.Rendering;
 /// z palety: tekstury z listy właściciela (Poly Haven, ZASADY 5.8) z barwą docelową, naklejki (graffiti, napisy, mural) jako
 /// tekstury wypieczone na UV2, okna — shader Braxhorn/BydgoszczOkno (pokój za szybą z UV2), trawa — trawa rejonu.
 ///
-/// WYŁĄCZONE (Wlaczone = false), dopóki granica północna (BraxMiastoGranice.Z1 = 180) i wzgórza horyzontu nie zostaną
-/// odsunięte za osiedle (z do ~760) — inaczej osiedle stanęłoby w zboczu. Włączenie = osobna zmiana z buildem kontrolnym.
+/// WŁĄCZONE 23.11 wieczorem (właściciel 19:50–19:56: teren i infrastruktura, dwa wjazdy z miasta, plan przyjęty): granica
+/// północna miasta odsunięta za osiedle (BraxMiastoGranice.Z1), pas lasu i wjazdy są w siatce osiedla (z ≥ 162 j.).
+/// Stare supermarkety miasta usunięte — wnętrze sklepu stoi w markecie osiedla (SklepFront, BraxSupermarket.WOsiedlu).
+/// Trawa 3D: z maski trawnika (gen/osiedle_trawa_maska.bin → BraxClaudeTrawaMaska), nie z limitu kęp miasta.
 /// </summary>
 public static class BraxBydgoszcz
 {
-    public static readonly bool Wlaczone = false;
+    public static readonly bool Wlaczone = true;
+    // Hala sklepu (BraxSupermarket, 28 × 20 m × K) w markecie przy Skłodowskiej: środek frontu hali 4,8 m za najdłuższą
+    // elewacją od parkingu, na osi drzwi w witrynie (osiedle_bdg/ogolny.py: „otwor”), posadzka marketu +0,12 m × K.
+    // Wartości liczy test_r1_bydgoszcz_32a.py (test_sklep_w_markecie) z obrysu OSM — przy zmianie danych test pokaże nowe.
+    public static readonly Vector3 SklepFront = new Vector3(-391.86f, .12f * 1.294f + .03f, 510.27f);
+    public const float SklepYaw = 165.1f;
     public static readonly Vector2 PunktZerowy = new Vector2(-145.9f, 508.8f);
     const string Plik = "unity-tools/claude/osiedle_bdg/gen/osiedle.bin";
     const string Naklejki = "Assets/Source/Claude/Bydgoszcz/";
@@ -184,7 +191,7 @@ public static class BraxBydgoszcz
                     var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterial = mat;
                     mr.shadowCastingMode = mn.StartsWith("okno") || g.StartsWith("teren") ? ShadowCastingMode.Off : ShadowCastingMode.On;
                     mr.receiveShadows = true;
-                    if (mn == "trawa") BraxRegionTrawa.Teren(mr, true, false);
+                    if (mn == "trawa") BraxRegionTrawa.Teren(mr, false, false);   // kępy z maski (TrawaMaska), nie z limitu miasta
                     if (Kolizja(mn)) { go.AddComponent<MeshCollider>().sharedMesh = mesh; kolizji++; }
                     GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic | StaticEditorFlags.OccluderStatic);
                     siatek++; trojkatow += ni / 3;
@@ -192,8 +199,44 @@ public static class BraxBydgoszcz
             }
         }
         int drzew = Drzewa(root, Swiat);
+        TrawaMaska(root);
+        int lodow = Zasiegi(root);
         Debug.Log("BRAXHORN_BYDGOSZCZ_OSIEDLE siatek=" + siatek + " trojkatow=" + trojkatow + " kolizji=" + kolizji + " materialow=" + maty.Count +
-                  " drzew=" + drzew + " punkt_zerowy=(" + PunktZerowy.x + "; " + PunktZerowy.y + ")");
+                  " drzew=" + drzew + " lod=" + lodow + " punkt_zerowy=(" + PunktZerowy.x + "; " + PunktZerowy.y + ")");
+    }
+
+    /// <summary>Budżet kadru na telefonie (ZASADY 10.2, 800 tys./kadr): każda grupa osiedla (budynek, wyposażenie, budki) dostaje
+    /// LODGroup z jednym poziomem i odcięciem po wielkości na ekranie — drobne rzeczy znikają z daleka, budynki dopiero przy
+    /// horyzoncie; teren zawsze. Drzewa mają własne LOD.</summary>
+    static int Zasiegi(Transform root)
+    {
+        int n = 0;
+        foreach (Transform g in root)
+        {
+            if (!g || g.name.StartsWith("teren") || g.GetComponent<LODGroup>()) continue;
+            var rs = g.GetComponentsInChildren<MeshRenderer>(true); if (rs.Length == 0) continue;
+            bool drobne = g.name.StartsWith("wyposazenie") || g.name.StartsWith("budki") || g.name.StartsWith("zielen");
+            var lod = g.gameObject.AddComponent<LODGroup>();
+            lod.SetLODs(new[] { new LOD(drobne ? .035f : .008f, rs) }); lod.fadeMode = LODFadeMode.None; lod.RecalculateBounds(); n++;
+        }
+        return n;
+    }
+
+    /// <summary>Maska trawnika (osiedle.py: zapisz_maske_trawy) → zasób BraxClaudeTrawaMaska; kępy dokłada krok trawnika miasta.</summary>
+    static void TrawaMaska(Transform root)
+    {
+        string p = Path.Combine(Path.GetDirectoryName(Sciezka() ?? Plik) ?? "", "osiedle_trawa_maska.bin");
+        if (!File.Exists(p)) { BraxRegion.Note("Bydgoszcz: brak maski trawnika — trawniki bez kęp 3D"); return; }
+        using (var gz = new GZipStream(File.OpenRead(p), CompressionMode.Decompress))
+        using (var ms = new MemoryStream()) { gz.CopyTo(ms); var b = ms.ToArray();
+            if (b.Length < 28 || Encoding.ASCII.GetString(b, 0, 4) != "BTM1") { BraxRegion.Note("Bydgoszcz: zła maska trawnika"); return; }
+            var m = ScriptableObject.CreateInstance<BraxClaudeTrawaMaska>();
+            m.poczatek = new Vector2(BitConverter.ToSingle(b, 4), BitConverter.ToSingle(b, 8)); m.krok = BitConverter.ToSingle(b, 12);
+            m.y = BitConverter.ToSingle(b, 16); m.szer = BitConverter.ToInt32(b, 20); m.wys = BitConverter.ToInt32(b, 24);
+            m.bity = new byte[b.Length - 28]; Array.Copy(b, 28, m.bity, 0, m.bity.Length);
+            BraxZapisAssetu.Utworz(m, Out + "/trawa_maska.asset");
+            BraxRegionTrawa.MaskaKep(root, m);
+            Debug.Log("BRAXHORN_BYDGOSZCZ_TRAWA maska " + m.szer + " × " + m.wys + " krok " + m.krok.ToString("F2") + " y " + m.y.ToString("F3")); }
     }
 
     /// <summary>Paleta z nagłówka BYD2 (JsonUtility nie czyta słowników — prosty podział na wpisy materiałów).</summary>

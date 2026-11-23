@@ -71,6 +71,21 @@ public static class BraxSupermarket
         }
     }
 
+    /// <summary>23.11 (właściciel 19:51: stare supermarkety miasta usunąć, wnętrze do marketu na osiedlu): jedna hala
+    /// (kopia 1, bez lustra) wewnątrz marketu przy Skłodowskiej — front hali 4,8 m za elewacją, na osi drzwi w witrynie,
+    /// na posadzce marketu. Bez działki/korytarza/czyszczenia miasta (to wnętrze budynku osiedla, nie wolna działka).</summary>
+    public static void WOsiedlu(Scene scena, Vector3 front, float yaw)
+    {
+        if (!BraxMiastoAssety.Jest("miasto_sklepy")) { Debug.LogWarning("BRAXHORN_SUPERMARKET brak paczki miasto_sklepy — sklep w markecie osiedla pominięty"); return; }
+        var root = new GameObject("SUPERMARKET BRAXHORN (w markecie osiedla Bydgoszcz)");
+        SceneManager.MoveGameObjectToScene(root, scena);
+        var t = new GameObject("SUPERMARKET BRAXHORN 1").transform; t.SetParent(root.transform, false);
+        t.position = front; t.rotation = Quaternion.Euler(0f, yaw, 0f);
+        int towar = Zbuduj(t, false, 1);
+        Physics.SyncTransforms();
+        Debug.Log("BRAXHORN_SUPERMARKET osiedle: front (środek) " + front.ToString("F2") + ", obrót " + yaw + "°, hala " + W.ToString("F1") + " × " + D.ToString("F1") + " × " + H.ToString("F1") + " m, towar modeli " + towar);
+    }
+
     // ================================================================================================================
     // 16.11 15:13 (właściciel: „wejście do supermarketu nie istnieje!!! Od paru buildów, i mi nie mów, że jest”).
     // PRZYCZYNA (kod + log buildu 12.11): sklep #1 stał POZA obszarem grywalnym (wycięcie lasu z ≥ 126 w BraxMiastoGranice), a granica

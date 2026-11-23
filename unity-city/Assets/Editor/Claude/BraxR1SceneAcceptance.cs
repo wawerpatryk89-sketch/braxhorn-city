@@ -104,10 +104,11 @@ public static class BraxR1SceneAcceptance
         var stores=roots.SelectMany(g=>g.GetComponentsInChildren<Transform>(true))
             .Where(t=>t && (t.name=="SUPERMARKET BRAXHORN 1" ||
                            t.name=="SUPERMARKET BRAXHORN 2")).ToArray();
-        if(stores.Length!=2)bad.Add("SKLEPY: znaleziono "+stores.Length+"/2");
+        int sklepow=BraxBydgoszcz.Wlaczone?1:2;   // 23.11: stare sklepy miasta usunięte, jeden sklep w markecie osiedla bydgoskiego
+        if(stores.Length!=sklepow)bad.Add("SKLEPY: znaleziono "+stores.Length+"/"+sklepow);
         var doors=roots.SelectMany(g=>g.GetComponentsInChildren<BraxDrzwiPrzesuwne>(true))
             .Where(d=>d && d.etykieta!=null && d.etykieta.StartsWith("SUPERMARKET BRAXHORN")).ToArray();
-        if(doors.Length!=2)bad.Add("SKLEPY: drzwi przesuwne "+doors.Length+"/2");
+        if(doors.Length!=sklepow)bad.Add("SKLEPY: drzwi przesuwne "+doors.Length+"/"+sklepow);
         int samples=0, obstacles=0;
         foreach(var d in doors)
         {

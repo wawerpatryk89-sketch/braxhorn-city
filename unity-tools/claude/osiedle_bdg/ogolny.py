@@ -35,6 +35,15 @@ def zbuduj(poly, sp, nazwa="budynek"):
         P = shapely.geometry.polygon.orient(P.simplify(.15), 1.0)          # przeciwnie do zegara: na zewnątrz po prawej
         pts = list(P.exterior.coords); fronty = []
         rozst, ow, oh, opar = sp.get("okna", (3.0, 1.4, 1.4, .9))
+        Lmax_front = 0.0
+        if sp.get("market"):                       # najdłuższy front: tam drzwi do hali sklepu (BraxSupermarket.WOsiedlu)
+            fk_ = sp.get("okna_kier")
+            for (x0_, z0_), (x1_, z1_) in zip(pts, pts[1:]):
+                a_ = np.array([x0_, 0., z0_]); b_ = np.array([x1_, 0., z1_]); L_ = float(np.linalg.norm(b_ - a_))
+                if L_ < .3: continue
+                t_ = (b_ - a_) / L_; n_ = nrm(np.cross(UP, t_))
+                if P.contains(shapely.geometry.Point(*(((a_ + b_) / 2 + n_ * .5)[[0, 2]]))): n_ = -n_
+                if n_[0] * fk_[0] + n_[2] * fk_[1] > .5: Lmax_front = max(Lmax_front, L_)
         for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
             a = np.array([x0, 0., z0]); b = np.array([x1, 0., z1]); L = float(np.linalg.norm(b - a))
             if L < .3: continue
@@ -58,11 +67,13 @@ def zbuduj(poly, sp, nazwa="budynek"):
                         for f in range(kond):
                             fl = 0 if f == 0 else p0 + (f - 1) * hk
                             if f == 0 and sp.get("witryny"):
-                                okna.append((c - rozst / 2 + .15, c + rozst / 2 - .15, .45, min(p0 - .5, 3.0), "witryna", 0))
+                                drzwi = sp.get("market") and abs(L - Lmax_front) < .01 and abs(c - L / 2) < rozst / 2
+                                okna.append((c - rozst / 2 + .15, c + rozst / 2 - .15, .45 if not drzwi else cok + .02, min(p0 - .5, 3.0), "otwor" if drzwi else "witryna", 0))
                             else:
                                 okna.append((c - ow / 2, c + ow / 2, fl + opar, fl + opar + oh, "okno", f))
             cok = sp.get("h_cokol", .5)
-            S.sciana(nazwa, sp.get("cokol", "cokol4"), a + UP * -.25, t, L, cok + .25, [])
+            S.sciana(nazwa, sp.get("cokol", "cokol4"), a + UP * -.25, t, L, cok + .25,
+                     [(u0, u1, .25 + .12, cok + .25) for (u0, u1, v0, v1, r, pp) in okna if r == "otwor"])   # próg wejścia na posadzce
             gora = [(u0, u1, v0 - cok, v1 - cok, r, pp) for (u0, u1, v0, v1, r, pp) in okna]
             if sp.get("pola_kolorow") and L > 4:
                 import blok4, random
@@ -95,10 +106,23 @@ def zbuduj(poly, sp, nazwa="budynek"):
                 dd["v"] += [(vx, vy + y + att * 0, vz) for (vx, vy, vz) in cz["v"]]
                 for f in ("n", "t", "uv", "uv1"): dd[f] += cz[f]
                 dd["i"] += [b0 + q for q in cz["i"]]
+        if sp.get("market"):                       # posadzka w całym obrysie (+0,12) — wejście i hala sklepu stoją na niej
+            for tri in shapely.constrained_delaunay_triangles(P).geoms:
+                c3 = [np.array([x, .12, z]) for x, z in list(tri.exterior.coords)[:3]]
+                if np.cross(c3[1] - c3[0], c3[2] - c3[0])[1] < 0: c3[1], c3[2] = c3[2], c3[1]
+                S.tri_list(nazwa, "posadzka", c3, (0., 1., 0.), (1., 0., 0.), [(q[0], q[2]) for q in c3], None, [0, 1, 2])
         if sp.get("market") and fronty:
             gl = max(fronty, key=lambda f: f[4])
             for k_, f_ in enumerate(sorted(fronty, key=lambda f: -f[4])):
                 if f_[4] >= 8.0: market_front(S, nazwa, f_, H, att, f_ is gl, k_)
+            # przedsionek: od drzwi w witrynie do frontu hali sklepu (4,8 m w głąb) — ściany i strop widoczne od środka
+            # (ściany budynku są jednostronne; bez tego z przedsionka widać przez nie na zewnątrz)
+            a_, b_, t_, n_, L_ = gl; u0, u1, gl_, hh = L_ / 2 - 1.8, L_ / 2 + 1.8, 4.8, 3.3
+            Pq = lambda u, d, y: a_ + t_ * u - n_ * d + UP * y
+            S.quad(nazwa, "kiosk_bialy", Pq(u0, .05, .12), Pq(u0, gl_, .12), Pq(u0, gl_, hh), Pq(u0, .05, hh), kier=t_)
+            S.quad(nazwa, "kiosk_bialy", Pq(u1, .05, .12), Pq(u1, gl_, .12), Pq(u1, gl_, hh), Pq(u1, .05, hh), kier=-t_)
+            S.quad(nazwa, "posadzka", Pq(u0, .05, hh), Pq(u1, .05, hh), Pq(u1, gl_, hh), Pq(u0, gl_, hh), kier=-UP)
+            S.quad(nazwa, "kiosk_bialy", Pq(u0, .05, hh), Pq(u1, .05, hh), Pq(u1, .05, 4.4), Pq(u0, .05, 4.4), kier=-n_)
         if sp.get("ladowisko"):                    # SOR: cofnięta kondygnacja, płyta lądowiska z siatką (IMG_1744–1753)
             Qd = sor_dach(S, nazwa, P, y, sp.get("front_kier", (0, -1)))
         if sp.get("sor") and fronty:
@@ -124,6 +148,8 @@ def sciana(g, mat, o, t, n, L, H, okna, uv1, styl=None):
             for q, kk in (((P(u0, v0), P(u0, v1), P(u0, v1, g_), P(u0, v0, g_)), t), ((P(u1, v0), P(u1, v1), P(u1, v1, g_), P(u1, v0, g_)), -t),
                           ((P(u0, v1), P(u1, v1), P(u1, v1, g_), P(u0, v1, g_)), -UP), ((P(u0, v0), P(u1, v0), P(u1, v0, g_), P(u0, v0, g_)), UP)):
                 S.quad(g, mat, *q, kier=kk)
+            if r == "otwor":                       # wejście: bez szyby, tylko obramienie (przejście do hali sklepu)
+                S.box(g, "market_rama", P(u0 - .03, v1, .02), t, UP, n, u1 - u0 + .06, .08, .1); continue
             S.quad(g, "market_szklo", P(u0, v0, g_), P(u1, v0, g_), P(u1, v1, g_), P(u0, v1, g_), t=t, kier=n)
             fr = "market_rama"; d0 = g_ - .02
             for (a_, b_) in (((u0, v0), (u1, v0)), ((u0, v1), (u1, v1))):

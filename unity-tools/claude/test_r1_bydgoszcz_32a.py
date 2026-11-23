@@ -98,3 +98,33 @@ class Osiedle(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_sklep_w_markecie_i_maska_trawy():
+    """23.11 wieczór: hala sklepu (BraxSupermarket.WOsiedlu) w markecie — stałe w BraxBydgoszcz.cs zgadzają się z obrysem OSM;
+    maska trawnika dla kęp 3D istnieje i pokrywa osiedle; osiedle włączone, a granica miasta odsunięta za nie."""
+    import gzip, re, struct
+    import numpy as np
+    from shapely.geometry import Polygon, Point
+    from shapely.geometry.polygon import orient
+    root = Path(__file__).resolve().parents[2]
+    d = json.loads((root / "unity-tools/claude/osiedle_bdg/dane/osiedle_osm.json").read_text(encoding="utf-8"))
+    b = [x for x in d["budynki"] if "Leclerc" in (x.get("nazwa") or "")][0]
+    P = orient(Polygon(b["obrys"]).buffer(0).simplify(.15), 1.0); pts = list(P.exterior.coords); fr = []
+    for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
+        a = np.array([x0, z0]); bb = np.array([x1, z1]); L = np.linalg.norm(bb - a)
+        if L < .3: continue
+        t = (bb - a) / L; n = np.array([-t[1], t[0]])
+        if P.contains(Point(*((a + bb) / 2 + n * .5))): a, bb, t, n = bb, a, -t, -n
+        if n[1] > .5: fr.append((a, bb, t, n, L))
+    a, bb, t, n, L = max(fr, key=lambda f: f[4]); f = a + t * L / 2 - n * 4.8
+    cs = (root / "unity-city/Assets/Editor/Claude/Region/BraxBydgoszcz.cs").read_text(encoding="utf-8")
+    m = re.search(r"SklepFront = new Vector3\((-?[\d.]+)f, .*?, (-?[\d.]+)f\)", cs); yaw = float(re.search(r"SklepYaw = ([\d.]+)f", cs).group(1))
+    assert abs(float(m.group(1)) - (-145.9 + f[0] * 1.294)) < .1 and abs(float(m.group(2)) - (508.8 + f[1] * 1.294)) < .1
+    assert abs(yaw - np.degrees(np.arctan2(-n[0], -n[1]))) < .2
+    assert "public static readonly bool Wlaczone = true;" in cs
+    gr = (root / "unity-city/Assets/Claude/Runtime/BraxMiastoGranice.cs").read_text(encoding="utf-8")
+    assert "public const float Z1 = 900f;" in gr
+    raw = gzip.open(root / "unity-tools/claude/osiedle_bdg/gen/osiedle_trawa_maska.bin").read()
+    assert raw[:4] == b"BTM1"; x0, z0, krok, y, w, h = struct.unpack("<4f2i", raw[4:28])
+    assert len(raw) - 28 == w * h // 8 and krok < .4 and x0 < -500 and z0 < 170 and z0 + h * krok > 880

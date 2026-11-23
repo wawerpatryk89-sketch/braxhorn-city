@@ -59,7 +59,7 @@ public static class BraxRegionTrawa
     static void Stan()
     {
         if (dlaBuildu == BraxRegion.Rep) return;
-        dlaBuildu = BraxRegion.Rep; trawniki.Clear(); drzewa.Clear(); mats.Clear(); notatki.Clear();
+        dlaBuildu = BraxRegion.Rep; trawniki.Clear(); drzewa.Clear(); mats.Clear(); notatki.Clear(); maski.Clear();
         grassLin = Vector4.one; grassMeanLin = Vector3.zero; nTrawnikow = nStarych = nScian = nKep = 0;
         Directory.CreateDirectory(Out);
     }
@@ -272,6 +272,11 @@ public static class BraxRegionTrawa
     /// <summary>Pień drzewa stojący na trawniku: pierścień ziemi z liśćmi (0.8 m pełny, zanik do 1.6 m) i brak kęp przy pniu.</summary>
     public static void Drzewo(Vector3 p) { Stan(); drzewa.Add(p); }
 
+    // Osiedle bydgoskie (23.11): kępy z maski trawnika generowane w biegu (BraxClaudeTrawaMaskaRys) — ta sama siatka kępy,
+    // materiał, gęstość i wysokość co murawa miasta; nie zużywa limitu zapisanych kęp.
+    static readonly List<(Transform owner, BraxClaudeTrawaMaska maska)> maski = new List<(Transform, BraxClaudeTrawaMaska)>();
+    public static void MaskaKep(Transform owner, BraxClaudeTrawaMaska maska) { Stan(); if (owner && maska) maski.Add((owner, maska)); }
+
     // Płaska siatka (tylko górna powierzchnia), komórki ≤ krok, z dziurami — wzorem BraxCityGround.Plane (indeksy całkowite).
     static Mesh Plaszczyzna(string nazwa, Rect area, float y, List<Rect> holes, float step)
     {
@@ -357,6 +362,13 @@ public static class BraxRegionTrawa
                 if (!float.IsNaN(w.y) && w.obszar.width > 0f) Siatka(w, rnd, soil, list, ys);
                 else { var mr = w.go.GetComponent<MeshRenderer>(); if (mr) ZTrojkatow(mr, w.laka, rnd, soil, list, ys, limit - nKep); }
                 Pole(w.go.transform, list, ys, mat, siatka);
+            }
+            foreach (var (owner, maska) in maski)
+            {
+                maska.gestosc = 20f; maska.wysokoscKepy = .13f; maska.skalaSiatki = .32f;
+                var go = new GameObject("Trawa 3D (maska trawnika, kępy w biegu)"); go.transform.SetParent(owner, false);
+                var rys = go.AddComponent<BraxClaudeTrawaMaskaRys>(); rys.maska = maska; rys.siatka = siatka; rys.material = mat;
+                Notatka("kępy z maski: " + maska.szer + " × " + maska.wys + " pikseli, krok " + maska.krok.ToString("F2"));
             }
             foreach (var (r, l) in stare)
             {
