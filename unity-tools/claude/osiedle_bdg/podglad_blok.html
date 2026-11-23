@@ -26,7 +26,7 @@ const CC=(Q.get('cc')||'9,0,-20').split(',').map(Number); sun.position.copy(dir.
 sun.castShadow=true; sun.shadow.mapSize.set(4096,4096); Object.assign(sun.shadow.camera,{left:-SC,right:SC,top:SC,bottom:-SC,near:1,far:SC*6}); sun.shadow.bias=-.0004; sun.shadow.normalBias=.02
 const lin=c=>c.map(v=>Math.pow(v/255,2.2))
 const TCACHE={}; function tex(slug,rep,kind){const k=slug+'_'+kind; if(!TCACHE[k]){const b=ld('tex/'+k+'.jpg'); b.wrapS=b.wrapT=THREE.RepeatWrapping; b.anisotropy=8; if(kind==='diff')b.colorSpace=THREE.SRGBColorSpace; TCACHE[k]=b} const t=TCACHE[k].clone(); t.repeat.set(1/rep,1/rep); return t}
-const AVG={white_stucco_02:[.683,.679,.666],brushed_concrete_04:[.409,.368,.327],concrete_pavers:[.409,.372,.328],clean_asphalt:[.27,.274,.276],weathered_brown_planks:[.380,.300,.232]}
+const AVG={white_stucco_02:[.683,.679,.666],brushed_concrete_04:[.409,.368,.327],concrete_pavers:[.409,.372,.328],clean_asphalt:[.27,.274,.276],weathered_brown_planks:[.380,.300,.232],clay_roof_tiles_02:[.590,.323,.177]}
 function pbr(slug,rep,target,rough=1,ext={}){
   const a=AVG[slug].map(v=>Math.pow(v,2.2)), t=lin(target)
   const m=new THREE.MeshStandardMaterial({map:tex(slug,rep,'diff'),normalMap:tex(slug,rep,'nor'),roughnessMap:tex(slug,rep,'rough'),roughness:rough,metalness:0})

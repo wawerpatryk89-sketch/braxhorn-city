@@ -18,6 +18,67 @@ import blok4  # noqa: E402
 import maly  # noqa: E402
 import teren  # noqa: E402
 import wyposazenie  # noqa: E402
+import ogolny  # noqa: E402
+
+# Budynki z obrysu OSM (ogolny.py). Klucz: fragment nazwy z OSM albo (nr, ulica). zr = źródło liczby kondygnacji i koloru:
+# OSM (building:levels), ZDJ (zdjęcie właściciela), ZAL (założenie — lista do potwierdzenia zdjęciem).
+SPEC = [
+    ("E.Leclerc", dict(kond=1, parter=7.5, tynk="market_elewacja", okna_on=False, attyka=1.0, zr="OSM 2 p. / lotnicze IMG_1666: jedna bryła hali, płaski dach")),
+    ("Pawilon Łóżkowy", dict(kond=5, h_kond=3.4, parter=3.8, tynk="szpital_bialy", okna=(3.0, 1.6, 1.5, .9), zr="OSM 5 p., kolor IMG_1673")),
+    ("SOR", dict(kond=3, h_kond=3.8, parter=4.2, tynk="szpital_bialy", okna=(3.4, 2.2, 1.8, .8), zr="ZAL 3 p. (IMG_1672 w tle), lotnicze IMG_1664")),
+    ("Budynek F", dict(kond=4, h_kond=3.4, tynk="szpital_szary", okna=(3.2, 1.6, 1.5, .9), zr="ZAL 4 p., lotnicze IMG_1664")),
+    ("Budynek A ", dict(kond=1, h_kond=3.6, tynk="szpital_szary", zr="OSM 1 p.")),
+    ("Budynek B ", dict(kond=2, h_kond=3.4, tynk="szpital_szary", zr="ZAL 2 p.")),
+    ("Budynek D ", dict(kond=4, h_kond=3.4, tynk="szpital_bialy", zr="OSM 4 p.")),
+    ("Budynek C ", dict(kond=2, h_kond=3.4, tynk="szpital_szary", zr="OSM 2 p.")),
+    ("Biblioteka", dict(kond=2, h_kond=3.6, tynk="tynk_szary", zr="OSM 2 p.")),
+    ("Patomorfologii", dict(kond=3, h_kond=3.4, tynk="tynk_szary", zr="OSM 3 p.")),
+    ("Farmaceutyczny", dict(kond=3, h_kond=3.4, tynk="tynk_kremowy", zr="ZAL 3 p.")),
+    ("Katedra", dict(kond=2, h_kond=3.2, tynk="tynk_kremowy", zr="ZAL 2 p.")),
+    (("38b", "Marii"), dict(kond=2, h_kond=3.2, tynk="tynk_kremowy", witryny=True, zr="OSM 2 p.")),
+    (("40", "Marii"), dict(kond=5, h_kond=2.8, tynk="pole_a_1", okna=(3.0, 1.4, 1.3, .9), zr="OSM 5 p.")),
+    (("30B", "Marii"), dict(kond=1, h_kond=3.6, tynk="tynk_paw_b", witryny=True, dach="koperta", dach_mat="dachowka", zr="ZDJ IMG_1596 (czerwony dach)")),
+    (("36a", "Marii"), dict(kond=2, h_kond=3.2, tynk="tynk_bialy", zr="ZAL 2 p. (przedszkole)")),
+    (("7", "Aleja"), dict(kond=11, h_kond=2.8, tynk="tynk_bialy", okna=(3.0, 1.4, 1.3, .9), zr="ZAL 11 p. (IMG_1627–1630 z daleka)")),
+    (("9", "Aleja"), dict(kond=11, h_kond=2.8, tynk="tynk_bialy", okna=(3.0, 1.4, 1.3, .9), zr="ZAL 11 p.")),
+    (("11", "Aleja"), dict(kond=11, h_kond=2.8, tynk="tynk_bialy", okna=(3.0, 1.4, 1.3, .9), zr="ZAL 11 p.")),
+    (("13", "Aleja"), dict(kond=11, h_kond=2.8, tynk="tynk_bialy", okna=(3.0, 1.4, 1.3, .9), zr="ZAL 11 p.")),
+    (("15", "Żmudzka"), dict(kond=12, h_kond=2.8, tynk="tynk_bialy", okna=(3.0, 1.4, 1.3, .9), zr="OSM 12 p.")),
+    (("17", "Żmudzka"), dict(kond=12, h_kond=2.8, tynk="tynk_bialy", okna=(3.0, 1.4, 1.3, .9), zr="OSM 12 p.")),
+    (("19", "Żmudzka"), dict(kond=12, h_kond=2.8, tynk="tynk_bialy", okna=(3.0, 1.4, 1.3, .9), zr="OSM 12 p.")),
+]
+DOMYSLNY = dict(kond=2, h_kond=3.0, tynk="tynk_szary", zr="ZAL 2 p. (brak zdjęcia)")
+DOMYSLNY_MALY = dict(kond=1, h_kond=3.0, tynk="tynk_szary", zr="ZAL 1 p. (brak zdjęcia)")
+
+
+def spec(b):
+    for k, v in SPEC:
+        if isinstance(k, str):
+            if k in (b.get("nazwa") or ""): return v
+        elif b.get("nr") == k[0] and (b.get("ulica") or "").startswith(k[1]): return v
+    if b.get("rodzaj") == "school" or (b.get("ulica") or "").startswith("Jana Pest") and b.get("nr") == "18":
+        return dict(kond=3 if b["pole_m2"] < 1200 else 2, h_kond=3.4, tynk="tynk_kremowy", zr="ZAL szkoła (IMG_1613–1616)")
+    p = b.get("pietra")
+    if p and p.isdigit(): return dict(kond=int(p), h_kond=3.0, tynk="tynk_szary", zr="OSM %s p." % p)
+    return DOMYSLNY if b["pole_m2"] >= 250 else DOMYSLNY_MALY
+
+
+def inne(d, dst):
+    """Wszystkie pozostałe budynki w wycinku — z obrysu, wg SPEC. Garaże i szopy (< 40 m²) pomijane."""
+    from shapely.ops import unary_union
+    zrobione = unary_union(MODELE) if MODELE else Polygon()
+    opis = {}
+    for i, b in enumerate(d["budynki"]):
+        P = b["poly"]
+        if P.is_empty or P.area < 40 or not teren.OKNO.contains(P.centroid): continue
+        if b.get("rodzaj") in ("garages", "garage", "roof"): continue
+        if P.intersection(zrobione).area > .3 * P.area: continue
+        sp = spec(b)
+        S = ogolny.zbuduj(P, sp, "o%d" % i)
+        przenies(S, dst, "o%d" % i, 0.0, 0.0, 0.0); MODELE.append(P)
+        opis["o%d" % i] = {"nazwa": b.get("nazwa") or ("%s %s" % (b.get("ulica") or "", b.get("nr") or "")).strip(),
+                           "kond": sp["kond"], "zrodlo": sp["zr"], "trojkatow": sum(len(c["i"]) // 3 for c in S.dane().values())}
+    return opis
 from shapely.geometry import Polygon, LineString, Point  # noqa: E402
 
 K = 1.294
@@ -26,6 +87,15 @@ DANE = Path(__file__).resolve().parent / "dane" / "osiedle-sklodowskiej-32a.json
 
 
 def wczytaj():
+    """Mapa osiedla w metrach. Najpierw pełny wycinek (pobierz_osm.py: do ronda i szpitala), inaczej wycinek kolegi (gra)."""
+    pelny = DANE.parent / "osiedle_osm.json"
+    if pelny.exists():
+        d = json.loads(pelny.read_text(encoding="utf-8"))
+        for b in d["budynki"]:
+            b["poly"] = Polygon([tuple(p) for p in b["obrys"]]).buffer(0); b["pole_m2"] = round(b["poly"].area)
+        for u in d["ulice"]: u["linia"] = [tuple(p) for p in u["linia"]]
+        for t in d["tereny"]: t["linia"] = [tuple(p) for p in t["linia"]]
+        return d
     d = json.loads(DANE.read_text(encoding="utf-8"))
     for b in d["budynki"]:
         b["poly"] = Polygon([((x - O[0]) / K, (z - O[1]) / K) for x, z in b["obrys_xz"]]).buffer(0)
@@ -190,6 +260,7 @@ if __name__ == "__main__":
     opis = {"wiezowce": wiezowce(D), "bloki": bloki(d, D), "male": male(d, D)}
     for b in d["budynki"]:
         if b.get("nr") in WIEZOWCE and (b.get("ulica") or "").startswith("Marii"): MODELE.append(b["poly"])
+    opis["inne"] = inne(d, D)
     pkt_osm, _ = wyposazenie.osm()
     T, pola, G = teren.zbuduj(d, MODELE, PRZEDPOLA, boiska_asfalt(d), wyposazenie.zebry(pkt_osm, d["ulice"], teren.SZER))
     przenies(T, D, "teren", 0.0, 0.0, 0.0)

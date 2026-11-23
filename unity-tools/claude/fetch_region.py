@@ -54,7 +54,7 @@ TEXTURES_WYSPA = [
 ]
 # OSIEDLE BYDGOSKIE (23.11, właściciel: osiedle przy Skłodowskiej-Curie od nowa; ZASADY 5.8 — lista MATERIALY-WLASCICIELA):
 # tynk elewacji, beton cokołów i balkonów, kostka chodników (BraxBydgoszcz, paleta osiedle_bdg/paleta.py).
-TEXTURES_BYDGOSZCZ = ["white_stucco_02", "brushed_concrete_04", "concrete_pavers"]
+TEXTURES_BYDGOSZCZ = ["white_stucco_02", "brushed_concrete_04", "concrete_pavers", "clay_roof_tiles_02"]
 # FAWELA (9.11, właściciel: „z Poly Haven wykończenia, tekstury wszędzie”): stare tynki, cegła, pustak, beton, blacha falista,
 # rdzawe drzwi i rolety, okiennice, asfalt, ziemia, płótno, skóra — lista = Materialy w BraxRegionFawela.cs (TylkoFawela).
 # W 1K (telefon): 38 zestawów w 2K to ok. 0,5 GB tekstur w pamięci naraz — ściany dostają kolor + normalną 1024, drobne

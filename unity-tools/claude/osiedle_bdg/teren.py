@@ -23,7 +23,7 @@ GLOWNE = ("primary", "secondary", "tertiary")   # Skłodowskiej-Curie w OSM = te
 SZER = {"primary": 7.4, "secondary": 7.0, "tertiary": 7.0, "tertiary_link": 5.0, "residential": 5.5, "service": 4.6,
         "unclassified": 5.0}
 SZER_PIESZE = {"footway": 2.0, "path": 1.6, "pedestrian": 3.0, "steps": 2.0, "cycleway": 2.0}
-OKNO = box(-195, -195, 190, 190)          # wycinek osiedla w metrach (jak plan)
+OKNO = box(-320, -200, 240, 300)          # wycinek osiedla w metrach: z główną ulicą do ronda i szpitalem (23.11, 16:23)
 Y_JEZDNIA, Y_CHODNIK, Y_TRAWA = 0.0, 0.12, 0.08
 
 

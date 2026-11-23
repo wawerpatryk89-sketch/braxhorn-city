@@ -91,6 +91,12 @@ P = {
     "latarnia_beton": {"tex": BET, "m": 1.5, "kol": [150, 150, 146], "szorst": 1.0},
     "latarnia_stal": {"tex": None, "kol": [70, 74, 78], "szorst": .45, "metal": .6},
     "oprawa": {"tex": None, "kol": [90, 94, 98], "szorst": .4, "metal": .5},
+    # budynki z obrysu (ogolny.py) — kolory: zdjęcia właściciela IMG_1669–1677, lotnicze IMG_1664–1668; reszta ZAŁOŻENIE
+    "szpital_bialy": tynk([226, 228, 226], "brud_32a_wejscie.png"), "szpital_szary": tynk([196, 198, 200], "brud_32a_wejscie.png"),
+    "market_elewacja": {"tex": None, "kol": [214, 216, 218], "szorst": .55, "metal": .3},
+    "tynk_szary": tynk([196, 194, 186], "brud_32a_wejscie.png"), "tynk_kremowy": tynk([222, 210, 180], "brud_32a_wejscie.png"),
+    "tynk_bialy": tynk([232, 230, 224], "brud_32a_wejscie.png"), "tynk_attyka": tynk([180, 178, 172]),
+    "dachowka": {"tex": "clay_roof_tiles_02", "m": 2.0, "kol": [168, 70, 44], "szorst": .8},
     "palik": {"tex": "weathered_brown_planks", "m": 1.2, "kol": [150, 118, 84], "szorst": .9},
     "trawa": {"tex": None, "kol": [86, 112, 58], "szorst": 1.0, "gra": "BraxRegionTrawa"},
 }
@@ -106,7 +112,8 @@ for nr, k in (("28", 4), ("30", 1), ("32", 2), ("34", 3), ("36", 3), ("38", 1)):
 
 # średnie barwy tekstur (sRGB średniej liniowej, pomiar plików 2K Poly Haven 23.11) — do przeliczenia barwy docelowej na _Color
 SREDNIE = {"white_stucco_02": [.683, .679, .666], "brushed_concrete_04": [.409, .368, .327], "concrete_pavers": [.409, .372, .328],
-           "clean_asphalt": [.270, .274, .276], "weathered_brown_planks": [.380, .300, .232]}
+           "clean_asphalt": [.270, .274, .276], "weathered_brown_planks": [.380, .300, .232],
+           "clay_roof_tiles_02": [.590, .323, .177]}
 
 
 def tint(v):
