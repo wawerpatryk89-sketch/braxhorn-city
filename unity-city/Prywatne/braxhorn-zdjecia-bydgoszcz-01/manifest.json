@@ -1,6 +1,6 @@
 {
  "opis": "zdjęcia wzorcowe właściciela (Bydgoszcz) — do odwzorowania, nie do gry",
- "tar_sha256": "c968f54346fe7e75a35ae254f9c4320c9beb5d5b2c906d6061de880ba1c401e5",
+ "tar_sha256": "b464f6265706a1e813b1944504e03f09e8c184b76e9585a432ce767357487abc",
  "pliki": {
   "zdjecia/osiedle/o01.jpg": "c02850b235d4e6f83597af6d7243d1768589428a09c7d6c0b4f9093bbd80da6c",
   "zdjecia/osiedle/o02.jpg": "eb4c6cc2ca46ca85aad1008a04fd1b9608dc03715acdc821abda2c527a7e67e4",
@@ -95,13 +95,33 @@
   "zdjecia/stare_miasto/10.jpg": "f6020b571613693ae716a8edcac2b226543ea217d84b09bff4621e46ffc0bae0",
   "zdjecia/stare_miasto/11.jpg": "5b91342f898dba922b01be546244f92ab5ddc1b60807ee11028c3a6e2ad438a2",
   "zdjecia/stare_miasto/12.jpg": "c04825dccac2bb353ff3338a44ec37d2eff298d1e1c0057e300fc108f5d96e77",
-  "zdjecia/stare_miasto/13.jpg": "bae08249450ba06a0afa43c508a116acf5edeb0efac75c9bae9d0ae106922029"
+  "zdjecia/stare_miasto/13.jpg": "bae08249450ba06a0afa43c508a116acf5edeb0efac75c9bae9d0ae106922029",
+  "zdjecia/stare_miasto/m14_mostowa_brda.jpg": "73854a1849844d402e0e59afb54b387555510599681a4c35abcbe370c4aaa430",
+  "zdjecia/stare_miasto/m15_mostowa_brda.jpg": "4b8b94998ff79d5743c4db296fb0d130677fc8f69e7322511e25a1f2a5be9610",
+  "zdjecia/stare_miasto/m16_mostowa_brda.jpg": "20b00c18ad437380fc1fae85822bf90499fb9742d32b73953e7737951cd3a86a",
+  "zdjecia/stare_miasto/m17_mostowa_brda.jpg": "fe67408f5c8b8909033a867fafc556f8386c81a705119bfa4b19f4b0bd3ff634",
+  "zdjecia/stare_miasto/m18_mostowa_brda.jpg": "648277bab01cdf9f7c7d8f105c4c4b2dd3b5e30f9e543e90f5cdb25c5fdf1070",
+  "zdjecia/stare_miasto/m19_mostowa_brda.jpg": "5c116ec71a0209988ce9fc44dbbd2449e027ce25180a5ec6dd890cd2af88ed48",
+  "zdjecia/stare_miasto/m20_mostowa_brda.jpg": "8bf5ca43d2ebb55258aad204829c14b1e7671009f9182d4f72a419701bc904d1",
+  "zdjecia/stare_miasto/m21_mostowa_brda.jpg": "22a62f6e979aca4ac14d72574e7a50784785cb8929bc9a31e1937e5aa6dcc639",
+  "zdjecia/stare_miasto/m22_mostowa_brda.jpg": "4e6e34880451b502676f963ebc806f85d7c28600cc44af6ee8a9d4b542974a80",
+  "zdjecia/stare_miasto/m23_mostowa_brda.jpg": "d04ae3cb89cb4a6d639c1a042348ab2ed42950a5851894db9f76004cc2c086ef",
+  "zdjecia/stare_miasto/m24_mostowa_brda.jpg": "221aa5df26dc142f694332d7fb0b8e81962eaa2a6142b13462589a003abaec7f",
+  "zdjecia/stare_miasto/m25_mostowa_brda.jpg": "d964d74f190d8481e400e36df3ef2ca40dbb8443c96278ddd7b5c25993e3a065",
+  "zdjecia/stare_miasto/m26_mostowa_brda.jpg": "96d844fa53bc39edb0a3946b51acb693630a5634394f6f491f12610daf8c57ff",
+  "zdjecia/stare_miasto/m27_mostowa_brda.jpg": "e228c50443a02c3a7d6c23c893b8e4ee72d38006a3de58521345cc02d7466aec",
+  "zdjecia/stare_miasto/m28_mostowa_brda.jpg": "8e8f29cdda25c446a57aa8b224b4e5a03503857cba37094ab3d84d82649c0761",
+  "zdjecia/stare_miasto/m29_mostowa_brda.jpg": "fadf7de533b75f0787f2d1309f3b2c81f7d93c310439475bebd465e19cf139f0",
+  "zdjecia/stare_miasto/m30_mostowa_brda.jpg": "3772eb11783cfc48b50abb48d2f7e55095a793ddd8ff0c151cddf3d6ccdb5d90",
+  "zdjecia/stare_miasto/m31_mostowa_brda.jpg": "d9ab6ea4ab29f4fdac535f0ee9bfc82a1d8ece4ff38ecbd77a3673b07ba69452",
+  "zdjecia/stare_miasto/m32_mostowa_brda.jpg": "84e5428f02f92aa97f15402db99bd73b96ccf56582e32c531af8699312d4bc87",
+  "zdjecia/stare_miasto/m33_mostowa_brda.jpg": "41bd88aa2de810e7534e8e22dcadbdbce38425383746715a7056e309b3cbf6f6"
  },
  "czesci": [
   {
    "name": "part-000.cms",
-   "bytes": 52767301,
-   "sha256": "3d47359c1248b61cc25e07f6970e74a99ba7911a6d39e6c2a2acb460a94d34f5"
+   "bytes": 63990341,
+   "sha256": "e759ed34b43b7ba5186f3918676f05fc6761dac75d490a62701914a19df53793"
   }
  ]
 }
