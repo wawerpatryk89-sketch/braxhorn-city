@@ -338,9 +338,10 @@ def market_front(S, g, f, H, att, glowny=True, k_=0):
     a, b, t, n, L = f
     yk = 4.2 + .03 * k_                                   # kolejne fronty minimalnie wyżej — bez wspólnych płaszczyzn na narożach
     S.box(g, "market_elewacja", a + UP * yk, t, UP, n, L, .35, 3.0, bez=("-z",))
-    S.box(g, "market_rama", a + UP * (yk - .02) + n * 2.95, t, UP, n, L, .4, .08)          # obróbka krawędzi podcienia
-    for u in np.arange(3.0, L - 1.0, 6.0):
-        S.rura(g, "pcv", a + t * u + n * 2.7, a + t * u + n * 2.7 + UP * yk, .22, seg=16)
+    S.box(g, "slup_grafit", a + UP * (yk - .02) + n * 2.95, t, UP, n, L, .4, .08)          # obróbka krawędzi podcienia (grafit)
+    for u in np.arange(3.0, L - 1.0, 6.0):                  # słupy podcienia: grafit (właściciel 20:25 — odróżnić od jasnej elewacji)
+        S.rura(g, "slup_grafit", a + t * u + n * 2.7, a + t * u + n * 2.7 + UP * yk, .22, seg=16)
+        S.rura(g, "stal_ocynk", a + t * u + n * 2.7 + UP * .12, a + t * u + n * 2.7 + UP * .42, .26, seg=16)   # stalowa stopa
     yp = H + att
     # pergola z lameli na dachu wzdłuż frontu (zdjęcia 18:47): wsporniki co 2,5 m za attyką, belka, 5 lameli
     # równoległych do elewacji, pochylonych 30°, cofniętych od lica (nic nie wystaje w powietrze przed elewację)

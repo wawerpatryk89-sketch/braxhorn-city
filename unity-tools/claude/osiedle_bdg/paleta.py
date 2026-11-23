@@ -171,6 +171,7 @@ P["szyld_lody"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [44, 44, 46], "szors
 P["deska"] = {"tex": "weathered_brown_planks", "m": 2.0, "kol": [120, 96, 72], "szorst": 1.0}
 P["trawa_ozdobna"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [200, 184, 140], "szorst": 1.0}
 P["market_elewacja"] = {"tex": "plyty_szare", "m": 4.4, "kol": [204, 198, 186], "szorst": 1.0}   # kwadratowe płyty ~1,1 m (zdjęcia 18:47)
+P["slup_grafit"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [58, 62, 68], "szorst": .55}   # 20:25: słupy podcienia marketu
 P["posadzka"] = {"tex": BET, "m": 2.0, "kol": [168, 166, 160], "szorst": .8}
 P["pas_zielony"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [40, 120, 70], "szorst": .6}
 for _k in range(1, 5):
