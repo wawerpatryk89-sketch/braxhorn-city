@@ -261,16 +261,18 @@ def klatka(o, t):
     a = P(1.38, COKOL_Z + .9, -.3); b = P(1.38, h + .9, -1.0 - .24 * (st - 1) - .1)
     S.rura(g, "stal", a, b, .022)
     for pp in (a, b): S.rura(g, "stal", pp - UP * .95, pp, .022)
-    bar_d = 1.25                                                     # murek doświetla 1,25 m od ściany
-    S.box(g, "beton_schody", P(1.45, -.3, -bar_d), t, UP, n, SZ_POL + .4 - 1.45, .55, .14)
-    S.box(g, "beton_schody", P(SZ_POL + .25, -.3, -bar_d), t, UP, n, .15, .55, bar_d - .02)
-    for y in (.25 + .85, .25 + .45):
+    # doświetle piwnicy (IMG_1427): murek 14 cm, 30 cm nad chodnikiem (+0,12), barierka na murku; teren omija doświetle
+    # (osiedle.DOSWIETLA) — chodnik zaczyna się za murkiem, nic go nie przecina (uwaga właściciela 23.11, 16:26)
+    bar_d = 1.25; mur = .42
+    S.box(g, "beton_schody", P(1.45, -.3, -bar_d), t, UP, n, SZ_POL + .4 - 1.45, mur + .3, .14)
+    S.box(g, "beton_schody", P(SZ_POL + .25, -.3, -bar_d), t, UP, n, .15, mur + .3, bar_d - .02)
+    for y in (mur + .85, mur + .45):
         S.rura(g, "stal", P(1.38, y, -bar_d + .07), P(SZ_POL + .32, y, -bar_d + .07), .02)
     for u in np.arange(1.38, SZ_POL + .4, 1.6):
-        S.rura(g, "stal", P(u, .25, -bar_d + .07), P(u, 1.1, -bar_d + .07), .02)
-    S.rura(g, "stal", P(1.38, COKOL_Z + .9, -.3), P(1.38, 1.1, -bar_d + .07), .022)
-    # dno doświetla: żwir 45 cm niżej
-    S.quad(g, "zwir", P(1.45, -.45, -bar_d + .0), P(SZ_POL + .25, -.45, -bar_d), P(SZ_POL + .25, -.45, 0), P(1.45, -.45, 0), kier=UP)
+        S.rura(g, "stal", P(u, mur, -bar_d + .07), P(u, mur + .85, -bar_d + .07), .02)
+    S.rura(g, "stal", P(1.38, COKOL_Z + .9, -.3), P(1.38, mur + .85, -bar_d + .07), .022)
+    # dno doświetla: żwir tuż nad dolną krawędzią cokołu i murka (bez szczeliny pod ścianami)
+    S.quad(g, "zwir", P(1.45, -.28, -bar_d + .0), P(SZ_POL + .25, -.28, -bar_d), P(SZ_POL + .25, -.28, 0), P(1.45, -.28, 0), kier=UP)
 
 
 def drzwi(g, P, t, n, G, D0):

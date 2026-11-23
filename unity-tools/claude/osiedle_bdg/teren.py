@@ -92,7 +92,39 @@ def przedpole(A, B, n, maks, jezdnie):
     return Polygon([tuple(A - (B - A) * .02), tuple(B + (B - A) * .02), tuple(B + n * d), tuple(A + n * d)])
 
 
-def zbuduj(d, budynki_poly, przedpola=()):
+def boisko(S, p):
+    """Małe boisko na asfalcie: prostokąt w obrysie, linie (wycięte z asfaltu), bramki 3 x 2 m z rur ocynkowanych."""
+    r = p.buffer(-1.0).minimum_rotated_rectangle
+    pts = list(r.exterior.coords)[:4]
+    e1 = np.subtract(pts[1], pts[0]); e2 = np.subtract(pts[2], pts[1])
+    if np.linalg.norm(e1) < np.linalg.norm(e2): pts = pts[1:] + pts[:1]; e1, e2 = e2, e1
+    L, W = float(np.linalg.norm(e1)), float(np.linalg.norm(e2)); a = e1 / L; b = e2 / W; o = np.array(pts[0])
+    Q = lambda u, v: tuple(o + a * u + b * v)
+    pole = Polygon([Q(0, 0), Q(L, 0), Q(L, W), Q(0, W)])
+    lw = .08; m = .5
+    linie = [Polygon([Q(m, m), Q(L - m, m), Q(L - m, W - m), Q(m, W - m)]).exterior.buffer(lw / 2, cap_style=2, join_style=2),
+             LineString([Q(L / 2, m), Q(L / 2, W - m)]).buffer(lw / 2, cap_style=2),
+             shapely.geometry.Point(*Q(L / 2, W / 2)).buffer(min(3.0, W / 5)).exterior.buffer(lw / 2)]
+    pk = min(6.0, L / 6)
+    for x0, x1 in ((m, m + pk), (L - m, L - m - pk)):
+        y0, y1 = W / 2 - min(5.0, W / 3), W / 2 + min(5.0, W / 3)
+        linie.append(LineString([Q(x0, y0), Q(x1, y0), Q(x1, y1), Q(x0, y1)]).buffer(lw / 2, cap_style=2, join_style=2))
+    LIN = unary_union(linie).intersection(pole)
+    bramki = []
+    for x, kier_ in ((m, 1), (L - m, -1)):
+        bramki.append((np.array(Q(x, W / 2 - 1.5)), np.array(Q(x, W / 2 + 1.5)), a * -kier_))
+    return pole, LIN, bramki
+
+
+def bramka(S, A, B, wstecz, y0):
+    """Bramka 3 x 2 m: słupki i poprzeczka (rura 8 cm), tylne łuki/rozpory 1 m w głąb."""
+    A3 = np.array([A[0], y0, A[1]]); B3 = np.array([B[0], y0, B[1]]); w = np.array([wstecz[0], 0, wstecz[1]]); h = UP * 2.0
+    for p0, p1 in ((A3, A3 + h), (B3, B3 + h), (A3 + h, B3 + h), (A3, A3 + w), (B3, B3 + w), (A3 + w, B3 + w),
+                   (A3 + h, A3 + w + UP * .4), (B3 + h, B3 + w + UP * .4), (A3 + w, A3 + w + UP * .4), (B3 + w, B3 + w + UP * .4)):
+        S.rura("boisko", "stal_ocynk", p0, p1, .04 if np.linalg.norm(p1 - p0) > 1.2 else .03, seg=8)
+
+
+def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=()):
     S = Siatka()
     jezdnie, glowne, piesze, parkingi, boiska, place = [], [], [], [], [], []
     for u in d["ulice"]:
@@ -128,8 +160,12 @@ def zbuduj(d, budynki_poly, przedpola=()):
     PLAC_G = unary_union(prz_g).difference(POZIOM0).difference(bud).intersection(OKNO) if prz_g else Polygon()
     CHOD = unary_union(piesze + [opaska, wzdluz, przy_uliczkach] + prz_k).difference(POZIOM0).difference(bud).difference(PLAC_G).intersection(OKNO)
     BOI = unary_union(boiska).difference(POZIOM0).difference(CHOD).difference(bud).intersection(OKNO)
+    BA = [boisko(S, p) for p in boiska_asf]
+    BOI_A = unary_union([x[0] for x in BA]).difference(POZIOM0).difference(bud) if BA else Polygon()
+    CHOD = CHOD.difference(BOI_A); BOI = BOI.difference(BOI_A)
+    place = [p.difference(unary_union(boiska_asf)) for p in place]
     PLAC = unary_union(place).difference(POZIOM0).difference(CHOD).difference(bud).difference(BOI).intersection(OKNO)
-    TRAWA = OKNO.difference(unary_union([POZIOM0, CHOD, BOI, PLAC, PLAC_G, bud]))
+    TRAWA = OKNO.difference(unary_union([POZIOM0, CHOD, BOI, PLAC, PLAC_G, BOI_A, bud]))
     # krawężnik: pas 0,15 m po stronie chodnika/trawnika wzdłuż krawędzi jezdni i parkingów
     KRAW = POZIOM0.buffer(.15, join_style=2).difference(POZIOM0).difference(bud).intersection(OKNO)
     CHOD = CHOD.difference(KRAW); TRAWA = TRAWA.difference(KRAW)
@@ -144,11 +180,19 @@ def zbuduj(d, budynki_poly, przedpola=()):
     boki(S, "teren", "kraweznik", KRAW.simplify(.02), Y_CHODNIK + .01, Y_JEZDNIA - .02)
     boki(S, "teren", "kostka", CHOD.simplify(.05), Y_CHODNIK, Y_TRAWA - .02)
     plaski(S, "teren", "boisko", BOI.simplify(.05), Y_CHODNIK - .02)
+    for (pole, lin, bramki) in BA:
+        pl = pole.difference(POZIOM0).difference(bud)
+        plaski(S, "teren", "asfalt", pl.difference(lin).simplify(.01), Y_TRAWA + .01)
+        plaski(S, "teren", "linia_biala", lin.intersection(pl).simplify(.005), Y_TRAWA + .01)
+        boki(S, "teren", "kraweznik", pl, Y_TRAWA + .01, Y_TRAWA - .03)
+        for (A, B, w) in bramki: bramka(S, A, B, w, Y_TRAWA + .01)
     plaski(S, "teren", "plac_zabaw", PLAC.simplify(.05), Y_TRAWA + .01)
     plaski(S, "trawa", "trawa", TRAWA.simplify(.1), Y_TRAWA)
     pola = {k: round(v.area) for k, v in (("jezdnie", JEZ), ("parkingi", PARK), ("chodniki", CHOD), ("trawa", TRAWA),
                                            ("boiska", BOI), ("place_zabaw", PLAC), ("krawezniki", KRAW))}
-    return S, pola, {"JEZ": JEZ, "GLOW": GLOW, "PARK": PARK, "CHOD": CHOD, "TRAWA": TRAWA, "bud": bud}
+    pola["boiska_asfalt"] = round(BOI_A.area) if BA else 0
+    return S, pola, {"JEZ": JEZ, "GLOW": GLOW, "PARK": PARK, "CHOD": CHOD, "TRAWA": TRAWA, "bud": bud,
+                     "BEZ_DRZEW": unary_union([JEZ, PARK, CHOD, BOI, PLAC, PLAC_G, BOI_A, bud.buffer(3)])}
 
 
 def punkty(d, G, seed=5):
@@ -207,4 +251,7 @@ def punkty(d, G, seed=5):
                 drzewa.append((px, pz, R.choice(["duze", "duze", "srednie", "iglaste"])))
             z += krok
         x += krok
+    bez = G.get("BEZ_DRZEW")
+    if bez is not None:
+        drzewa = [p for p in drzewa if not bez.buffer(1.2).contains(shapely.geometry.Point(p[0], p[1]))]
     return [(round(a, 2), round(b, 2), c) for a, b, c in drzewa], [(round(a, 2), round(b, 2), c) for a, b, c in latarnie]

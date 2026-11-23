@@ -70,6 +70,7 @@ P = {
     "linia_biala": {"tex": None, "kol": [232, 232, 228], "szorst": .6},
     "boisko": {"tex": BET, "m": 2.0, "kol": [150, 150, 148], "szorst": 1.0},
     "plac_zabaw": {"tex": None, "kol": [196, 170, 128], "szorst": 1.0},
+    "stal_ocynk": {"tex": None, "kol": [178, 182, 186], "szorst": .4, "metal": .8},
     "trawa": {"tex": None, "kol": [86, 112, 58], "szorst": 1.0, "gra": "BraxRegionTrawa"},
 }
 # bloki czterokondygnacyjne: palety ze zdjęć (1 = blok 30 IMG_1611, 2 = blok 32 IMG_1605, 3 = blok przy garażach IMG_1420, 4 = blok 28 kremowy)

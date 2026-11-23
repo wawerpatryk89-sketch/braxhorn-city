@@ -103,6 +103,8 @@ def wiezowce(dst):
         B = blok_32a
         # ściana wejściowa (północ połówki zachodniej) i ślepa ściana z napisem — przed nimi kostka do uliczki (IMG_1427)
         PRZEDPOLA.append((swiat(kat, tx, tz, 0, B.DL), swiat(kat, tx, tz, B.SZ_POL, B.DL), kier(kat, 0, 1), 16.0, "kostka"))
+        # doświetle piwnicy przed ścianą wejściową (x lokalne −0,4…7,85, do 1,39 m od ściany): teren je omija
+        MODELE.append(Polygon([tuple(swiat(kat, tx, tz, x, z)) for x, z in ((-.4, B.DL), (7.85, B.DL), (7.85, B.DL + 1.39), (-.4, B.DL + 1.39))]))
         PRZEDPOLA.append((swiat(kat, tx, tz, B.SZ_POL, B.DL + B.USKOK), swiat(kat, tx, tz, 2 * B.SZ_POL, B.DL + B.USKOK), kier(kat, 0, 1), 14.0, "kostka"))
         opis[nr] = {"trojkatow": trojkaty(S), "okien": okien, "kat": kat, "x": tx, "z": tz}
     return opis
@@ -124,6 +126,17 @@ def swiat(kat, tx, tz, x, z):
 def kier(kat, x, z):
     c, s_ = math.cos(math.radians(kat)), math.sin(math.radians(kat))
     return np.array([c * x + s_ * z, -s_ * x + c * z])
+
+
+def boiska_asfalt(d):
+    """Plac za 32a (OSM: playground 846 m²) — właściciel 23.11, 16:26: „małe boisko na asfalcie z bramkami, placu zabaw
+    nie musisz” (zdjęcia stamtąd nie ma). Wybór: plac zabaw z OSM najbliżej 32a (< 60 m)."""
+    c32 = Point(*swiat(*WIEZOWCE["32a"][:3], 9.3, 15.0)); out = []
+    for t in d["tereny"]:
+        if t["rodzaj"] != "playground" or len(t["linia"]) < 3: continue
+        p = Polygon(t["linia"]).buffer(0)
+        if p.centroid.distance(c32) < 60: t["rodzaj"] = "boisko_asfalt"; out.append(p)
+    return out
 
 
 def bloki(d, dst):
@@ -176,7 +189,7 @@ if __name__ == "__main__":
     opis = {"wiezowce": wiezowce(D), "bloki": bloki(d, D), "male": male(d, D)}
     for b in d["budynki"]:
         if b.get("nr") in WIEZOWCE and (b.get("ulica") or "").startswith("Marii"): MODELE.append(b["poly"])
-    T, pola, G = teren.zbuduj(d, MODELE, PRZEDPOLA)
+    T, pola, G = teren.zbuduj(d, MODELE, PRZEDPOLA, boiska_asfalt(d))
     przenies(T, D, "teren", 0.0, 0.0, 0.0)
     drzewa, latarnie = teren.punkty(d, G)
     opis["teren"] = pola; opis["drzew"] = len(drzewa); opis["latarni"] = len(latarnie)
