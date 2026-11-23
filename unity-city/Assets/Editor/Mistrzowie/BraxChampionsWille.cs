@@ -612,13 +612,20 @@ public static partial class BraxChampionsWille
         Drzwi("apartament", false, 2f, 1.55f, 2.45f, y); Drzwi("łazienka 3", true, 3f, -1.5f, -.6f, y);
         Drzwi("garderoba", true, 3f, 4.0f, 4.9f, y); Drzwi("łazienka główna", false, 9f, 1.4f, 2.3f, y);
         Drzwi("łazienka 2", true, 3f, -15.2f, -14.4f, y);
-        // bedrooms: the beds face the view (their foot to the glass)
-        Dywan(new Vector3(-11.4f, y, -1.6f), 2.8f, 2.6f); Dywan(new Vector3(-2.5f, y, -1.6f), 2.8f, 2.6f); Dywan(new Vector3(12.0f, y, -1.4f), 3.4f, 3.0f);
+        // bedrooms: the beds face the view (their foot to the glass). 23.11 21:12 (owner: "te łóżka w sypialni widziałeś, jak
+        // były wstawione?"): the third bedroom's bed stood with its bedside table in front of its door (the table to x -1.0,
+        // the door -1.5..-.6) - it moves 1.7 m west, 1.2 m clear of the door
+        Dywan(new Vector3(-11.4f, y, -1.6f), 2.8f, 2.6f); Dywan(new Vector3(Lozko3X, y, -1.6f), 2.8f, 2.6f); Dywan(new Vector3(12.0f, y, -1.4f), 3.4f, 3.0f);
         BraxKatalog.Bed(c, new Vector3(-11.4f, y + .012f, -1.30f), Vector3.back, 1.6f, "łóżko");
-        BraxKatalog.Bed(c, new Vector3(-2.5f, y + .012f, -1.30f), Vector3.back, 1.6f, "łóżko");
+        BraxKatalog.Bed(c, new Vector3(Lozko3X, y + .012f, -1.30f), Vector3.back, 1.6f, "łóżko");
         BraxKatalog.Bed(c, new Vector3(12.0f, y + .012f, -1.30f), Vector3.back, 1.8f, "łóżko");
         BraxKatalog.Wardrobe(c, new Vector3(UX0 + T + .6f, y, -3.0f), Vector3.right, 2.4f, oak, BraxKatalog.Walnut, 2.4f, "szafa");
         BraxKatalog.Wardrobe(c, new Vector3(1.94f - .6f, y, -3.0f), Vector3.left, 2.4f, oak, BraxKatalog.Walnut, 2.4f, "szafa");
+        // 23.11 a bench at each bed's foot: boucle on a walnut frame, 44 cm (under the mattress, 57 cm)
+        foreach (float x in new[] { -11.4f, Lozko3X, 12.0f }) LawkaLozka(c, new Vector3(x, y, -1.30f - .08f - .22f), x > 0f ? 1.5f : 1.3f);
+        // 23.11 a chest of drawers on the second and third bedrooms' side walls (the partition x -7: its faces -7.06 / -6.94)
+        BraxKatalog.Dresser(c, new Vector3(-7f - .06f - .47f, y, -3.2f), Vector3.left, 1.6f, 3, 2, walnut, null, true, .82f, true, "komoda");
+        BraxKatalog.Dresser(c, new Vector3(-7f + .06f + .47f, y, -3.2f), Vector3.right, 1.6f, 3, 2, walnut, null, true, .82f, true, "komoda");
         BraxKatalog.Tv(c, new Vector3(UX1 - T, y + 1.35f, -2.2f), Vector3.left, 75f, (nr + 1) % 4, false, tag + " sypialnia TV");
         // the master's sitting corner at the glass (a sofa to the view, a table, a rug) and a desk on the partition
         BraxKatalog.Rug(c, new Vector3(4.8f, y, -4.7f), Vector3.forward, 3.0f, 2.4f, false);
@@ -644,11 +651,22 @@ public static partial class BraxChampionsWille
         Prysznic(new Vector3(1.2f, y, 5.6f));
         BraxKatalog.WcPan(c, new Vector3(-13.476f, y, 6.8f), Vector3.left);
         BraxKatalog.Place(c, "umywalka 0.6 orzech", cc => BraxKatalog.Vanity(cc, Vector3.zero, Vector3.forward, .6f, walnut, "umywalka"), new Vector3(-14.6f, y, UZ1 - T - .016f), Vector3.back, null);
-        foreach (var lp in new[] { new Vector3(-11.4f, top - .25f, -2.5f), new Vector3(-2.5f, top - .25f, -2.5f), new Vector3(9f, top - .25f, -2.5f),
+        foreach (var lp in new[] { new Vector3(-11.4f, top - .25f, -2.5f), new Vector3(Lozko3X, top - .25f, -2.5f), new Vector3(9f, top - .25f, -2.5f),
                                    new Vector3(12.4f, top - .25f, 4.5f), new Vector3(-6f, top - .25f, 2f), new Vector3(5.5f, top - .25f, 5.4f), new Vector3(-1.5f, top - .25f, 5.4f) })
             W.Lampa(tag + " | piętro światło", lp, .9f, 8f * K, new Color(1f, .93f, .82f));
     }
 
+    // an upholstered bench (p: its middle on the floor, w along x): a boucle seat on a walnut frame, four tapered legs
+    static void LawkaLozka(BraxKatalog.Ctx c, Vector3 p, float w)
+    {
+        BraxKatalog.HomeMaterials();
+        c.m.RoundedBox(BraxKatalog.Boucle, p + new Vector3(0f, .39f, 0f), new Vector3(w, .10f, .42f), .035f, Quaternion.identity, 3);
+        c.m.RoundedBox(walnut, p + new Vector3(0f, .315f, 0f), new Vector3(w - .02f, .05f, .40f), .008f, Quaternion.identity, 1);
+        foreach (float sx in new[] { -1f, 1f }) foreach (float sz in new[] { -1f, 1f })
+                c.m.Cylinder(walnut, p + new Vector3(sx * (w * .5f - .06f), 0f, sz * .15f), .014f, .29f, 10, Quaternion.identity, true, false, .022f);
+        W.Siedzisko(p + new Vector3(0f, .44f, 0f), Vector3.back, "ŁAWKA"); Siedziska++;
+        W.Kolizja(p + new Vector3(0f, .22f, 0f), new Vector3(w, .44f, .42f), Quaternion.identity);
+    }
     // a free-standing tub (white, its outside a soft oval; the filler in chrome)
     static void Wanna(Vector3 p)
     {
@@ -713,13 +731,19 @@ public static partial class BraxChampionsWille
         Siedz(Model("HotelSobczak/mid_century_lounge_chair/mid_century_lounge_chair_2k.gltf", "fotel w sypialni", new Vector3(14.5f, y, -5.0f), 200f), new Vector3(14.5f, y + .42f, -5.0f), new Vector3(-.34f, 0f, -.94f), "FOTEL");
         Siedz(Model("ArenaLobby/modern_arm_chair_01/modern_arm_chair_01_2k.gltf", "fotel w sypialni", new Vector3(-14.6f, y, -5.4f), 150f), new Vector3(-14.6f, y + .45f, -5.4f), new Vector3(.5f, 0f, -.87f), "FOTEL");
         Siedz(Model("ArenaLobby/modern_arm_chair_01/modern_arm_chair_01_2k.gltf", "fotel w sypialni", new Vector3(-6.0f, y, -5.4f), 210f), new Vector3(-6.0f, y + .45f, -5.4f), new Vector3(-.5f, 0f, -.87f), "FOTEL");
-        Obrazek(nr + 2, new Vector3(12.0f, y + 1.85f, 1f - .06f - .045f), Vector3.back, 2.2f, 1.1f);      // on the walls' brick / wood (4 cm)
-        Obrazek(nr + 3, new Vector3(-11.4f, y + 1.85f, 1f - .06f - .045f), Vector3.back, 1.8f, 1.0f);
-        Obrazek(nr + 4, new Vector3(-2.5f, y + 1.85f, 1f - .06f - .045f), Vector3.back, 1.8f, 1.0f);
+        // the prints over the beds on the walls' brick / wood (4 cm), clear over the headboards (their top 1.48 m: the prints
+        // hung from 1.31 m, their lower edge behind the headboard)
+        Obrazek(nr + 2, new Vector3(12.0f, y + 2.05f, 1f - .06f - .045f), Vector3.back, 2.0f, .9f);
+        Obrazek(nr + 3, new Vector3(-11.4f, y + 2.05f, 1f - .06f - .045f), Vector3.back, 1.6f, .8f);
+        Obrazek(nr + 4, new Vector3(Lozko3X, y + 2.05f, 1f - .06f - .045f), Vector3.back, 1.6f, .8f);
+        // the bedrooms were a bed in an empty room: a print over each chest of drawers (Wnetrze: the chests and the benches)
+        Obrazek(nr + 5, new Vector3(-7f - .06f, y + 1.62f, -3.2f), Vector3.left, 1.2f, .8f);
+        Obrazek(nr + 6, new Vector3(-7f + .06f, y + 1.62f, -3.2f), Vector3.right, 1.2f, .8f);
         Obrazek(nr + 1, new Vector3(-12.0f, y + 1.6f, 1f + .06f), Vector3.forward, 1.6f, .9f);                 // the corridor
         Model("HotelSobczak/potted_plant_04/potted_plant_04_1k.gltf", "roślina", new Vector3(15.1f, y, 7.1f), 0f);
     }
     static float fxHearth => GX0 + T + .4f;
+    const float Lozko3X = -4.2f;           // the third bedroom's bed (its door at x -1.5..-.6)
     // a framed print (Poly Haven landscape photographs, the catalogue's) on a wall, the frame walnut
     static void Obrazek(int i, Vector3 c, Vector3 n, float w, float h)
     {

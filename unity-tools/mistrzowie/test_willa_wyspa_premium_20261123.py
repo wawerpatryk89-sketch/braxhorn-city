@@ -110,7 +110,7 @@ class Wnetrze(unittest.TestCase):
         self.assertNotIn("Obrazek(nr + 1, new Vector3(11.3f, 1.75f, 5f - .06f)", VILLA)   # ... over the pantry's door
         self.assertNotIn("new Vector3(-4.25f, .38f, 5f - .06f - .23f)", VILLA)            # a credenza before the WC's door
         self.assertIn("b.RoundedBox(walnut, new Vector3(5.5f, .38f, GZ1 - T - .25f)", VILLA)
-        self.assertIn("Obrazek(nr + 2, new Vector3(12.0f, y + 1.85f, 1f - .06f - .045f)", VILLA)   # on the bed walls' lining
+        self.assertIn("Obrazek(nr + 2, new Vector3(12.0f, y + 2.05f, 1f - .06f - .045f)", VILLA)   # on the bed walls' lining
         self.assertNotIn("desk_lamp_arm_01", VILLA)
         self.assertIn("LampkaBiurko(new Vector3(2.55f, y + .76f, -1.62f));", VILLA)
         self.assertIn("Dywan(new Vector3(-10.4f, 0f, -.6f), 4.4f, 3.8f);", VILLA)
@@ -120,6 +120,29 @@ class Wnetrze(unittest.TestCase):
         body = VILLA[VILLA.index("static void Bryla(int nr)"):VILLA.index("static float fxHearth")]
         self.assertEqual(body.count("potted_plant_01_1k.gltf"), 0)                        # 176 000 triangles each
         self.assertLessEqual(body.count("potted_plant_02_1k.gltf"), 3)                    # 70 000 each
+
+
+class Sypialnie(unittest.TestCase):
+    """Owner 23.11 21:12: "A te łóżka w sypialni widziałeś, jak były wstawione?" """
+
+    def test_no_bedside_table_before_a_door(self):
+        # BraxKatalog.Bed: headboard Wb + .30 wide, a bedside table each side centred at its half + .30, .50 wide
+        x3 = float(re.search(r"const float Lozko3X = (-?[\d.]+)f;", VILLA).group(1))
+        beds = [(-11.4, 1.6, (-9.0, -8.1)), (x3, 1.6, (-1.5, -.6))]                 # the bed, its width, its room's door
+        for x, wb, (d0, d1) in beds:
+            half = (wb + .30) * .5 + .30 + .25
+            self.assertGreaterEqual(min(abs(x + half - d0), abs(x - half - d1)), .9, (x, d0, d1))
+            self.assertTrue(x + half < d0 or x - half > d1)
+        self.assertIn("BraxKatalog.Bed(c, new Vector3(Lozko3X, y + .012f, -1.30f), Vector3.back, 1.6f", VILLA)
+
+    def test_prints_clear_of_the_headboards_and_rooms_furnished(self):
+        # the headboard's top: 1.48 m; each print's lower edge (its frame 4 cm) over it
+        for m in re.finditer(r"Obrazek\(nr \+ [234], new Vector3\([^,]+, y \+ ([\d.]+)f, 1f - \.06f - \.045f\), Vector3\.back, [\d.]+f, ([\d.]+)f\)", VILLA):
+            cy, h = float(m.group(1)), float(m.group(2))
+            self.assertGreater(cy - h / 2 - .04, 1.48 + .05)
+        self.assertEqual(len(re.findall(r"Obrazek\(nr \+ [234], new Vector3", VILLA)), 3)
+        self.assertIn("LawkaLozka(c, new Vector3(x, y, -1.30f - .08f - .22f)", VILLA)
+        self.assertEqual(VILLA.count('BraxKatalog.Dresser(c, new Vector3(-7f'), 2)
 
 
 class Wykonczenie(unittest.TestCase):
