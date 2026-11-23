@@ -193,7 +193,7 @@ def zbuduj(poly, sp, nazwa="budynek"):
                     wq = [w_ and d_ > .7 * max(dl) for w_, d_ in zip(wq, dl)]
                 dach_kamienica(S, nazwa, Qc, wq, H + att + .02, sp.get("dach_mat", "dachowka"), sp.get("spadek", 42), sp["tynk"],
                                sp.get("kalenica_max", 7.5), uq if sp.get("lukarny") else None, rozst, sp.get("kominy", True),
-                               sp.get("szczyt_mat") or sp["tynk"], "belka_ciemna" if sp.get("mur_pruski") else None)
+                               sp.get("szczyt_mat") or sp["tynk"], "belka_ciemna" if sp.get("mur_pruski") else None, sp.get("lukarny_rzedy", 1))
         elif sp.get("dach", "plaski") == "koperta":
             dach_koperta(S, nazwa, P, y + .05, sp.get("dach_mat", "dachowka"), sp.get("spadek", 28))
         else:
@@ -298,9 +298,9 @@ def mur_pruski(S, g, a, t, n, L, okna, p0, hk, kond, Hs, rozst, off, k, mat="bel
     oknach), rygle na wysokości stropów, parapetów i nadproży, zastrzały w skrajnych polach każdej kondygnacji.
     Belki 3 cm przed licem (bez wspólnej płaszczyzny z wypełnieniem)."""
     P = lambda u, v, d=0.0: a + t * u + UP * v - n * d
-    w = .16; e = .03
+    w = .19; e = .03
     pietra = [(.3, p0)] + [(p0 + f * hk, min(p0 + (f + 1) * hk, Hs)) for f in range(kond - 1)]
-    m = max(1, int(round(L / .85)))
+    m = max(1, int(round(L / 1.05)))
     slupy = [min(max(i * L / m - w / 2, 0), L - w) for i in range(m + 1)]
     for (y0, y1) in pietra:
         okn = [(u0, u1) for (u0, u1, v0, v1, r, pp) in okna if v0 >= y0 - .05 and v1 <= y1 + .05]
@@ -316,14 +316,21 @@ def mur_pruski(S, g, a, t, n, L, okna, p0, hk, kond, Hs, rozst, off, k, mat="bel
     for v in sorted(set(round(x, 2) for x in poz)):
         if v < .2 or v > Hs - w + .01: continue
         S.box(g, mat, P(0, v, -.005), t, UP, n, L, w, e + .005, bez=("-z",))
-    for (y0, y1) in pietra:                                         # zastrzały w skrajnych polach
-        for (ua, ub) in ((slupy[0] + w, slupy[1]), (slupy[-2] + w, slupy[-1])):
-            if ub - ua < .4 or y1 - y0 < .8: continue
-            A = P(ua, y0 + w, -.01); Bq = P(ub, y1 - w, -.01); dl = float(np.linalg.norm(Bq - A)); tt = (Bq - A) / dl
+    # zastrzały (zdjęcia IMG_2010–2012): w skrajnych polach każdej kondygnacji i w co trzecim wolnym polu, na przemian
+    # „/” i „\”; pola z oknem bez zastrzałów. Belki zastrzałów 1 cm przed słupami i ryglami (bez wspólnych płaszczyzn).
+    for f_, (y0, y1) in enumerate(pietra):
+        okn = [(u0, u1) for (u0, u1, v0, v1, r, pp) in okna if v0 >= y0 - .05 and v1 <= y1 + .05]
+        pola_ = [(slupy[i] + w, slupy[i + 1]) for i in range(len(slupy) - 1)]
+        for i, (ua, ub) in enumerate(pola_):
+            if ub - ua < .3 or y1 - y0 < .8: continue
+            if any(u0 - w < ub and u1 > ua for (u0, u1) in okn): continue
+            if not (i == 0 or i == len(pola_) - 1 or (i + f_) % 2 == 1): continue
+            ya, yb = (y0 + w, y1 - w) if (i + f_) % 2 == 0 else (y1 - w, y0 + w)
+            A = P(ua, ya, -.01); Bq = P(ub, yb, -.01); dl = float(np.linalg.norm(Bq - A)); tt = (Bq - A) / dl
             nn = nrm(np.cross(tt, n)); S.box(g, mat, A - nn * w / 2, tt, nn, n, dl, w, e + .01, bez=("-z",))
 
 
-def lukarna(S, g, p2, tt, nin, y, tg, ok, mat, tynk, hmin):
+def lukarna(S, g, p2, tt, nin, y, tg, ok, mat, tynk, hmin, dF=.7):
     """Lukarna dwuspadowa na połaci od ulicy: ścianka czołowa z oknem 0,8 × 0,95 m 0,7 m za okapem, policzki do połaci,
     daszek z dachówki z kalenicą prostopadłą do okapu. Pomijana, gdy połać jest za krótka (kopertowy narożnik)."""
     w, hl, dF = 1.3, 1.45, .7
@@ -426,7 +433,7 @@ def rozklad_wypukly(P):
     return cz
 
 
-def dach_kamienica(S, g, P, wolne, y, mat, spadek, tynk, kal_max=7.5, ulica=None, rozst=2.2, kominy=True, szczyt=None, belki=None):
+def dach_kamienica(S, g, P, wolne, y, mat, spadek, tynk, kal_max=7.5, ulica=None, rozst=2.2, kominy=True, szczyt=None, belki=None, rzedy=1):
     """Dach kamienicy w pierzei: połacie tylko od krawędzi wolnych (ulica, podwórze), nad ścianami przy sąsiedzie szczyt
     (ściana ogniowa w tynku budynku) — jak na zdjęciach Rynku i Focha. Wysokość połaci = y + tg(spadek) · odległość od
     krawędzi (okap 0,35 m poza licem), dach = minimum połaci; powyżej kal_max płaski taras (mansardy dużych kamienic).
@@ -492,10 +499,11 @@ def dach_kamienica(S, g, P, wolne, y, mat, spadek, tynk, kal_max=7.5, ulica=None
             if not f or i_k >= len(ulica) or not ulica[i_k]: continue
             Lk = float(np.linalg.norm(b_ - a_)); tt = (b_ - a_) / max(Lk, 1e-6)
             nk = max(0, int((Lk - 2.4) // (2 * rozst)) + 1)
-            for j in range(nk):
-                s_ = Lk / 2 + (j - (nk - 1) / 2) * 2 * rozst
-                if s_ < 1.4 or s_ > Lk - 1.4: continue
-                lukarna(S, g, a_ + tt * s_, tt, nin, y, tg, ok, mat, tynk, hmin)
+            for rz in range(rzedy):                               # spichrze (IMG_2009): kilka rzędów lukarn, mijankowo
+                for j in range(nk + (rz % 2)):
+                    s_ = Lk / 2 + (j - (nk - 1 + rz % 2) / 2) * 2 * rozst
+                    if s_ < 1.4 or s_ > Lk - 1.4: continue
+                    lukarna(S, g, a_ + tt * s_, tt, nin, y, tg, ok, mat, tynk, hmin, dF=.7 + rz * 2.3)
     # kominy z cegły przy ścianach sąsiadów (i jeden na kalenicy w budynku wolnostojącym)
     if kominy:
         pk = [(a_ + b_) / 2 + nin * .6 for (a_, b_, nin, f) in kr if not f and np.linalg.norm(b_ - a_) > 3]

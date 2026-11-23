@@ -137,10 +137,12 @@ def spec(b, R_):
               wykusz=R_.random() < .22, balkon=R_.random() < .35)
     nz = nazwa.lower()
     if "spichlerz" in nz:                                             # spichrze nad Brdą: mur pruski, dach dwuspadowy 58°
-        return dict(kond=4, h_kond=2.6, parter=2.9, tynk="k_bialy", cokol="cokol4", h_cokol=.4,
-                    okna=(1.7, .62, .82, 1.0), witryny=False, gzymsy=False, dach="kamienica", dach_mat="dachowka_03", spadek=58,
+        # IMG_2009 (Grodzka 8): niskie ściany podłużne (ok. 3,3 m) w murze pruskim, ogromny stromy dach z rzędami lukarn,
+        # wysokie szczyty w murze pruskim
+        return dict(kond=1, h_kond=3.3, parter=3.3, tynk="k_wypelnienie", cokol="cokol4", h_cokol=.4,
+                    okna=(1.9, .7, .95, 1.2), witryny=False, gzymsy=False, dach="kamienica", dach_mat="dachowka_03", spadek=62,
                     attyka=.15, kalenica_max=40.0, zr="ZAŁ spichlerz wg zdjęć m22–m26, m33–m35", ozdoby=None, parter_mat=None,
-                    lukarny=True, kominy=False, mur_pruski=True, dwuspad=True, szczyt_mat=None)
+                    lukarny=True, lukarny_rzedy=3, kominy=False, mur_pruski=True, dwuspad=True, szczyt_mat=None)
     if "katedra" in nz or "kościół" in nz:
         return dict(kond=1, h_kond=12.0, parter=12.0, tynk="c_sredniowieczna", cokol="cokol4", h_cokol=.6, okna=(4.2, 1.5, 6.0, 2.6),
                     witryny=False, gzymsy=False, dach="kamienica", dach_mat="dachowka_03", spadek=55, attyka=.2, kalenica_max=40.0,

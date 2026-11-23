@@ -471,7 +471,11 @@ def spichrz_lukowy(S, g, P, k0=0):
                box(a - .7, 3.9, a + .7, 5.2), okno_lukowe(S, g, orig, t_, kier, a - 1.0, 7.0, .8, 1.1, 0), okno_lukowe(S, g, orig, t_, kier, a + 1.0, 7.0, .8, 1.1, 0),
                okno_lukowe(S, g, orig, t_, kier, a, 10.0, .8, 1.0, 0)]
         otw = [q for q in otw if obrys.buffer(-.4).contains(q)]
-        fasada(S, g, "k_szarobez", orig, t_, kier, Wd, y0 + H, otw, gl=.25, mat_osc="k_szarobez", obrys=obrys)
+        # pas: dół do 6,2 m ciemniejszy i zabrudzony, wyżej jaśniejszy tynk (IMG_2010–2011); granica falista ±15 cm
+        fala = Polygon([(-1, -1), (Wd + 1, -1)] + [(Wd + 1 - k * (Wd + 2) / 12, 6.2 + .15 * math.sin(k * 1.7)) for k in range(13)])
+        dol, gora = obrys.intersection(fala), obrys.difference(fala)
+        fasada(S, g, "k_szarobez_dol", orig, t_, kier, Wd, y0 + H, [q for q in otw if q.intersects(dol)], gl=.25, mat_osc="k_szarobez_dol", obrys=dol.difference(unary_union([q for q in otw if q.intersects(dol) and q.intersects(gora)])) if False else dol)
+        fasada(S, g, "k_szarobez", orig, t_, kier, Wd, y0 + H, [q for q in otw if q.intersects(gora)], gl=.0, obrys=gora)
         for k, q in enumerate(otw):
             u0, v0, u1, v1 = q.bounds
             if v0 < .1:                                                       # wrota dwuskrzydłowe
@@ -486,7 +490,7 @@ def spichrz_lukowy(S, g, P, k0=0):
             A = Q(s, x0_, y0_) + kier * .06; Bq = Q(s, x1_, y1_) + kier * .06
             tt = nrm(Bq - A); nn = nrm(np.cross(kier, tt))
             if nn[1] < 0: nn = -nn
-            S.quad(g, "belka_ciemna", A - nn * .35, Bq - nn * .35, Bq + nn * .05, A + nn * .05, kier=kier)
+            S.quad(g, "belka_ciemna", A - nn * .5, Bq - nn * .5, Bq + nn * .08, A + nn * .08, kier=kier)
     # dach: wyciągnięty ostrołuk (okap 0,3 m na szczytach)
     for (x0_, y0_), (x1_, y1_) in zip(profil, profil[1:]):
         p = [Q(-.3, x0_, y0_ + .02), Q(-.3, x1_, y1_ + .02), Q(L + .3, x1_, y1_ + .02), Q(L + .3, x0_, y0_ + .02)]
@@ -496,7 +500,7 @@ def spichrz_lukowy(S, g, P, k0=0):
     for (sx) in (-1, 1):
         a3 = Q(0 if sx > 0 else L, sx * a, 0); t_ = ax if sx > 0 else -ax; n_ = bx * sx
         okn = [(u - .35, u + .35, .9, 1.9, "okno_t", 0) for u in np.arange(1.6, L - 1.0, 2.6)]
-        fasada(S, g, "k_bialy", a3, t_, n_, L, y0 + .2, [box(u0, v0, u1, v1) for (u0, u1, v0, v1, r, pp) in okn], gl=.15, mat_osc="k_bialy")
+        fasada(S, g, "k_wypelnienie", a3, t_, n_, L, y0 + .2, [box(u0, v0, u1, v1) for (u0, u1, v0, v1, r, pp) in okn], gl=.15, mat_osc="k_wypelnienie")
         for k, (u0, u1, v0, v1, r, pp) in enumerate(okn):
             szyba(S, g, a3, t_, n_, box(u0, v0, u1, v1), .14, k0 + 20 + k, mat="witraz")
         B.S = S
@@ -554,7 +558,8 @@ def spichrz_ceglany(S, g, P, k0=0):
                 if obrys.buffer(-.5).contains(q): otw.append(q)
         gora = obrys.difference(dol)
         fasada(S, g, "c_czerwona", orig, t_, kier, Wd, szczyt, [q for q in otw if q.bounds[1] >= 5.6], gl=.25, mat_osc="c_czerwona", obrys=gora)
-        fasada(S, g, "k_szarobez", orig, t_, kier, Wd, 5.6, [q for q in otw if q.bounds[1] < 5.6], gl=.25, mat_osc="k_szarobez", obrys=dol)
+        fasada(S, g, "k_szarobez_dol", orig, t_, kier, Wd, 5.6, [q for q in otw if q.bounds[1] < 5.6], gl=.25, mat_osc="k_szarobez_dol", obrys=dol)
+        S.box(g, "c_czerwona", orig + t_ * -.04 + UP * 5.55, t_, UP, -kier, Wd + .08, .18, .1, bez=("-z",))    # gzyms nad tynkiem
         S.box(g, "c_czerwona", orig + t_ * -.05 + UP * (Hw - .05), t_, UP, -kier, Wd + .1, .25, .15, bez=("-z",))   # gzyms
         for k, q in enumerate(otw):
             u0, v0, u1, v1 = q.bounds
