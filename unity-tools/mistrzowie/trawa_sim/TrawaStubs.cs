@@ -1,4 +1,5 @@
-// The few UnityEngine types the 3D grass's mask and clumps use (BraxChampionsTrawa3DMaska, BraxChampionsTrawa3DDane), with
+// The few UnityEngine types the 3D grass's mask and clumps (BraxChampionsTrawa3DMaska, BraxChampionsTrawa3DDane) and the sea's
+// shore field (BraxChampionsMorzeBrzeg) use, with
 // Unity's own arithmetic (Euler order Z, X, Y; TRS = T * R * S), so the simulator runs the real code on the real lawn.
 using System;
 namespace UnityEngine
@@ -17,7 +18,9 @@ namespace UnityEngine
         public static int RoundToInt(float a) => (int)Math.Round(a, MidpointRounding.ToEven);
         public static float Lerp(float a, float b, float t) => a + (b - a) * Math.Clamp(t, 0f, 1f);
         public static float Sin(float a) => (float)Math.Sin(a); public static float Cos(float a) => (float)Math.Cos(a);
+        public static float Clamp01(float a) => a < 0f ? 0f : a > 1f ? 1f : a; public static float Sqrt(float a) => (float)Math.Sqrt(a);
     }
+    public struct Vector4 { public float x, y, z, w; public Vector4(float x, float y, float z, float w) { this.x = x; this.y = y; this.z = z; this.w = w; } }
     public struct Vector2 { public float x, y; public Vector2(float x, float y) { this.x = x; this.y = y; } }
     public struct Vector3
     {

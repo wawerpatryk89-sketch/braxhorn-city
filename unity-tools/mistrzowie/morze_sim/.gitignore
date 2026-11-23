@@ -1,0 +1,7 @@
+bin/
+obj/
+*_geometry.json
+*.png
+*.jpg
+out/
+__pycache__/

@@ -282,6 +282,16 @@ public static class BraxChampionsFoundation
         materials["grass"]=BraxChampionsGrass.CreateMaterial(materials["grass"]);
         materials["sea"]=SeaMaterial();
         materials["foam"]=FoamMaterial();
+        // 23.11 owner (the GTA beach pictures, 19:12 "chcę taki piasek i fale na morzu i woda jak prawdziwa", 19:27 "fale niech
+        // się wylewają na plażę", "te ścieżki usuń z plaży całkowicie"): one sand for the dry and the wet beach, the sea at the
+        // beach from its shore field (BraxChampionsPlaza). sea.mat (the harbour water) stays for the rooftop pool's copy.
+        float seaLevel=float.NaN;
+        foreach(var sm in d.meshes)if(sm.role=="sea"&&sm.positions.Length>=3){seaLevel=sm.positions[1];break;}
+        if(float.IsNaN(seaLevel))throw new InvalidOperationException("Foundation has no sea mesh");
+        materials["sand_dry"]=BraxChampionsPlaza.Piasek(materials["sand_dry"],seaLevel);
+        materials["sand_wet"]=materials["sand_dry"];
+        materials["sea"]=BraxChampionsPlaza.Morze(d.meshes,seaLevel);
+        BraxChampionsPlaza.Plycizny=0;int foamStrips=0;
         var scene=reuseEmptyScene?previous:EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Additive);
         SceneManager.SetActiveScene(scene);
         var report=new Report{sourceCommit=d.sourceCommit,scaleK=K,berths=d.berths.Length};
@@ -291,6 +301,8 @@ public static class BraxChampionsFoundation
             // Geometry is already in game units. Root transform MUST stay at identity.
             foreach(var m in d.meshes)
             {
+                // 23.11: the static foam strip is replaced by the sea's own foam, moving with the waves and the run-up
+                if(m.role=="foam"){foamStrips++;continue;}
                 var mesh=new Mesh{name=m.id,indexFormat=m.positions.Length/3>65535?IndexFormat.UInt32:IndexFormat.UInt16};
                 var v=new Vector3[m.positions.Length/3];var uv=new Vector2[v.Length];
                 for(int i=0;i<v.Length;i++){v[i]=new Vector3(m.positions[i*3],m.positions[i*3+1],m.positions[i*3+2]);uv[i]=new Vector2(m.uv[i*2],m.uv[i*2+1]);}
@@ -307,7 +319,16 @@ public static class BraxChampionsFoundation
                 else {r.shadowCastingMode=ShadowCastingMode.Off;r.receiveShadows=false;}
                 GameObjectUtility.SetStaticEditorFlags(o,StaticEditorFlags.OccludeeStatic);
                 report.meshes++;report.triangles+=tri.Length/3;
+                if(m.role=="sand_wet")
+                {
+                    // the water the run-up climbs with over this wet sand (the sea's meshes stop at the sand's edge)
+                    var shallow=Save(BraxChampionsPlaza.Plycizna(mesh,seaLevel),Output+"/Meshes/"+m.id+"_plycizna.asset");
+                    var so=new GameObject(m.id+" plycizna");so.transform.SetParent(root,false);so.AddComponent<MeshFilter>().sharedMesh=shallow;
+                    var sr=so.AddComponent<MeshRenderer>();sr.sharedMaterial=materials["sea"];sr.shadowCastingMode=ShadowCastingMode.Off;sr.receiveShadows=false;
+                    GameObjectUtility.SetStaticEditorFlags(so,StaticEditorFlags.OccludeeStatic);
+                }
             }
+            Debug.Log("A1_PLAZA shallows="+BraxChampionsPlaza.Plycizny+" foamStripsReplaced="+foamStrips+" sand=ChampionsPiasek sea=ChampionsMorze");
             BraxChampionsGrass.AddClumps(root,materials["grass"]);
             var vegetation=new GameObject("Zielen - ziemia i trawniki poza chodnikami").transform;vegetation.SetParent(root,false);
             BraxChampionsPalmTrunk.Reset();

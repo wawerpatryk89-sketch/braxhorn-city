@@ -6314,5 +6314,83 @@
         }
       }
     }
+  },
+  "damp_beach_sand": {
+    "Diffuse": {
+      "4k": {
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/damp_beach_sand/damp_beach_sand_diff_4k.exr",
+          "md5": "bfe27eee1512293fb46f61f274f7e25d",
+          "size": 26452420
+        },
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/damp_beach_sand/damp_beach_sand_diff_4k.jpg",
+          "md5": "1cdbfc6ef186dd29300a4409ed0221a0",
+          "size": 14122816
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/damp_beach_sand/damp_beach_sand_diff_4k.png",
+          "md5": "475d4f833258ffed5cec0bdd0a5c1637",
+          "size": 91051988
+        }
+      }
+    },
+    "nor_gl": {
+      "4k": {
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/damp_beach_sand/damp_beach_sand_nor_gl_4k.exr",
+          "md5": "22898622a6a0d7c883b49a3bc0fbf5c7",
+          "size": 33682021
+        },
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/damp_beach_sand/damp_beach_sand_nor_gl_4k.jpg",
+          "md5": "8ed62af51f00d1d80c8eaccd045f7fcf",
+          "size": 15651503
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/damp_beach_sand/damp_beach_sand_nor_gl_4k.png",
+          "md5": "4f937bf282be3fed9d9599f315505e9b",
+          "size": 91143076
+        }
+      }
+    },
+    "Rough": {
+      "4k": {
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/damp_beach_sand/damp_beach_sand_rough_4k.exr",
+          "md5": "88f098da09b119551f2b7350ddae58de",
+          "size": 10392294
+        },
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/damp_beach_sand/damp_beach_sand_rough_4k.jpg",
+          "md5": "b46be8f2672ae14b00ede1c17e252af6",
+          "size": 11248476
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/damp_beach_sand/damp_beach_sand_rough_4k.png",
+          "md5": "a4fc2fbacb3d6420a0d7522e76c16141",
+          "size": 30185957
+        }
+      }
+    },
+    "arm": {
+      "4k": {
+        "exr": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/damp_beach_sand/damp_beach_sand_arm_4k.exr",
+          "md5": "e5724d13f0d0450abc2e9574054a2623",
+          "size": 29724580
+        },
+        "jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/damp_beach_sand/damp_beach_sand_arm_4k.jpg",
+          "md5": "3d66cc64afa7ec497292a1c05e1f1ba2",
+          "size": 15427010
+        },
+        "png": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/damp_beach_sand/damp_beach_sand_arm_4k.png",
+          "md5": "1dc505b11cd0d9d496af8fde13cf4c52",
+          "size": 73447995
+        }
+      }
+    }
   }
 }

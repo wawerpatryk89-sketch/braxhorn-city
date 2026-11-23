@@ -267,7 +267,10 @@ public static class BraxChampionsHorizon
             AssetDatabase.CreateAsset(mesh, Out + "/Meshes/champions_horizon_d2_hill.asset");
             Renderer(root.transform, "D2 railway hill (cutting + tunnel)", mesh, land); tris += hill.t.Count / 3; parts++;
         }
-        var sea = AssetDatabase.LoadAssetAtPath<Material>(Out + "/Materials/sea.mat");
+        // 23.11: the beach's sea (ChampionsMorze, BraxChampionsPlaza) goes on to the horizon: past its shore field it is open,
+        // deep sea, the same colour as the region's own far water (the harbour water sea.mat only if it is missing)
+        var sea = AssetDatabase.LoadAssetAtPath<Material>(Out + "/Materials/morze.mat");
+        if (!sea) sea = AssetDatabase.LoadAssetAtPath<Material>(Out + "/Materials/sea.mat");
         if (!sea) BraxBuildQuality.Warn("DO POPRAWKI CHAMPIONS_HORIZON_SEA_MATERIAL_MISSING " + Out + "/Materials/sea.mat");
         else
         {

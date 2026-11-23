@@ -9,6 +9,7 @@ from PIL import Image
 from pack_materials import pack, linear_mean
 from pipeline import check_launcher
 import trawa_bermuda
+import morze_plaza
 ROOT=Path(__file__).resolve().parents[2]
 DEST=ROOT/'unity-city/Assets/Source/Mistrzowie/Textures'
 LOCK=json.loads(Path(__file__).with_name('verified_textures.json').read_text())
@@ -34,6 +35,10 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  # 17.11 owner's villa photos ("zrób takie"): the Mediterranean villas' clay barrel tiles, the cliff under the
                  # hill villa's pool (a real eroded rock face, 1.83 m)
                  'clay_roof_tiles_02','cliff_side',
+                 # 23.11 owner (the GTA beach pictures: "chcę taki piasek i fale na morzu"): the wet beach's fine texture and
+                 # the bed seen through the shallow water, Damp Beach Sand (2 m); the dry beach is Aerial Sand without its tyre
+                 # tracks (morze_plaza.py, its own 4K jpg maps)
+                 'damp_beach_sand',
                  # the island villa's tennis court: a smooth painted concrete (an acrylic hard court is paint on a slab), tinted
                  'painted_concrete_02')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
@@ -188,6 +193,12 @@ def main():
  # owner 23.11 ("trawa ... nie płaska", "długa", "to jest dobra trawa"): the 3D lawn's card from Poly Haven Grass Bermuda 01
  # (CC0, the original 4K Diffuse + Alpha checked against the provider's size and MD5; trawa_bermuda.py)
  card=trawa_bermuda.main(DEST,DEST.parent)
+ # the beach (morze_plaza.py): the sea's foam lace / caustics / noise (ChampionsMorze) and the track-free footprint sand
+ # (Poly Haven Aerial Sand without its tyre tracks, ChampionsPiasek)
+ szum,piasek=morze_plaza.main(DEST,DEST.parent)
+ report.append(dict(file='morze_szum.png',sha256=hashlib.sha256((DEST/'morze_szum.png').read_bytes()).hexdigest(),source='generated (morze_plaza.py, fixed seeds)',**szum))
+ for f in ('plaza_piasek_diff_4k.jpg','plaza_piasek_nor_4k.jpg'):
+  report.append(dict(file=f,sha256=hashlib.sha256((DEST/f).read_bytes()).hexdigest(),source=piasek['source']))
  report.append(dict(file=trawa_bermuda.SLUG+'_karta.png',sha256=hashlib.sha256((DEST/(trawa_bermuda.SLUG+'_karta.png')).read_bytes()).hexdigest(),
                     source='composed from Poly Haven '+trawa_bermuda.SLUG+' 4K Diffuse + Alpha',plants=card['plants']))
  (DEST.parent/'source-materials.json').write_text(json.dumps(report,indent=2))
