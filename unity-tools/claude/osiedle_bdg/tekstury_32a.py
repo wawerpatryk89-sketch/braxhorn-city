@@ -153,7 +153,8 @@ def szyldy(out):
     for plik, napisy, kol in (("szyld_bosna.png", [("BOSNA", .62), ("ZAPIEKANKI · HOT-DOG", .2)], (200, 30, 26, 255)),
                               ("szyld_burger.png", [("BURGERY", .58), ("100% WOŁOWINA · FRYTKI", .2)], (236, 196, 40, 255)),
                               ("szyld_zapiekanki.png", [("ZAPIEKANKI", .5), ("HOT-DOG · NAPOJE", .2)], (250, 236, 120, 255)),
-                              ("szyld_lody.png", [("LODZIARNIA", .62), ("LODY TRADYCYJNE · KAWA", .2)], (236, 236, 232, 255))):
+                              ("szyld_lody.png", [("LODZIARNIA", .62), ("LODY TRADYCYJNE · KAWA", .2)], (236, 236, 232, 255)),
+                              ("szyld_klub.png", [("KLUB", .62), ("MUZYKA · BAR · DO RANA", .2)], (255, 70, 200, 255))):   # klub w podcieniach Focha 2
         W, H = 1024, 256
         img = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(img); y = int(H * .06)
         for txt, wys in napisy:
@@ -257,6 +258,24 @@ def balustrada_kuta(out, px=512):
     Image.fromarray(rgba, "RGBA").save(out)
 
 
+def balustrada_most(out, px=512):
+    """Balustrada mostu Staromiejskiego (zdjęcia m37–m38): czarne żeliwo — pochwyt, rygle, rząd trójkątów (zygzak) z kołami
+    w środku, nad nim pas łuczków. Kafel 1 × 1 m (v = 0 na dole), przezroczyste tło."""
+    from PIL import ImageDraw
+    im = Image.new("L", (px, px), 0); d = ImageDraw.Draw(im); m = px
+    Y = lambda v: int((1 - v) * px); X = lambda u: int(u * px); grub = max(3, int(.018 * m))
+    for (v0, v1) in ((.96, 1.0), (.76, .80), (.07, .11)):
+        d.rectangle([0, Y(v1), px, Y(v0)], fill=255)
+    for k in range(4):                                            # zygzak: 4 trójkąty na metr
+        u0 = k * .25; d.line([X(u0), Y(.11), X(u0 + .125), Y(.76)], fill=255, width=grub); d.line([X(u0 + .125), Y(.76), X(u0 + .25), Y(.11)], fill=255, width=grub)
+        r = .042; uc = u0 + .125; vc = .33
+        d.ellipse([X(uc - r), Y(vc + r), X(uc + r), Y(vc - r)], outline=255, width=grub)
+    for k in range(8):                                            # łuczki między ryglami u góry
+        u0 = k * .125; d.arc([X(u0), Y(.80 + .11), X(u0 + .125), Y(.80 - .05)], 180, 360, fill=255, width=grub)
+    rgba = np.zeros((px, px, 4), np.uint8); rgba[..., :3] = (30, 32, 32); rgba[..., 3] = np.asarray(im)
+    Image.fromarray(rgba, "RGBA").save(out)
+
+
 def wypiecz(src, dst_gra, dst_prywatne):
     """Do gry: naklejka nałożona na barwę ściany (paleta) — jedna tekstura na UV2. Mural (plik właściciela) do katalogu
     prywatnego (paczka szyfrowana), reszta (nasze napisy i graffiti) do Assets/Source/Claude/Bydgoszcz."""
@@ -270,7 +289,7 @@ def wypiecz(src, dst_gra, dst_prywatne):
         tlo.alpha_composite(nk)
         (dst_prywatne if nazwa == "mural_zawisza" else dst_gra).joinpath(nazwa + ".png").parent.mkdir(parents=True, exist_ok=True)
         tlo.convert("RGB").save((dst_prywatne if nazwa == "mural_zawisza" else dst_gra) / (nazwa + ".png"))
-    for f in ("balustrada_prety.png", "plot_prety.png", "zywoplot_lisc.png", "zywoplot_brzeg.png", "zywoplot_galazki.png", "balustrada_kuta.png"):
+    for f in ("balustrada_prety.png", "plot_prety.png", "zywoplot_lisc.png", "zywoplot_brzeg.png", "zywoplot_galazki.png", "balustrada_kuta.png", "balustrada_most.png"):
         Image.open(src / f).save(dst_gra / f)
 
 
@@ -283,6 +302,7 @@ if __name__ == "__main__":
     brud(out / "brud_32a_wejscie.png", 9.3, 31.25, .45, seed=4)
     balustrada_prety(out / "balustrada_prety.png")
     balustrada_kuta(out / "balustrada_kuta.png")
+    balustrada_most(out / "balustrada_most.png")
     tablica_bar(out / "tablica_bar.png")
     plot_prety(out / "plot_prety.png")
     import sys as _s

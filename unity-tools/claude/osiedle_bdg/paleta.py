@@ -136,7 +136,15 @@ SREDNIE = {"white_stucco_02": [.683, .679, .666], "brushed_concrete_04": [.409, 
            "exterior_wall_cladding_03": [.678, .654, .607], "corrugated_iron_02": [.348, .345, .319], "red_bricks_04": [.386, .243, .145],
            "grass004": [.384, .431, .197], "herringbone_pavement_03": [.264, .232, .195], "red_brick_pavers": [.455, .250, .198],
            "playground_sand": [.485, .411, .276], "lakier_blacha": [.745, .745, .745], "grey_tiles": [.432, .378, .287], "plyty_szare": [.80, .80, .80], "granite_tile": [.306, .307, .308], "granite_tile_04": [.443, .396, .339],
-           "rectangular_paving": [.499, .424, .336], "sandstone_blocks_04": [.774, .647, .501], "plotno_parasol": [.848, .848, .848]}
+           "rectangular_paving": [.499, .424, .336], "sandstone_blocks_04": [.774, .647, .501], "plotno_parasol": [.847, .847, .847],
+           # Stary Rynek 21:57 (lista właściciela, MATERIALY-WLASCICIELA): stare cegły, kamień, tynk z fakturą, dachówki, bruk
+           "red_brick": [.557, .403, .315], "medieval_red_brick": [.509, .388, .312], "brick_wall_006": [.676, .456, .326],
+           "brick_wall_02": [.636, .559, .463], "stacked_brick_wall": [.442, .273, .177], "whitewashed_brick": [.650, .601, .551],
+           "castle_wall_varriation": [.535, .499, .417], "rustic_stone_wall": [.466, .401, .300], "stone_wall_04": [.436, .403, .371],
+           "rock_wall_13": [.298, .259, .223], "tynk_kamienica": [.744, .744, .744], "clay_roof_tiles_03": [.555, .334, .215],
+           "ceramic_roof_01": [.557, .462, .322], "roof_tiles": [.675, .556, .430], "grey_roof_01": [.341, .336, .322],
+           "stone_tiles_03": [.478, .427, .317], "brick_pavement_02": [.312, .286, .255], "pavement_02": [.588, .502, .414],
+           "dark_paneled_wood": [.163, .084, .069]}
 
 
 def tint(v):
@@ -178,14 +186,40 @@ P["pas_zielony"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [40, 120, 70], "szo
 for _k in range(1, 5):
     P["baner_%d" % _k] = {"tex": "lakier_blacha", "m": 2.5, "kol": [30, 70, 150], "szorst": .7, "nakl": "baner_%d.png" % _k}
 # Stary Rynek (rynek_bdg/rynek.py): tynki kamienic wg zdjęć właściciela (zdjecia/stare_miasto 01–13), płyty Rynku, nabrzeża Brdy
+# 21:56–21:59 właściciel: „nie wyglądają, jakby miały teksturę” → tynk z wyraźną fakturą (plastered_wall_05 z listy,
+# odbarwiony jak lakier_blacha — barwę daje paleta), parter z kamienia z listy (rustic_stone_wall) w odcieniu tynku.
 for _k, _c in (("k_zolty", [222, 196, 120]), ("k_krem", [232, 220, 190]), ("k_szaroniebieski", [170, 182, 190]), ("k_rozowy", [222, 172, 160]),
-               ("k_bialy", [236, 232, 222]), ("k_ochra", [206, 168, 104]), ("k_zielony", [188, 202, 168]), ("k_terakota", [196, 128, 96])):
-    P[_k] = tynk(_c)
-    P["kb" + _k[1:]] = {"tex": "sandstone_blocks_04", "m": 3.0, "kol": [int(c * .86) for c in _c], "szorst": .95}   # boniowany parter
-# zdjęcie 02 (Rynek, pierzeja północna): kremowy, jasnożółty, łososiowy, szaroniebieski, biało-kremowy
-for _k, _c in (("k_kremowy2", [226, 206, 160]), ("k_jasnozolty", [228, 212, 150]), ("k_losos", [226, 194, 180]), ("k_niebieskoszary", [176, 186, 194])):
-    P[_k] = tynk(_c)
-    P["kb" + _k[1:]] = {"tex": "sandstone_blocks_04", "m": 3.0, "kol": [int(c * .86) for c in _c], "szorst": .95}
+               ("k_bialy", [236, 232, 222]), ("k_ochra", [206, 168, 104]), ("k_zielony", [188, 202, 168]), ("k_terakota", [196, 128, 96]),
+               ("k_kremowy2", [226, 206, 160]), ("k_jasnozolty", [228, 212, 150]), ("k_losos", [226, 194, 180]), ("k_niebieskoszary", [176, 186, 194])):
+    P[_k] = {"tex": "tynk_kamienica", "m": 2.0, "kol": _c, "szorst": 1.0}
+    P["kb" + _k[1:]] = {"tex": "rustic_stone_wall", "m": 1.52, "kol": [int((c + s_ * 255) / 2 * .92) for c, s_ in zip(_c, [.466, .401, .300])], "szorst": .95}
+# stare cegły z listy właściciela — każda w swojej barwie (kol = średnia skanu), kilka odmian, żeby nie było jednej
+for _k, (_t, _m) in {"c_czerwona": ("red_brick", 1.4), "c_sredniowieczna": ("medieval_red_brick", 2.0), "c_ceglasta": ("brick_wall_006", 3.0),
+                     "c_mieszana": ("brick_wall_02", 2.0), "c_stara": ("stacked_brick_wall", 1.73), "c_bielona": ("whitewashed_brick", 2.0)}.items():
+    P[_k] = {"tex": _t, "m": _m, "kol": [round(c * 255) for c in SREDNIE[_t]], "szorst": .95}
+# elewacje kamienne z listy (21:58 „taki kamień na elewację w kolorze”, 21:59 „gdzieniegdzie”): naturalne i barwione
+for _k, (_t, _m, _c) in {"s_piaskowiec": ("rustic_stone_wall", 1.52, None), "s_szary": ("stone_wall_04", 1.7, None),
+                         "s_zamkowy": ("castle_wall_varriation", 2.0, None), "s_grafit": ("rock_wall_13", 2.0, None),
+                         "s_ochra": ("stone_wall_04", 1.7, [176, 150, 108]), "s_rozowy": ("rustic_stone_wall", 1.52, [184, 140, 120])}.items():
+    P[_k] = {"tex": _t, "m": _m, "kol": _c or [round(c * 255) for c in SREDNIE[_t]], "szorst": .95}
+# dachy z listy: trzy dachówki i łupek
+P["dachowka_03"] = {"tex": "clay_roof_tiles_03", "m": 2.6, "kol": [146, 86, 58], "szorst": .85}
+P["dachowka_ceram"] = {"tex": "ceramic_roof_01", "m": 3.5, "kol": [150, 96, 66], "szorst": .85}
+P["dachowka_karpiowka"] = {"tex": "roof_tiles", "m": 2.0, "kol": [158, 94, 66], "szorst": .85}
+P["lupek"] = {"tex": "grey_roof_01", "m": 8.0, "kol": [82, 84, 86], "szorst": .8}
+P["bruk"] = {"tex": "stone_tiles_03", "m": 1.92, "kol": [128, 120, 106], "szorst": 1.0}             # ulice Starówki i jezdnia mostu
+# skrzyżowanie Focha × Gdańska × Jagiellońska (22:02, zdjęcia IMG_1983–1992): jasny kamień okładziny, piaskowy tynk Focha 2,
+# brązowa miedź hełmu kościoła, szyld klubu w podcieniach
+P["s_jasny"] = {"tex": "granite_tile_04", "m": 2.4, "kol": [178, 174, 164], "szorst": .85}          # okładzina z ciosów (Jagiellońska 2)
+P["k_piaskowy"] = {"tex": "tynk_kamienica", "m": 2.0, "kol": [178, 166, 142], "szorst": 1.0}
+P["kb_piaskowy"] = {"tex": "granite_tile_04", "m": 2.4, "kol": [158, 146, 122], "szorst": .9}       # ciosy podcieni Focha 2
+P["miedz_braz"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [104, 80, 62], "szorst": .55}
+P["szyld_klub"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [24, 22, 26], "szorst": .6, "nakl": "szyld_klub.png"}
+P["balustrada_most"] = {"tex": None, "kol": [30, 32, 32], "szorst": .5, "metal": .5, "alfa": "balustrada_most.png"}
+P["beton_most"] = {"tex": "brushed_concrete_04", "m": 2.0, "kol": [184, 182, 176], "szorst": .9}       # belka mostu (m28)
+P["witraz"] = {"tex": None, "kol": [46, 52, 58], "szorst": .15, "metal": .3}                         # szkło okien kościoła (ciemne, odbija niebo)
+P["szyna"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [118, 116, 112], "szorst": .4}                # szyny i przewody trakcji
+P["belka_ciemna"] = {"tex": "dark_paneled_wood", "m": 1.4, "kol": [46, 34, 28], "szorst": .8}       # mur pruski spichrzy
 P["dachowka_braz"] = {"tex": "clay_roof_tiles_02", "m": 2.0, "kol": [150, 84, 62], "szorst": .8}
 P["dachowka_stara"] = {"tex": "clay_roof_tiles_02", "m": 2.0, "kol": [128, 70, 54], "szorst": .85}
 P["cegla_komin"] = {"tex": "red_bricks_04", "m": 1.5, "kol": [150, 84, 62], "szorst": .95}
@@ -197,8 +231,8 @@ P["parasol"] = {"tex": "plotno_parasol", "m": 1.2, "kol": [236, 232, 222], "szor
 P["donica"] = {"tex": "weathered_brown_planks", "m": 1.0, "kol": [118, 72, 48], "szorst": .85}
 P["balustrada_kuta"] = {"tex": None, "kol": [34, 36, 36], "szorst": .5, "metal": .5, "alfa": "balustrada_kuta.png"}
 P["meble_ogrodka"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [44, 42, 40], "szorst": .6}
-P["rynek_plyty"] = {"tex": "rectangular_paving", "m": 3.2, "kol": [214, 198, 172], "szorst": .9}     # zdj. 02: jasne płyty
-P["rynek_pas"] = {"tex": "rectangular_paving", "m": 3.2, "kol": [160, 112, 92], "szorst": .9}       # ukośne pasy ciemniejsze
+P["rynek_plyty"] = {"tex": "pavement_02", "m": 2.12, "kol": [200, 186, 166], "szorst": .9}          # zdj. 02: jasne płyty (lista)
+P["rynek_pas"] = {"tex": "brick_pavement_02", "m": 2.0, "kol": [150, 106, 88], "szorst": .9}       # ukośne pasy ciemniejsze (lista)
 P["nabrzeze"] = {"tex": "granite_tile_04", "m": 2.0, "kol": [150, 146, 140], "szorst": .9}
 P["mur_nabrzeza"] = {"tex": "granite_tile", "m": 2.3, "kol": [128, 126, 122], "szorst": .8}
 P["woda_brda"] = {"tex": None, "kol": [38, 62, 66], "szorst": .06, "metal": .2, "woda": "HarbourWater"}   # w grze: materiał wody portu (fale, odbicia)

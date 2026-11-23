@@ -117,8 +117,12 @@ def zbuduj(poly, sp, nazwa="budynek"):
                 sciana(nazwa, sp["parter_mat"], a + UP * cok, t, n, L, hp, [o_ for o_ in gora if o_[3] <= hp + 1e-6], (L, hp))
                 sciana(nazwa, sp["tynk"], a + UP * (cok + hp), t, n, L, H + att - cok - hp,
                        [(u0, u1, v0 - hp, v1 - hp, r, pp) for (u0, u1, v0, v1, r, pp) in gora if v0 >= hp - 1e-6], (L, H + att))
+            elif udz_slepe >= .5 and sp.get("szczyt_mat"):         # ściana ogniowa przy sąsiedzie: stara cegła (widać ją nad niższym)
+                sciana(nazwa, sp["szczyt_mat"], a + UP * cok, t, n, L, H + att - cok, gora, (L, H + att))
             else:
                 sciana(nazwa, sp["tynk"], a + UP * cok, t, n, L, H + att - cok, gora, (L, H + att), "szklo" if sp.get("market") else None)
+            if sp.get("mur_pruski") and L >= 1.0:
+                mur_pruski(S, nazwa, a, t, n, L, okna, p0, hk, kond, H + att, rozst, off, k)
             if oz:
                 ozdoby_sciany(S, nazwa, a, t, n, L, okna, sp, oz, p0, hk, kond, H, att, rozst, ow, oh, opar,
                               [off + (i + .5) * rozst for i in sorted(wyk_osie)] if wyk_osie else None,
@@ -184,8 +188,12 @@ def zbuduj(poly, sp, nazwa="budynek"):
                     for k_, ((xc, zc), (xd, zd)) in enumerate(zip(ex, ex[1:])):
                         if k_ < len(ulica_kr) and ulica_kr[k_] and shapely.geometry.LineString([(xc, zc), (xd, zd)]).distance(shapely.geometry.Point(((xa + xb) / 2, (za + zb) / 2))) < .05:
                             uq[kq] = True
+                if sp.get("dwuspad"):                       # spichrze: dach dwuspadowy — krótkie boki to szczyty
+                    dl = [np.hypot(xb - xa, zb - za) for (xa, za), (xb, zb) in zip(eq, eq[1:])]
+                    wq = [w_ and d_ > .7 * max(dl) for w_, d_ in zip(wq, dl)]
                 dach_kamienica(S, nazwa, Qc, wq, H + att + .02, sp.get("dach_mat", "dachowka"), sp.get("spadek", 42), sp["tynk"],
-                               sp.get("kalenica_max", 7.5), uq if sp.get("lukarny") else None, rozst, sp.get("kominy", True))
+                               sp.get("kalenica_max", 7.5), uq if sp.get("lukarny") else None, rozst, sp.get("kominy", True),
+                               sp.get("szczyt_mat") or sp["tynk"], "belka_ciemna" if sp.get("mur_pruski") else None)
         elif sp.get("dach", "plaski") == "koperta":
             dach_koperta(S, nazwa, P, y + .05, sp.get("dach_mat", "dachowka"), sp.get("spadek", 28))
         else:
@@ -283,6 +291,29 @@ def witryna_kamienica(g, P, t, n, u0, u1, v0, v1, pietro):
         uv1 = [((x - ru0) / RW + k, (y - 0.0) / max(v1 - v0, 1.0) + pi) for x, y in ((u0 + w, y0), (u1 - w, y0), (u1 - w, y1), (u0 + w, y1))]
         S.quad(g, "okno", P(u0 + w, y0, d0 + .05), P(u1 - w, y0, d0 + .05), P(u1 - w, y1, d0 + .05), P(u0 + w, y1, d0 + .05), uv1=uv1, t=t, kier=n)
     B.okno_nr[0] += 1
+
+
+def mur_pruski(S, g, a, t, n, L, okna, p0, hk, kond, Hs, rozst, off, k, mat="belka_ciemna"):
+    """Spichrze nad Brdą (zdjęcia m22–m26, m33–m35): czarna konstrukcja ryglowa na jasnym albo ceglanym wypełnieniu —
+    słupy 18 cm co oś i na narożnikach, rygle na wysokości stropów, parapetów i nadproży, zastrzały w skrajnych polach.
+    Belki 3 cm przed licem (bez wspólnej płaszczyzny z wypełnieniem)."""
+    P = lambda u, v, d=0.0: a + t * u + UP * v - n * d
+    w = .18; e = .03
+    slupy = sorted({.0, L - w} | {min(max(off + i * rozst - w / 2, 0), L - w) for i in range(0, k + 1)})
+    for u in slupy:
+        S.box(g, mat, P(u, .3, 0), t, UP, n, w, Hs - .3, e, bez=("-z",))
+    poz = [.3] + [p0 + f * hk for f in range(kond - 1)] + [Hs - w]
+    for (u0, u1, v0, v1, r, pp) in okna:
+        poz += [v0 - w, v1]
+    for v in sorted(set(round(x, 2) for x in poz)):
+        if v < .2 or v > Hs - w + .01: continue
+        S.box(g, mat, P(0, v, -.005), t, UP, n, L, w, e + .005, bez=("-z",))
+    for f in range(kond):                                         # zastrzały w skrajnych polach każdej kondygnacji
+        y0 = .3 + w if f == 0 else p0 + (f - 1) * hk + w; y1 = (p0 + f * hk if f < kond - 1 else Hs - w)
+        for (ua, ub) in ((slupy[0] + w, slupy[1] if len(slupy) > 1 else L), (slupy[-2] + w if len(slupy) > 1 else 0, slupy[-1])):
+            if ub - ua < .5 or y1 - y0 < .8: continue
+            A = P(ua, y0, -.01); Bq = P(ub, y1, -.01); dl = float(np.linalg.norm(Bq - A)); tt = (Bq - A) / dl
+            nn = nrm(np.cross(tt, n)); S.box(g, mat, A - nn * w / 2, tt, nn, n, dl, w, e + .01, bez=("-z",))
 
 
 def lukarna(S, g, p2, tt, nin, y, tg, ok, mat, tynk, hmin):
@@ -388,7 +419,7 @@ def rozklad_wypukly(P):
     return cz
 
 
-def dach_kamienica(S, g, P, wolne, y, mat, spadek, tynk, kal_max=7.5, ulica=None, rozst=2.2, kominy=True):
+def dach_kamienica(S, g, P, wolne, y, mat, spadek, tynk, kal_max=7.5, ulica=None, rozst=2.2, kominy=True, szczyt=None, belki=None):
     """Dach kamienicy w pierzei: połacie tylko od krawędzi wolnych (ulica, podwórze), nad ścianami przy sąsiedzie szczyt
     (ściana ogniowa w tynku budynku) — jak na zdjęciach Rynku i Focha. Wysokość połaci = y + tg(spadek) · odległość od
     krawędzi (okap 0,35 m poza licem), dach = minimum połaci; powyżej kal_max płaski taras (mansardy dużych kamienic).
@@ -462,10 +493,10 @@ def dach_kamienica(S, g, P, wolne, y, mat, spadek, tynk, kal_max=7.5, ulica=None
     if kominy:
         pk = [(a_ + b_) / 2 + nin * .6 for (a_, b_, nin, f) in kr if not f and np.linalg.norm(b_ - a_) > 3]
         if not pk: pk = [np.array(P.representative_point().coords[0])]
-        szczyt = max(hmin(*p_) for p_ in [np.array(q_) for q_ in P.exterior.coords] + [np.array(P.centroid.coords[0])])
+        szczyt_h = max(hmin(*p_) for p_ in [np.array(q_) for q_ in P.exterior.coords] + [np.array(P.centroid.coords[0])])
         for p_ in pk[:3]:
             if not P.buffer(-.4).contains(shapely.geometry.Point(*p_)): continue
-            h0 = hmin(*p_); top = max(h0 + 1.0, szczyt + .7)
+            h0 = hmin(*p_); top = max(h0 + 1.0, szczyt_h + .7)
             o3 = np.array([p_[0] - .35, h0 - .4, p_[1] - .25])
             S.box(g, "cegla_komin", o3, (1., 0., 0.), UP, (0., 0., 1.), .7, top - h0 + .4, .5)
             S.box(g, "obrobka", o3 + np.array([-.06, top - h0 + .4, -.06]), (1., 0., 0.), UP, (0., 0., 1.), .82, .07, .62)
@@ -482,8 +513,18 @@ def dach_kamienica(S, g, P, wolne, y, mat, spadek, tynk, kal_max=7.5, ulica=None
                 if max(h0, h1) - y < .03: continue
                 p0, p1 = np.array([x0, y - .05, z0]), np.array([x1, y - .05, z1])
                 q0, q1 = np.array([x0, h0, z0]), np.array([x1, h1, z1])
-                S.quad(g, tynk, p0, p1, q1, q0, kier=np.array([-nin[0], 0., -nin[1]]))
-                S.quad(g, tynk, p1, p0, q0, q1, kier=np.array([nin[0], 0., nin[1]]))      # od strony strychu/sąsiada (niższy sąsiad)
+                S.quad(g, szczyt or tynk, p0, p1, q1, q0, kier=np.array([-nin[0], 0., -nin[1]]))
+                S.quad(g, szczyt or tynk, p1, p0, q0, q1, kier=np.array([nin[0], 0., nin[1]]))      # od strony strychu/sąsiada (niższy sąsiad)
+                if belki:                                                  # szczyt spichrza: słupy co 1,1 m do połaci, rygle co 2,6 m
+                    nz = np.array([-nin[0], 0., -nin[1]]); dl = float(np.hypot(x1 - x0, z1 - z0)); tz = (p1 - p0) / max(dl, 1e-6)
+                    for u in np.arange(.0, dl, 1.1):
+                        hu = h0 + (h1 - h0) * u / max(dl, 1e-6) - .05
+                        if hu - y < .3: continue
+                        S.box(g, belki, p0 + tz * u + UP * .05 + nz * .0, tz, UP, nz, .18, hu - y, .03, bez=("-z",))
+                    for v in np.arange(y + 2.6, max(h0, h1), 2.6):
+                        us_ = [u for u in np.linspace(0, dl, 60) if h0 + (h1 - h0) * u / max(dl, 1e-6) > v + .2]
+                        if len(us_) < 2: continue
+                        S.box(g, belki, p0 + tz * us_[0] + UP * (v - y - .05) - nz * .0, tz, UP, nz, us_[-1] - us_[0], .18, .035, bez=("-z",))
 
 
 def _zewn(Q, a, b):

@@ -31,6 +31,10 @@ R = json.loads((TU / "dane" / "rynek_rzut.json").read_text())
 K = R["K"]; O = np.array(R["gra_a"])
 # okno etapu 1: Rynek, Mostowa z mostem, spichrze, Opera, Focha (metry od kotwicy; Rynek ~ (−180…−60, −230…−150))
 OKNO = box(-420, -340, 160, 160)
+SKRZYZOWANIE = (-30.0, -15.0)          # Focha × Gdańska × Jagiellońska (zdjęcia IMG_1983–1992): pasy, tory, słupki z łańcuchami
+CEGLY = ["c_czerwona", "c_sredniowieczna", "c_ceglasta", "c_mieszana", "c_stara", "c_bielona"]
+KAMIENIE = ["s_piaskowiec", "s_szary", "s_zamkowy", "s_grafit", "s_ochra", "s_rozowy"]
+DACHY = ["dachowka", "dachowka_braz", "dachowka_stara", "dachowka_03", "dachowka_ceram", "dachowka_karpiowka", "lupek"]
 KOLORY = ["k_zolty", "k_krem", "k_szaroniebieski", "k_rozowy", "k_bialy", "k_ochra", "k_zielony", "k_terakota",
           "k_kremowy2", "k_jasnozolty", "k_losos", "k_niebieskoszary", "k_kremowy2", "k_jasnozolty", "k_losos"]
 
@@ -125,15 +129,34 @@ def spec(b, R_):
     hk = round(R_.uniform(3.6, 4.1), 2); p0 = round(R_.uniform(4.3, 4.9), 2)
     oh = round(min(hk - 1.35, R_.uniform(1.9, 2.25)), 2)
     okna = (round(R_.uniform(1.95, 2.4), 2), round(R_.uniform(1.05, 1.25), 2), oh, .85)
-    tynk = R_.choice(KOLORY); duzy = P.area >= 5000                  # tylko hale/bloki płasko; duże kamienice i urząd — dach stromy
+    # 21:56–21:59 właściciel: część budynków ze starej cegły (różnej), gdzieniegdzie elewacja kamienna, reszta tynk z fakturą
+    los = R_.random(); rodzaj = "cegla" if los < .32 else "kamien" if los < .44 else "tynk"
+    tynk = R_.choice(CEGLY if rodzaj == "cegla" else KAMIENIE if rodzaj == "kamien" else KOLORY)
+    duzy = P.area >= 5000                                            # tylko hale/bloki płasko; duże kamienice i urząd — dach stromy
     oz = dict(trojkat=R_.random() < .5, plyciny=R_.random() < .6, lizeny=R_.random() < .45,
               wykusz=R_.random() < .22, balkon=R_.random() < .35)
+    nz = nazwa.lower()
+    if "spichlerz" in nz:                                             # spichrze nad Brdą: mur pruski, dach dwuspadowy 58°
+        return dict(kond=4, h_kond=2.7, parter=3.0, tynk="c_ceglasta" if "holender" in nz else "k_bialy", cokol="cokol4", h_cokol=.4,
+                    okna=(1.5, .7, .95, .9), witryny=False, gzymsy=False, dach="kamienica", dach_mat="dachowka_03", spadek=58,
+                    attyka=.15, kalenica_max=40.0, zr="ZAŁ spichlerz wg zdjęć m22–m26, m33–m35", ozdoby=None, parter_mat=None,
+                    lukarny=True, kominy=False, mur_pruski=True, dwuspad=True, szczyt_mat=None)
+    if "katedra" in nz or "kościół" in nz:
+        return dict(kond=1, h_kond=12.0, parter=12.0, tynk="c_sredniowieczna", cokol="cokol4", h_cokol=.6, okna=(4.2, 1.5, 6.0, 2.6),
+                    witryny=False, gzymsy=False, dach="kamienica", dach_mat="dachowka_03", spadek=55, attyka=.2, kalenica_max=40.0,
+                    zr="ZAŁ kościół gotycki z cegły", ozdoby=None, parter_mat=None, lukarny=False, kominy=False, szczyt_mat="c_sredniowieczna")
+    if "poczta" in nz:
+        tynk, rodzaj = "c_czerwona", "cegla"
+    elif "urząd miasta" in nz or "opera" in nz or "lloyd" in nz:
+        tynk, rodzaj = "k_bialy", "tynk"
     return dict(kond=kond, h_kond=hk, parter=p0, tynk=tynk, cokol="cokol4", h_cokol=.6, okna=okna,
                 witryny=bool(b.get("ulica")) or bool(b.get("dzialka")), gzymsy=True, gzyms_mat="opaska",
-                dach="plaski" if duzy else "kamienica", dach_mat=R_.choice(("dachowka", "dachowka", "dachowka_braz", "dachowka_braz", "dachowka_stara")),
+                dach="plaski" if duzy else "kamienica", dach_mat=R_.choice(DACHY),
                 spadek=R_.choice((38, 42, 45, 48)), attyka=.9 if duzy else .35, kalenica_max=6.5 if P.area < 500 else 4.2, zr=zr,
-                ozdoby=None if duzy else (dict(oz, wykusz=False) if P.area >= 1600 else oz), parter_mat=("kb" + tynk[1:]) if R_.random() < .7 else None,
-                lukarny=R_.random() < .75, kominy=True)
+                ozdoby=None if duzy else (dict(oz, wykusz=False) if P.area >= 1600 else oz),
+                parter_mat=("kb" + tynk[1:]) if rodzaj == "tynk" and R_.random() < .7 else (R_.choice(("s_piaskowiec", "s_szary", "s_zamkowy")) if rodzaj == "cegla" and R_.random() < .5 else None),
+                lukarny=R_.random() < .75, kominy=True,
+                szczyt_mat=tynk if rodzaj != "tynk" else R_.choice(("c_stara", "c_sredniowieczna", "c_czerwona", "c_mieszana", tynk)))
 
 
 def teren(d, bud, W):
@@ -157,6 +180,10 @@ def teren(d, bud, W):
     CHOD = unary_union(piesze + [bud.buffer(2.2, join_style=2), JEZ.buffer(2.6, join_style=2)]).intersection(OKNO).difference(JEZ).difference(W).difference(bud).difference(PLAC)
     NABRZEZE = W.buffer(3.0, join_style=2).difference(W).intersection(OKNO).difference(bud)
     TRAWA = OKNO.difference(unary_union([JEZ, PLAC, CHOD, W, bud, NABRZEZE]))
+    # w śródmieściu wąskie i małe skrawki zieleni między chodnikiem a jezdnią to w rzeczywistości chodnik (zdjęcia Focha, Gdańska)
+    skrawki = [q for q in getattr(TRAWA, "geoms", [TRAWA]) if q.geom_type == "Polygon" and (q.area < 150 or q.area / max(q.length, 1e-6) < 2.0)]
+    if skrawki:
+        S_ = unary_union(skrawki); TRAWA = TRAWA.difference(S_); CHOD = CHOD.union(S_)
 
     def plaski(mat, g, y):
         for q in getattr(g, "geoms", [g]):
@@ -174,14 +201,35 @@ def teren(d, bud, W):
         o_ = np.array([c_.x, c_.y]) + np.array([1, -1]) / math.sqrt(2) * k * 9.0; d_ = np.array([1, 1]) / math.sqrt(2) * 400
         pasy.append(LineString([tuple(o_ - d_), tuple(o_ + d_)]).buffer(.45, cap_style=2))
     PAS = PLAC.intersection(unary_union(pasy)); PLAC = PLAC.difference(PAS)
-    plaski("asfalt", JEZ.simplify(.05), 0.0)
+    BRUK = unary_union([LineString(u["linia"]).buffer(szer[u["klasa"]] / 2 + .2, cap_style=2, join_style=1) for u in d["ulice"]
+                        if len(u["linia"]) > 1 and u["klasa"] in ("residential", "living_street", "service", "unclassified", "pedestrian") and not u.get("obszar")]).intersection(JEZ)
+    ZEB = []
+    J = Point(*SKRZYZOWANIE)
+    for u in d["ulice"]:
+        if u["klasa"] not in ("primary", "secondary", "tertiary") or len(u["linia"]) < 2: continue
+        ln = LineString(u["linia"])
+        if ln.distance(J) > 20: continue
+        for odl in (14.0,):
+            s0 = ln.project(J)
+            for s_ in (s0 - odl, s0 + odl):
+                if s_ < 0 or s_ > ln.length: continue
+                p = np.array(ln.interpolate(s_).coords[0]); p2 = np.array(ln.interpolate(min(ln.length, s_ + .5)).coords[0]) if s_ + .5 <= ln.length else p + (p - np.array(ln.interpolate(s_ - .5).coords[0]))
+                tt = (p2 - p) / max(np.linalg.norm(p2 - p), 1e-6); nn = np.array([-tt[1], tt[0]])
+                for k in range(-12, 13):                           # pasy 0,5 m co 1,0 m w poprzek jezdni, długość 4 m
+                    c = p + nn * k * 1.0
+                    ZEB.append(Polygon([tuple(c - nn * .25 - tt * 2), tuple(c + nn * .25 - tt * 2), tuple(c + nn * .25 + tt * 2), tuple(c - nn * .25 + tt * 2)]))
+    ZEBRA = unary_union(ZEB).intersection(JEZ) if ZEB else Polygon()
+    JEZ = JEZ.difference(ZEBRA)
+    plaski("linia_biala", ZEBRA.simplify(.01), 0.0)
+    plaski("asfalt", JEZ.difference(BRUK).simplify(.05), 0.0)
+    plaski("bruk", BRUK.simplify(.05), 0.0)
     plaski("rynek_plyty", PLAC.simplify(.05), .12)
     plaski("rynek_pas", PAS.simplify(.05), .12)
     plaski("kostka", CHOD.simplify(.05), .12)
     plaski("krawoznik", KRAW.simplify(.02), .14)
     plaski("nabrzeze", NABRZEZE.simplify(.05), .12)
     plaski("trawa", TRAWA.simplify(.1), .11)
-    plaski("woda_brda", W.simplify(.1), -1.6)
+    plaski("woda_brda", W.simplify(.1), POZIOM_WODY)
     for q in getattr(KRAW.simplify(.02), "geoms", [KRAW]):                 # czoła krawężnika (0 → +0,14)
         if q.is_empty or q.geom_type != "Polygon": continue
         for ring in [q.exterior] + list(q.interiors):
@@ -203,7 +251,7 @@ def teren(d, bud, W):
                 if L < .05 or not OKNO.buffer(-.5).contains(Point((x0 + x1) / 2, (z0 + z1) / 2)): continue
                 t = (b_ - a) / L; n = nrm(np.cross(UP, t)); m = (a + b_) / 2 + n * .3
                 if not W.contains(Point(m[0], m[2])): n = -n                       # ściana patrzy na wodę
-                S.quad("teren", "mur_nabrzeza", a + UP * -1.7, b_ + UP * -1.7, b_ + UP * .12, a + UP * .12, kier=n)
+                S.quad("teren", "mur_nabrzeza", a + UP * (POZIOM_WODY - .1), b_ + UP * (POZIOM_WODY - .1), b_ + UP * .12, a + UP * .12, kier=n)
                 # krawędź z granitu 25 cm + żeliwna balustrada (zdjęcia m14, m34–m36), słupki co ok. 2,4 m
                 S.box("teren", "mur_nabrzeza", a + UP * .12 - t * .01, t, UP, -n, L + .02, .25, .4)
                 e = a - n * .2 + UP * .37
@@ -213,35 +261,80 @@ def teren(d, bud, W):
     return S, {"jezdnie": round(JEZ.area), "rynek": round(PLAC.area), "chodniki": round(CHOD.area), "trawa": round(TRAWA.area), "woda": round(W.area)}, mosty, (PLAC.union(PAS), CHOD, NABRZEZE)
 
 
-def mosty_scal(S, mosty, W):
-    """Mosty nad Brdą: wszystkie drogi bridge=* (Mostowa + jej chodniki jako osobne drogi OSM, kładka Kiepury) scalone w jeden
-    pomost na zespół — bez nakładających się płyt (zero migotania). Pomost 0,62 m, wierzch +0,17 (2 cm nad bulwarem +0,15),
-    kostka; balustrada stalowa (pochwyt + pręty co 0,25 m) tylko na krawędziach nad wodą; przyczółki z granitu."""
+POZIOM_WODY = -2.4                    # lustro Brdy 2,5 m pod bulwarem (zdjęcia m15–m16, m28: wysokie nabrzeża, prześwit pod mostem)
+
+
+def mosty_scal(S, mosty, W, d=None):
+    """Mosty nad Brdą (zdjęcia m14, m28–m38). Wszystkie drogi bridge=* zespołu (Mostowa + chodniki jako osobne drogi OSM)
+    scalone w jeden pomost — bez nakładających się płyt. Wierzch +0,17; jezdnia mostu Staromiejskiego (Mostowa) z kostki
+    granitowej, chodniki z płyt; czoło: jasna żelbetowa belka z łagodnym łukiem spodu (1,3 m przy przyczółkach, 0,8 m
+    w środku, m28); żeliwna balustrada ze wzorem trójkątów i kół (m37–m38), słupki co 2 m; latarnie na obu końcach i w środku."""
     if not mosty: return 0
     POM = unary_union([ln.buffer(w / 2 + 1.0, cap_style=2, join_style=2) for (ln, w, u) in mosty]).intersection(OKNO)
     n_ = 0
     for q in getattr(POM, "geoms", [POM]):
         if q.geom_type != "Polygon" or q.area < 5: continue
         q = q.simplify(.1); n_ += 1
-        for tri in shapely.constrained_delaunay_triangles(q).geoms:
-            c = [np.array([x, .17, z]) for x, z in list(tri.exterior.coords)[:3]]
-            if np.cross(c[1] - c[0], c[2] - c[0])[1] < 0: c[1], c[2] = c[2], c[1]
-            S.tri_list("mosty", "kostka", c, (0., 1., 0.), (1., 0., 0.), [(p_[0], p_[2]) for p_ in c], None, [0, 1, 2])
-            S.tri_list("mosty", "mur_nabrzeza", [p_ + UP * -.62 for p_ in c[::-1]], (0., -1., 0.), (1., 0., 0.), [(p_[0], p_[2]) for p_ in c[::-1]], None, [0, 1, 2])
+        # oś mostu: najdłuższa droga zespołu; łuk spodu wg położenia wzdłuż osi
+        osie = [ln for (ln, w, u) in mosty if ln.intersects(q)]
+        os_ = max(osie, key=lambda l: l.length) if osie else LineString(q.minimum_rotated_rectangle.exterior.coords[:2])
+        Lb = max(os_.length, 1.0)
+        spod = lambda x, z: .17 - (.8 + .5 * (2 * abs(os_.project(Point(x, z)) / Lb - .5)) ** 2)
+        mostowa = any((u.get("nazwa") or "") == "Mostowa" for (ln, w, u) in mosty if ln.intersects(q))
+        JEZ_M = unary_union([ln.buffer(3.0, cap_style=2) for (ln, w, u) in mosty if ln.intersects(q) and u["klasa"] in ("pedestrian", "residential", "tertiary", "secondary")]).intersection(q) if mostowa else Polygon()
+        for (cz, mat) in ((JEZ_M, "bruk"), (q.difference(JEZ_M) if not JEZ_M.is_empty else q, "kostka")):
+            for part in getattr(cz, "geoms", [cz]):
+                if part.is_empty or part.geom_type != "Polygon": continue
+                for tri in shapely.constrained_delaunay_triangles(part).geoms:
+                    c = [np.array([x, .17, z]) for x, z in list(tri.exterior.coords)[:3]]
+                    if np.cross(c[1] - c[0], c[2] - c[0])[1] < 0: c[1], c[2] = c[2], c[1]
+                    S.tri_list("mosty", mat, c, (0., 1., 0.), (1., 0., 0.), [(p_[0], p_[2]) for p_ in c], None, [0, 1, 2])
+        for tri in shapely.constrained_delaunay_triangles(q).geoms:          # spód: łuk
+            c = [np.array([x, spod(x, z), z]) for x, z in list(tri.exterior.coords)[:3]]
+            if np.cross(c[1] - c[0], c[2] - c[0])[1] > 0: c[1], c[2] = c[2], c[1]
+            S.tri_list("mosty", "beton_most", c, (0., -1., 0.), (1., 0., 0.), [(p_[0], p_[2]) for p_ in c], None, [0, 1, 2])
         pts = list(shapely.geometry.polygon.orient(q, 1.0).exterior.coords)
-        Wb = W.buffer(.5)
+        Wb = W.buffer(.5); lat_ = []
         for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
             a_ = np.array([x0, 0., z0]); b_ = np.array([x1, 0., z1]); L = float(np.linalg.norm(b_ - a_))
             if L < .05: continue
             t = (b_ - a_) / L; n = nrm(np.cross(UP, t))                      # CCW: zewnętrze po prawej = n
             if q.contains(Point(*((a_ + b_) / 2 + n * .3)[[0, 2]])): n = -n
-            S.quad("mosty", "mur_nabrzeza", a_ + UP * -.45, b_ + UP * -.45, b_ + UP * .17, a_ + UP * .17, kier=n)   # czoło pomostu
+            m = max(1, int(L // 1.5))                                         # czoło belki z łukiem spodu
+            for k in range(m):
+                p0 = a_ + t * L * k / m; p1 = a_ + t * L * (k + 1) / m
+                S.quad("mosty", "beton_most", p0 + UP * spod(p0[0], p0[2]), p1 + UP * spod(p1[0], p1[2]), p1 + UP * .17, p0 + UP * .17, kier=n)
             if not Wb.contains(Point((x0 + x1) / 2, (z0 + z1) / 2)): continue  # balustrada tylko nad wodą
-            e = a_ - n * .12 + UP * .17                                       # żeliwna balustrada jak na nabrzeżach (m14, m34–m36)
-            S.quad("mosty", "balustrada_kuta", e, e + t * L, e + t * L + UP * 1.0, e + UP * 1.0, uv_o=e, kier=n)
-            S.box("mosty", "latarnia_czarna", e + UP * 1.0 - n * .04, t, UP, n, L, .05, .08)
-            for k in np.arange(0, L, 2.0): S.box("mosty", "latarnia_czarna", e + t * k - t * .04 - n * .04, t, UP, n, .08, 1.05, .08)
+            e = a_ - n * .12 + UP * .17
+            S.quad("mosty", "balustrada_most", e, e + t * L, e + t * L + UP * 1.0, e + UP * 1.0, uv_o=e, kier=n)
+            S.box("mosty", "latarnia_czarna", e + UP * 1.0 - n * .05, t, UP, n, L, .06, .1)
+            for k in np.arange(0, L, 2.0): S.box("mosty", "latarnia_czarna", e + t * k - t * .05 - n * .05, t, UP, n, .1, 1.06, .1)
+            if L > 6: lat_ += [(a_ - n * .5, math.atan2(t[2], t[0])), ((a_ + b_) / 2 - n * .5, math.atan2(t[2], t[0]))]
+        zaj = []
+        for (p_, ob) in lat_:                                                 # latarnie na moście (końce i środek)
+            if any(np.hypot(p_[0] - z_[0], p_[2] - z_[2]) < 10 for z_ in zaj): continue
+            zaj.append(p_); latarnia(S, p_[0], p_[2], .17, ob)
+    # „Przechodzący przez rzekę” (OSM, 25 m od mostu): lina nad Brdą między dwoma masztami na nabrzeżach; figura —
+    # model właściciela (paczka szyfrowana) wstawiana w grze w punkcie liny (rynek_punkty.json → linoskoczek)
     return n_
+
+
+def lina_linoskoczka(S, d, W):
+    """Lina nad Brdą w punkcie OSM „Przechodzący przez rzekę”, równoległa do osi mostu Mostowa, 7,5 m nad bulwarem."""
+    pk = [p for p in d["punkty"] if (p["tagi"].get("name") or "").startswith("Przechodzący")]
+    most = [u for u in d["ulice"] if (u.get("nazwa") or "") == "Mostowa" and u.get("most")]
+    if not pk or not most: return None
+    c = np.array(pk[0]["xz"]); m0, m1 = np.array(most[0]["linia"][0]), np.array(most[0]["linia"][-1]); kier = (m1 - m0) / np.linalg.norm(m1 - m0)
+    ln = LineString([tuple(c - kier * 60), tuple(c + kier * 60)]); cz = ln.intersection(W)
+    if cz.is_empty: return None
+    seg = max(getattr(cz, "geoms", [cz]), key=lambda g_: g_.distance(Point(*c)) * -1)
+    (x0, z0), (x1, z1) = seg.coords[0], seg.coords[-1]
+    a = np.array([x0, 0., z0]) - np.array([kier[0], 0, kier[1]]) * 1.5; b = np.array([x1, 0., z1]) + np.array([kier[0], 0, kier[1]]) * 1.5
+    for p_ in (a, b):
+        S.rura("lina", "latarnia_czarna", p_ + UP * .12, p_ + UP * 8.2, .11, seg=8)
+    S.rura("lina", "szyna", a + UP * 7.6, b + UP * 7.6, .015, seg=4)
+    mid = (a + b) / 2
+    return [round(mid[0], 2), 7.6, round(mid[2], 2)], [round(float(kier[0]), 3), round(float(kier[1]), 3)]
 
 
 def latarnia(S, x, z, y=.12, obrot=0.0):
@@ -365,6 +458,50 @@ def detale(d, bud_lista, PLAC_, CHOD_, NABRZ_, W, R_):
             q3 = np.array([p[0], 0., p[1]]) + nn * 1.4
             if not NABRZ.contains(Point(q3[0], q3[2])): q3 = np.array([p[0], 0., p[1]]) - nn * 1.4
             if NABRZ.contains(Point(q3[0], q3[2])): lat.append((q3, math.atan2(tt[2], tt[0])))
+    # tory tramwajowe (OSM railway=tram, rozstaw 1000 mm jak w Bydgoszczy), szyny 2 cm ponad jezdnią; sieć trakcyjna 5,8 m
+    for u in d["ulice"]:
+        if u["klasa"] != "tory_tram" or len(u["linia"]) < 2: continue
+        ln = LineString(u["linia"]).intersection(OKNO)
+        for part in getattr(ln, "geoms", [ln]):
+            if part.is_empty or part.geom_type != "LineString": continue
+            pts = list(part.coords)
+            for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
+                a = np.array([x0, 0., z0]); b_ = np.array([x1, 0., z1]); L = float(np.linalg.norm(b_ - a))
+                if L < .05: continue
+                t = (b_ - a) / L; nn = nrm(np.cross(UP, t))
+                for s_ in (-.5, .5):
+                    S.box("tory", "szyna", a + nn * (s_ - .035) - UP * .005 - t * .01, t, UP, nn, L + .02, .025, .07, bez=("-y",))
+                S.rura("tory", "szyna", a + UP * 5.8, b_ + UP * 5.8, .008, seg=3)
+            for s_ in np.arange(10, part.length, 32):               # maszty trakcji przy krawędzi jezdni
+                p = np.array(part.interpolate(s_).coords[0]); p2 = np.array(part.interpolate(min(part.length, s_ + .5)).coords[0])
+                tt = nrm(np.array([p2[0] - p[0], 0., p2[1] - p[1]])); nn = nrm(np.cross(UP, tt))
+                for sg in (-1, 1):
+                    q = np.array([p[0], 0., p[1]]) + nn * sg * 5.2
+                    if CHOD.contains(Point(q[0], q[2])):
+                        S.rura("tory", "latarnia_czarna", q, q + UP * 7.5, .09, seg=8)
+                        S.rura("tory", "szyna", q + UP * 6.6, np.array([p[0], 5.8, p[1]]), .006, seg=3)
+                        break
+    # słupki żeliwne z łańcuchami wzdłuż krawężników przy skrzyżowaniu (zdjęcia IMG_1983–1988), do 90 m od środka
+    J = np.array(SKRZYZOWANIE); nsl = 0
+    for u in d["ulice"]:
+        if u["klasa"] not in ("primary", "secondary", "tertiary") or len(u["linia"]) < 2: continue
+        ln = LineString(u["linia"]).intersection(OKNO)
+        if ln.is_empty or ln.geom_type != "LineString" or ln.distance(Point(*J)) > 90: continue
+        w = {"primary": 14, "secondary": 12, "tertiary": 10}[u["klasa"]]
+        for sg in (-1, 1):
+            prev = None
+            for s_ in np.arange(0, ln.length, 1.8):
+                p = np.array(ln.interpolate(s_).coords[0])
+                if np.hypot(*(p - J)) > 90 or np.hypot(*(p - J)) < 11: prev = None; continue
+                p2 = np.array(ln.interpolate(min(ln.length, s_ + .3)).coords[0]); tt = nrm(np.array([p2[0] - p[0], 0., p2[1] - p[1]]))
+                q = np.array([p[0], .12, p[1]]) + nrm(np.cross(UP, tt)) * sg * (w / 2 + .45)
+                if not CHOD.contains(Point(q[0], q[2])): prev = None; continue
+                S.rura("slupki", "latarnia_czarna", q, q + UP * .85, .065, seg=8)
+                S.rura("slupki", "latarnia_czarna", q + UP * .85, q + UP * .95, .045, seg=6)
+                if prev is not None:                                  # łańcuch: zwis 12 cm
+                    a0 = prev + UP * .72; a1 = q + UP * .72; m_ = (a0 + a1) / 2 - UP * .12
+                    S.rura("slupki", "latarnia_czarna", a0, m_, .012, seg=3); S.rura("slupki", "latarnia_czarna", m_, a1, .012, seg=3)
+                prev = q; nsl += 1
     zaj = []
     for (q, ob) in lat:                                            # bez dwóch latarni bliżej niż 8 m
         if any(np.hypot(q[0] - z_[0], q[2] - z_[2]) < 8 for z_ in zaj): continue
@@ -385,7 +522,7 @@ def detale(d, bud_lista, PLAC_, CHOD_, NABRZ_, W, R_):
                     S.box("detale", "krawoznik", oo, ax, UP, az, sx, .1, sz)
                 S.quad("detale", "zwir", o_ + X * .14 + Z * .14 + UP * .02, o_ + X * 1.66 + Z * .14 + UP * .02, o_ + X * 1.66 + Z * 1.66 + UP * .02, o_ + X * .14 + Z * 1.66 + UP * .02, kier=UP)
             drzewa.append([round(x, 2), round(z, 2), "duze" if blisko_wody or "Salix" in (tg.get("genus", "") + tg.get("species", "")) else "srednie"])
-    return S, {"latarnie": len(zaj), "lawki": lawki, "drzewa": len(drzewa)}, {"drzewa": drzewa, "latarnie": [[round(q[0], 2), round(q[2], 2), "stylowa"] for q in zaj]}
+    return S, {"latarnie": len(zaj), "lawki": lawki, "drzewa": len(drzewa), "slupki": nsl}, {"drzewa": drzewa, "latarnie": [[round(q[0], 2), round(q[2], 2), "stylowa"] for q in zaj]}
 
 
 def main(out):
@@ -394,6 +531,9 @@ def main(out):
     W = woda(d)
     D = Siatka(); opis = {}
     budynki = [b for b in d["budynki"] if not b["poly"].is_empty and b["poly"].area > 25 and OKNO.contains(b["poly"].centroid) and not b.get("czesc")]
+    import zabytki
+    wlasne = {b["osm"]: b["poly"] for b in budynki if b["osm"] in zabytki.WLASNE}
+    budynki = [b for b in budynki if b["osm"] not in zabytki.WLASNE]
     PUBL0 = przestrzen_publiczna(d, W)
     budynki = dzialki(budynki, PUBL0, R_)
     from shapely.strtree import STRtree
@@ -411,7 +551,12 @@ def main(out):
             for f in ("v", "n", "t", "uv", "uv1"): dd[f] += c[f]
             dd["i"] += [b0 + q for q in c["i"]]
         opis["k%d" % i] = {"nazwa": b.get("nazwa") or ("%s %s" % (b.get("ulica") or "", b.get("nr") or "")).strip(), "kond": sp["kond"], "zrodlo": sp["zr"]}
-    bud = unary_union([b["poly"] for b in budynki])
+    Z = zabytki.zbuduj(wlasne, PUBL0)                                  # skrzyżowanie Focha × Gdańska × Jagiellońska, kościół
+    for (g, m), c in Z.dane().items():
+        dd = D._c(g, m); b0 = len(dd["v"])
+        for f in ("v", "n", "t", "uv", "uv1"): dd[f] += c[f]
+        dd["i"] += [b0 + q for q in c["i"]]
+    bud = unary_union([b["poly"] for b in budynki] + list(wlasne.values()))
     T, pola, mosty, (PLAC_, CHOD_, NABRZ_) = teren(d, bud, W)
     Dt, pola_d, punkty = detale(d, budynki, PLAC_, CHOD_, NABRZ_, W, random.Random(5))
     pola.update(pola_d)
@@ -419,8 +564,10 @@ def main(out):
         dd = D._c(g, m); b0 = len(dd["v"])
         for f in ("v", "n", "t", "uv", "uv1"): dd[f] += c[f]
         dd["i"] += [b0 + q for q in c["i"]]
-    (out / "rynek_punkty.json").write_text(json.dumps(punkty, ensure_ascii=False), encoding="utf-8")
     pola["mosty_zespoly"] = mosty_scal(T, mosty, W)
+    lina = lina_linoskoczka(T, d, W)
+    if lina: punkty["linoskoczek"] = [lina[0]]; punkty["linoskoczek_kier"] = lina[1]
+    (out / "rynek_punkty.json").write_text(json.dumps(punkty, ensure_ascii=False), encoding="utf-8")
     for (g, m), c in T.dane().items():
         dd = D._c(g, m); b0 = len(dd["v"])
         for f in ("v", "n", "t", "uv", "uv1"): dd[f] += c[f]

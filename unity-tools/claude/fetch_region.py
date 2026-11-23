@@ -57,7 +57,11 @@ TEXTURES_WYSPA = [
 TEXTURES_BYDGOSZCZ = ["white_stucco_02", "brushed_concrete_04", "concrete_pavers", "clay_roof_tiles_02",
                       "bitumen", "gravel_floor_02", "painted_metal_shutter", "exterior_wall_cladding_03", "corrugated_iron_02", "red_bricks_04",
                       "herringbone_pavement_03", "red_brick_pavers", "playground_sand", "blue_metal_plate", "grey_tiles", "weathered_brown_planks", "granite_tile", "granite_tile_04",
-                      "rectangular_paving", "sandstone_blocks_04", "cotton_jersey"]
+                      # Stary Rynek (21:56–21:59, lista właściciela): stare cegły, kamień, tynk z fakturą, dachówki, łupek, bruk
+                      "red_brick", "medieval_red_brick", "brick_wall_006", "brick_wall_02", "stacked_brick_wall", "whitewashed_brick",
+                      "castle_wall_varriation", "rustic_stone_wall", "stone_wall_04", "rock_wall_13", "plastered_wall_05",
+                      "clay_roof_tiles_03", "ceramic_roof_01", "roof_tiles", "grey_roof_01", "stone_tiles_03", "brick_pavement_02",
+                      "pavement_02", "rough_linen", "dark_paneled_wood"]
 
 
 BERMUDA_KARTY = [(94, 846, 299, 275), (561, 816, 394, 298), (1091, 726, 388, 405), (1385, 212, 568, 287), (1580, 646, 348, 488), (78, 314, 568, 288)]
@@ -108,7 +112,8 @@ def odbarwiona(report: dict, zrodlo: str, cel: str, srednia: float = .75, kontra
 def lakier_blacha(report: dict) -> None:
     odbarwiona(report, "blue_metal_plate", "lakier_blacha", kontrast=.35)   # 19:18: plamy lakieru na dużych płaszczyznach za mocne
     odbarwiona(report, "grey_tiles", "plyty_szare", srednia=.8, kontrast=2.4, bez_plam=48)   # 19:38–19:58: bez zacieków, wyraźne fugi
-    odbarwiona(report, "cotton_jersey", "plotno_parasol", srednia=.85, kontrast=.6, bez_plam=24)   # parasole ogródków Rynku
+    odbarwiona(report, "rough_linen", "plotno_parasol", srednia=.85, kontrast=.7)                    # parasole ogródków Rynku
+    odbarwiona(report, "plastered_wall_05", "tynk_kamienica", srednia=.75, kontrast=1.4)          # tynk kamienic Starego Rynku
 # FAWELA (9.11, właściciel: „z Poly Haven wykończenia, tekstury wszędzie”): stare tynki, cegła, pustak, beton, blacha falista,
 # rdzawe drzwi i rolety, okiennice, asfalt, ziemia, płótno, skóra — lista = Materialy w BraxRegionFawela.cs (TylkoFawela).
 # W 1K (telefon): 38 zestawów w 2K to ok. 0,5 GB tekstur w pamięci naraz — ściany dostają kolor + normalną 1024, drobne
