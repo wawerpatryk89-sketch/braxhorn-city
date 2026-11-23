@@ -1,0 +1,591 @@
+{
+ "zrodlo": "plansze właściciela, 23.11.2026 02:16",
+ "naklejki": [
+  {
+   "plik": "bydgoszcz_korona.png",
+   "plansza": "bydgoszcz_korona",
+   "szer_px": 1975,
+   "wys_px": 791,
+   "krycie": 0.7,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "bydgoszcz_panorama.png",
+   "plansza": "bydgoszcz_panorama",
+   "szer_px": 1504,
+   "wys_px": 982,
+   "krycie": 0.6,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "hwdp.png",
+   "plansza": "hwdp",
+   "szer_px": 1527,
+   "wys_px": 988,
+   "krycie": 0.69,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_a_01.png",
+   "plansza": "plansza_a",
+   "szer_px": 611,
+   "wys_px": 325,
+   "krycie": 0.74,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_a_02.png",
+   "plansza": "plansza_a",
+   "szer_px": 434,
+   "wys_px": 339,
+   "krycie": 0.68,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_a_03.png",
+   "plansza": "plansza_a",
+   "szer_px": 292,
+   "wys_px": 324,
+   "krycie": 0.53,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_a_04.png",
+   "plansza": "plansza_a",
+   "szer_px": 229,
+   "wys_px": 343,
+   "krycie": 0.72,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_a_05.png",
+   "plansza": "plansza_a",
+   "szer_px": 448,
+   "wys_px": 266,
+   "krycie": 0.69,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_a_06.png",
+   "plansza": "plansza_a",
+   "szer_px": 389,
+   "wys_px": 273,
+   "krycie": 0.73,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_a_07.png",
+   "plansza": "plansza_a",
+   "szer_px": 312,
+   "wys_px": 320,
+   "krycie": 0.59,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_a_08.png",
+   "plansza": "plansza_a",
+   "szer_px": 392,
+   "wys_px": 277,
+   "krycie": 0.67,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_a_09.png",
+   "plansza": "plansza_a",
+   "szer_px": 419,
+   "wys_px": 260,
+   "krycie": 0.75,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_a_10.png",
+   "plansza": "plansza_a",
+   "szer_px": 238,
+   "wys_px": 239,
+   "krycie": 0.57,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_a_11.png",
+   "plansza": "plansza_a",
+   "szer_px": 234,
+   "wys_px": 195,
+   "krycie": 0.66,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_a_12.png",
+   "plansza": "plansza_a",
+   "szer_px": 449,
+   "wys_px": 258,
+   "krycie": 0.74,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_a_13.png",
+   "plansza": "plansza_a",
+   "szer_px": 219,
+   "wys_px": 213,
+   "krycie": 0.67,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_a_14.png",
+   "plansza": "plansza_a",
+   "szer_px": 503,
+   "wys_px": 250,
+   "krycie": 0.73,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_a_15.png",
+   "plansza": "plansza_a",
+   "szer_px": 471,
+   "wys_px": 223,
+   "krycie": 0.76,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_a_16.png",
+   "plansza": "plansza_a",
+   "szer_px": 261,
+   "wys_px": 256,
+   "krycie": 0.8,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_a_17.png",
+   "plansza": "plansza_a",
+   "szer_px": 242,
+   "wys_px": 252,
+   "krycie": 0.72,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_b_01.png",
+   "plansza": "plansza_b",
+   "szer_px": 707,
+   "wys_px": 338,
+   "krycie": 0.7,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_b_02.png",
+   "plansza": "plansza_b",
+   "szer_px": 323,
+   "wys_px": 299,
+   "krycie": 0.63,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_b_03.png",
+   "plansza": "plansza_b",
+   "szer_px": 470,
+   "wys_px": 325,
+   "krycie": 0.66,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_b_04.png",
+   "plansza": "plansza_b",
+   "szer_px": 404,
+   "wys_px": 248,
+   "krycie": 0.71,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_b_05.png",
+   "plansza": "plansza_b",
+   "szer_px": 380,
+   "wys_px": 240,
+   "krycie": 0.68,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_b_06.png",
+   "plansza": "plansza_b",
+   "szer_px": 375,
+   "wys_px": 234,
+   "krycie": 0.64,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_b_07.png",
+   "plansza": "plansza_b",
+   "szer_px": 309,
+   "wys_px": 367,
+   "krycie": 0.71,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_b_08.png",
+   "plansza": "plansza_b",
+   "szer_px": 412,
+   "wys_px": 266,
+   "krycie": 0.72,
+   "wybor": "szyld",
+   "napis": "POLICE"
+  },
+  {
+   "plik": "plansza_b_09.png",
+   "plansza": "plansza_b",
+   "szer_px": 298,
+   "wys_px": 229,
+   "krycie": 0.75,
+   "wybor": "szyld",
+   "napis": "TAXI"
+  },
+  {
+   "plik": "plansza_b_10.png",
+   "plansza": "plansza_b",
+   "szer_px": 373,
+   "wys_px": 259,
+   "krycie": 0.67,
+   "wybor": "szyld",
+   "napis": "HOTEL"
+  },
+  {
+   "plik": "plansza_b_11.png",
+   "plansza": "plansza_b",
+   "szer_px": 381,
+   "wys_px": 250,
+   "krycie": 0.67,
+   "wybor": "szyld",
+   "napis": "BAR"
+  },
+  {
+   "plik": "plansza_b_12.png",
+   "plansza": "plansza_b",
+   "szer_px": 404,
+   "wys_px": 212,
+   "krycie": 0.72,
+   "wybor": "szyld",
+   "napis": "SHOP"
+  },
+  {
+   "plik": "plansza_b_13.png",
+   "plansza": "plansza_b",
+   "szer_px": 380,
+   "wys_px": 228,
+   "krycie": 0.73,
+   "wybor": "szyld",
+   "napis": "FITNESS"
+  },
+  {
+   "plik": "plansza_b_14.png",
+   "plansza": "plansza_b",
+   "szer_px": 325,
+   "wys_px": 242,
+   "krycie": 0.77,
+   "wybor": "szyld",
+   "napis": "GYM"
+  },
+  {
+   "plik": "plansza_b_15.png",
+   "plansza": "plansza_b",
+   "szer_px": 325,
+   "wys_px": 249,
+   "krycie": 0.74,
+   "wybor": "szyld",
+   "napis": "BEACH"
+  },
+  {
+   "plik": "plansza_c_01.png",
+   "plansza": "plansza_c",
+   "szer_px": 677,
+   "wys_px": 333,
+   "krycie": 0.66,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_c_02.png",
+   "plansza": "plansza_c",
+   "szer_px": 433,
+   "wys_px": 324,
+   "krycie": 0.61,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_c_03.png",
+   "plansza": "plansza_c",
+   "szer_px": 433,
+   "wys_px": 351,
+   "krycie": 0.61,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_c_04.png",
+   "plansza": "plansza_c",
+   "szer_px": 455,
+   "wys_px": 283,
+   "krycie": 0.6,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_c_05.png",
+   "plansza": "plansza_c",
+   "szer_px": 399,
+   "wys_px": 268,
+   "krycie": 0.63,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_c_06.png",
+   "plansza": "plansza_c",
+   "szer_px": 320,
+   "wys_px": 262,
+   "krycie": 0.66,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_c_07.png",
+   "plansza": "plansza_c",
+   "szer_px": 325,
+   "wys_px": 276,
+   "krycie": 0.68,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_c_08.png",
+   "plansza": "plansza_c",
+   "szer_px": 413,
+   "wys_px": 259,
+   "krycie": 0.7,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_c_09.png",
+   "plansza": "plansza_c",
+   "szer_px": 428,
+   "wys_px": 267,
+   "krycie": 0.75,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_c_10.png",
+   "plansza": "plansza_c",
+   "szer_px": 273,
+   "wys_px": 236,
+   "krycie": 0.63,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_c_11.png",
+   "plansza": "plansza_c",
+   "szer_px": 227,
+   "wys_px": 284,
+   "krycie": 0.63,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_c_12.png",
+   "plansza": "plansza_c",
+   "szer_px": 207,
+   "wys_px": 279,
+   "krycie": 0.64,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_c_13.png",
+   "plansza": "plansza_c",
+   "szer_px": 369,
+   "wys_px": 240,
+   "krycie": 0.71,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_c_14.png",
+   "plansza": "plansza_c",
+   "szer_px": 305,
+   "wys_px": 235,
+   "krycie": 0.73,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_c_15.png",
+   "plansza": "plansza_c",
+   "szer_px": 241,
+   "wys_px": 221,
+   "krycie": 0.71,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_c_16.png",
+   "plansza": "plansza_c",
+   "szer_px": 345,
+   "wys_px": 249,
+   "krycie": 0.7,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_c_17.png",
+   "plansza": "plansza_c",
+   "szer_px": 307,
+   "wys_px": 238,
+   "krycie": 0.71,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_walki_01.png",
+   "plansza": "plansza_walki",
+   "szer_px": 484,
+   "wys_px": 333,
+   "krycie": 0.73,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_walki_02.png",
+   "plansza": "plansza_walki",
+   "szer_px": 359,
+   "wys_px": 303,
+   "krycie": 0.7,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_walki_03.png",
+   "plansza": "plansza_walki",
+   "szer_px": 375,
+   "wys_px": 341,
+   "krycie": 0.77,
+   "wybor": "sciana"
+  },
+  {
+   "plansza": "plansza_walki",
+   "pominiety": true,
+   "powod": "prawdziwa marka albo realistyczna postać (ZASADY 7.4)",
+   "ramka": [
+    1165,
+    13,
+    1536,
+    377
+   ]
+  },
+  {
+   "plansza": "plansza_walki",
+   "pominiety": true,
+   "powod": "prawdziwa marka albo realistyczna postać (ZASADY 7.4)",
+   "ramka": [
+    0,
+    319,
+    362,
+    624
+   ]
+  },
+  {
+   "plik": "plansza_walki_04.png",
+   "plansza": "plansza_walki",
+   "szer_px": 254,
+   "wys_px": 324,
+   "krycie": 0.76,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_walki_05.png",
+   "plansza": "plansza_walki",
+   "szer_px": 385,
+   "wys_px": 297,
+   "krycie": 0.74,
+   "wybor": "sciana"
+  },
+  {
+   "plansza": "plansza_walki",
+   "pominiety": true,
+   "powod": "prawdziwa marka albo realistyczna postać (ZASADY 7.4)",
+   "ramka": [
+    970,
+    322,
+    1226,
+    645
+   ]
+  },
+  {
+   "plik": "plansza_walki_06.png",
+   "plansza": "plansza_walki",
+   "szer_px": 332,
+   "wys_px": 263,
+   "krycie": 0.78,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_walki_07.png",
+   "plansza": "plansza_walki",
+   "szer_px": 436,
+   "wys_px": 246,
+   "krycie": 0.68,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_walki_08.png",
+   "plansza": "plansza_walki",
+   "szer_px": 351,
+   "wys_px": 252,
+   "krycie": 0.69,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_walki_09.png",
+   "plansza": "plansza_walki",
+   "szer_px": 427,
+   "wys_px": 230,
+   "krycie": 0.71,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_walki_10.png",
+   "plansza": "plansza_walki",
+   "szer_px": 318,
+   "wys_px": 240,
+   "krycie": 0.69,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_walki_11.png",
+   "plansza": "plansza_walki",
+   "szer_px": 359,
+   "wys_px": 235,
+   "krycie": 0.71,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_walki_12.png",
+   "plansza": "plansza_walki",
+   "szer_px": 253,
+   "wys_px": 197,
+   "krycie": 0.75,
+   "wybor": "sciana"
+  },
+  {
+   "plik": "plansza_walki_13.png",
+   "plansza": "plansza_walki",
+   "szer_px": 332,
+   "wys_px": 223,
+   "krycie": 0.72,
+   "wybor": "odrzucone"
+  },
+  {
+   "plik": "plansza_walki_14.png",
+   "plansza": "plansza_walki",
+   "szer_px": 288,
+   "wys_px": 199,
+   "krycie": 0.66,
+   "wybor": "sciana"
+  },
+  {
+   "plansza": "plansza_walki",
+   "pominiety": true,
+   "powod": "prawdziwa marka albo realistyczna postać (ZASADY 7.4)",
+   "ramka": [
+    1181,
+    823,
+    1535,
+    1020
+   ]
+  }
+ ],
+ "wybor_opis": {
+  "sciana": "graffiti na ściany bloków i faweli (propozycja wykonawcy listy; właściciel 02:21: „wybieraj te najlepsze”; Bydgoszcz i HWDP wskazane przez właściciela)",
+  "szyld": "napis miejsca — tylko przy tym miejscu, nie jako przypadkowe graffiti",
+  "odrzucone": "słabsze albo powtórzone — nie używać bez słowa właściciela"
+ },
+ "pominiete_marki": "4 kafle planszy walk z prawdziwą marką albo realistyczną postacią zawodnika — nie wycięte (ZASADY 7.4)"
+}
