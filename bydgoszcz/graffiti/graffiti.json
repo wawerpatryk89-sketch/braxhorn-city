@@ -588,6 +588,193 @@
     1535,
     1020
    ]
+  },
+  {
+   "plik": "plansza_d_01.png",
+   "plansza": "plansza_d",
+   "szer_px": 488,
+   "wys_px": 257,
+   "krycie": 0.6,
+   "wybor": "sciana",
+   "napis": "BARTODZIEJE",
+   "gdzie": "osiedle i stare miasto",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
+  },
+  {
+   "plik": "plansza_d_02.png",
+   "plansza": "plansza_d",
+   "szer_px": 371,
+   "wys_px": 274,
+   "krycie": 0.68,
+   "wybor": "sciana",
+   "napis": "BLOKI",
+   "gdzie": "osiedle i stare miasto",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
+  },
+  {
+   "plik": "plansza_d_03.png",
+   "plansza": "plansza_d",
+   "szer_px": 331,
+   "wys_px": 283,
+   "krycie": 0.65,
+   "wybor": "sciana",
+   "napis": "32A",
+   "gdzie": "osiedle i stare miasto",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
+  },
+  {
+   "plik": "plansza_d_04.png",
+   "plansza": "plansza_d",
+   "szer_px": 328,
+   "wys_px": 267,
+   "krycie": 0.74,
+   "wybor": "sciana",
+   "napis": "BRDA",
+   "gdzie": "osiedle i stare miasto",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
+  },
+  {
+   "plik": "plansza_d_05.png",
+   "plansza": "plansza_d",
+   "szer_px": 315,
+   "wys_px": 299,
+   "krycie": 0.71,
+   "wybor": "sciana",
+   "napis": "STARE MIASTO",
+   "gdzie": "osiedle i stare miasto",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
+  },
+  {
+   "plik": "plansza_d_06.png",
+   "plansza": "plansza_d",
+   "szer_px": 368,
+   "wys_px": 289,
+   "krycie": 0.72,
+   "wybor": "sciana",
+   "napis": "KRÓLOWIE BLOKÓW",
+   "gdzie": "osiedle i stare miasto",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
+  },
+  {
+   "plik": "plansza_d_07.png",
+   "plansza": "plansza_d",
+   "szer_px": 436,
+   "wys_px": 236,
+   "krycie": 0.7,
+   "wybor": "sciana",
+   "napis": "SZACUNEK",
+   "gdzie": "wszędzie",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
+  },
+  {
+   "plik": "plansza_d_08.png",
+   "plansza": "plansza_d",
+   "szer_px": 399,
+   "wys_px": 232,
+   "krycie": 0.71,
+   "wybor": "sciana",
+   "napis": "NOKAUT",
+   "gdzie": "wszędzie",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
+  },
+  {
+   "plik": "plansza_d_09.png",
+   "plansza": "plansza_d",
+   "szer_px": 399,
+   "wys_px": 221,
+   "krycie": 0.75,
+   "wybor": "sciana",
+   "napis": "USTAWKA",
+   "gdzie": "wszędzie",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
+  },
+  {
+   "plik": "plansza_d_10.png",
+   "plansza": "plansza_d",
+   "szer_px": 378,
+   "wys_px": 227,
+   "krycie": 0.74,
+   "wybor": "sciana",
+   "napis": "SALKA",
+   "gdzie": "wszędzie",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
+  },
+  {
+   "plik": "plansza_d_11.png",
+   "plansza": "plansza_d",
+   "szer_px": 325,
+   "wys_px": 281,
+   "krycie": 0.65,
+   "wybor": "sciana",
+   "napis": "BXC",
+   "gdzie": "wszędzie",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
+  },
+  {
+   "plik": "plansza_d_12.png",
+   "plansza": "plansza_d",
+   "szer_px": 339,
+   "wys_px": 388,
+   "krycie": 0.81,
+   "wybor": "sciana",
+   "napis": "BYK W KORONIE",
+   "gdzie": "wszędzie",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
+  },
+  {
+   "plik": "plansza_d_13.png",
+   "plansza": "plansza_d",
+   "szer_px": 449,
+   "wys_px": 297,
+   "krycie": 0.66,
+   "wybor": "sciana",
+   "napis": "WZGÓRZE",
+   "gdzie": "fawela",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
+  },
+  {
+   "plik": "plansza_d_14.png",
+   "plansza": "plansza_d",
+   "szer_px": 362,
+   "wys_px": 272,
+   "krycie": 0.71,
+   "wybor": "sciana",
+   "napis": "NIE WCHODŹ",
+   "gdzie": "fawela",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
+  },
+  {
+   "plik": "plansza_d_15.png",
+   "plansza": "plansza_d",
+   "szer_px": 227,
+   "wys_px": 163,
+   "krycie": 0.48,
+   "wybor": "sciana",
+   "napis": "strzałka",
+   "gdzie": "wszędzie",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
+  },
+  {
+   "plik": "plansza_d_16.png",
+   "plansza": "plansza_d",
+   "szer_px": 207,
+   "wys_px": 227,
+   "krycie": 0.55,
+   "wybor": "sciana",
+   "napis": "tag",
+   "gdzie": "wszędzie",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
+  },
+  {
+   "plik": "plansza_d_17.png",
+   "plansza": "plansza_d",
+   "szer_px": 414,
+   "wys_px": 198,
+   "krycie": 0.57,
+   "wybor": "sciana",
+   "napis": "tag",
+   "gdzie": "wszędzie",
+   "zrodlo": "plansza właściciela 23.11, 02:29 (wygenerowana z listy pomysłów)"
   }
  ],
  "wybor_opis": {

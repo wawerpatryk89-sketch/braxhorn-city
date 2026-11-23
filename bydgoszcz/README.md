@@ -92,8 +92,23 @@ Z siedmiu plansz wyciętych jest 66 naklejek z przezroczystym tłem. W `graffiti
 - **`odrzucone` — 30 sztuk**: słabsze, powtórzone oraz osiem napisów-szyldów (POLICE, TAXI, HOTEL, BAR, SHOP,
   FITNESS, GYM, BEACH). Właściciel 02:24: *„to nie mają być szyldy, tylko graffiti na ścianach”*.
 
-Wybór jest mój — właściciel ogląda `plany/graffiti-wybor-na-sciany.png` i poprawia.
+**Plansza D (właściciel 02:29) — 17 sztuk, wszystkie na ściany:** BARTODZIEJE, BLOKI, 32A, BRDA, STARE MIASTO,
+KRÓLOWIE BLOKÓW, SZACUNEK, NOKAUT, USTAWKA, SALKA, BXC, BYK W KORONIE, WZGÓRZE i NIE WCHODŹ (fawela), strzałka, dwa tagi.
+Razem na ściany: **53**.
+
+**Mural z prawdziwym klubem (właściciel 02:31) — nie wchodzi w tej postaci.** To cudza praca z herbem i nazwą
+prawdziwego klubu; do gry potrzebny jest własny mural osiedla (własny znak, np. byk w koronie, własny napis).
+Plansza od właściciela wystarczy.
+
+Wybór z plansz A–C i planszy walk jest mój — właściciel ogląda `plany/graffiti-wybor-na-sciany.png` i poprawia.
 **Cztery kafle planszy walk nie zostały wycięte:** mają prawdziwą markę albo realistyczną postać zawodnika (ZASADY 7.4).
+
+## Woda i piasek (właściciel 02:29–02:31)
+
+Miejsce potwierdzone: *„po lewej stronie mapy masz fawele (…) po drugiej stronie, tam gdzie jest wielki
+supermarket, po prawej, tam masz zrobić te osiedle ze starym rynkiem”*.
+Rzeka ma mieć prawdziwą wodę z prądem **do morza** (ZASADY 5.7a) — w propozycji 2 płynie ze starego miasta na wschód.
+Piasek plaż: jeden, wybiera właściciel (ZASADY 5.11).
 
 ## Czego nie wolno przenieść ze zdjęć
 
