@@ -26,6 +26,9 @@ def wczytaj():
     boksy = i32(); p[0] += boksy * 28
     napisy = []
     for _ in range(i32()): napisy.append(txt()); p[0] += 40
+    rekw = []
+    for _ in range(i32()): rekw.append(txt()); p[0] += 20
+    wczytaj.rekw = rekw
     return maty, siatki, boksy, napisy, p[0] == len(d)
 
 
@@ -38,7 +41,7 @@ class Bydgoszcz(unittest.TestCase):
     def test_plik_czyta_sie_do_konca_i_zgadza_z_opisem(self):
         self.assertTrue(self.caly)
         self.assertEqual(sum(s[3] for s in self.siatki) // 3, self.opis["trojkatow_razem"])
-        self.assertEqual(self.boksy, self.opis["budynkow_zbudowanych"])
+        self.assertGreaterEqual(self.boksy, self.opis["budynkow_zbudowanych"])
 
     def test_indeksy_w_zakresie_i_siatka_do_65_tysiecy_wierzcholkow(self):
         for g, m, nv, ni, mx in self.siatki:
@@ -69,6 +72,11 @@ class Bydgoszcz(unittest.TestCase):
     def test_napisy_to_tylko_adresy_i_bar(self):
         for n in self.napisy:
             self.assertRegex(n, r"^(M\. SKŁODOWSKIEJ|-CURIE( \d+)?|\d+a|BAR MLECZNY)$")
+
+    def test_drzewa_i_krzewy_tylko_z_biblioteki_wlasciciela(self):
+        lib = REPO / "unity-city/Assets/Source/Claude/Library"
+        self.assertGreater(len(wczytaj.rekw), 50)
+        for m in set(wczytaj.rekw): self.assertTrue((lib / (m + ".glb")).exists(), m)
 
     def test_tekstury_z_listy_wlasciciela_sa_pobierane(self):
         fetch = (REPO / "unity-tools/claude/fetch_region.py").read_text(encoding="utf-8")

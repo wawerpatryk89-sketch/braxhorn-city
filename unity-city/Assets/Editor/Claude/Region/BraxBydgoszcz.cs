@@ -80,7 +80,7 @@ public static class BraxBydgoszcz
             return t;
         }
         Vector3 Swiat(float x, float y, float z) => new Vector3(Blok32a.x + x * K, PoziomY + y * K, Blok32a.y + z * K);
-        int siatek = 0, trojkatow = 0, kolizji = 0, napisow = 0;
+        int siatek = 0, trojkatow = 0, kolizji = 0, napisow = 0, rekwizytow = 0, brakModeli = 0;
         using (var plik = File.OpenRead(sciezka))
         using (var gz = new GZipStream(plik, CompressionMode.Decompress))
         using (var pamiec = new MemoryStream())
@@ -136,9 +136,37 @@ public static class BraxBydgoszcz
                     BraxRegionMeble.Napis(root, tekst, p, przod, wys, kolor, .06f * K);
                     napisow++;
                 }
+                // drzewa i krzewy z biblioteki właściciela (właściciel 23.11, 08:07: „drzewa naturalne, z Poly Haven, z mojej kolekcji”)
+                if (pamiec.Position < pamiec.Length)
+                {
+                    int nr = r.ReadInt32();
+                    for (int i = 0; i < nr; i++)
+                    {
+                        string id = Tekst(r);
+                        var p = Swiat(r.ReadSingle(), r.ReadSingle(), r.ReadSingle()); float yaw = r.ReadSingle(), hm = r.ReadSingle();
+                        var src = BraxRegion.Model(id);
+                        if (!src) { brakModeli++; continue; }
+                        var o = BraxRegion.Put(root, src, "Bydgoszcz: " + id, p, yaw, 1f, false);
+                        if (!o) { brakModeli++; continue; }
+                        // wysokość jak na zdjęciach (drzewa osiedla 9,5–13,5 m, młode przy ulicy 4–5 m): skala wokół podstawy, w górę i w dół
+                        float wysNaScenie = 0f; foreach (var rr in o.GetComponentsInChildren<Renderer>()) wysNaScenie = Mathf.Max(wysNaScenie, rr.bounds.max.y - p.y);
+                        if (hm > 0f && wysNaScenie > .01f)
+                        {
+                            float f = hm * K / wysNaScenie;
+                            o.transform.localScale *= f; o.transform.position = p + (o.transform.position - p) * f;
+                        }
+                        if (id != "park_shrub")
+                        {
+                            var kol = new GameObject("Bydgoszcz: pień kolizja").AddComponent<CapsuleCollider>(); kol.transform.SetParent(root, false);
+                            kol.transform.position = p + Vector3.up * 1.5f; kol.radius = .3f; kol.height = 3f;
+                            BraxRegionTrawa.Drzewo(p);
+                        }
+                        rekwizytow++;
+                    }
+                }
             }
         }
-        Debug.Log("BRAXHORN_BYDGOSZCZ_OSIEDLE siatek=" + siatek + " trojkatow=" + trojkatow + " kolizji=" + kolizji + " napisow=" + napisow +
+        Debug.Log("BRAXHORN_BYDGOSZCZ_OSIEDLE siatek=" + siatek + " trojkatow=" + trojkatow + " kolizji=" + kolizji + " napisow=" + napisow + " drzewa_krzewy=" + rekwizytow + " brak_modelu=" + brakModeli +
                   " blok32a=(" + Blok32a.x + "; " + Blok32a.y + ")");
     }
 }

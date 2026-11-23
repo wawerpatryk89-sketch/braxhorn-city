@@ -1,12 +1,12 @@
 {
- "trojkatow_razem": 111660,
+ "trojkatow_razem": 385164,
  "trojkatow_grunt": 4738,
  "najciezszy_budynek": [
-  9070,
-  "bud_wiezowiec_kolor_w168153268"
+  32946,
+  "bud_wiezowiec_kolor_w168153258"
  ],
- "siatek": 317,
- "plik_bajtow": 1604690,
+ "siatek": 437,
+ "plik_bajtow": 5415671,
  "powierzchnie": {
   "asfalt_m2": 9351,
   "asfalt_osiedlowy_m2": 17604,
@@ -532,5 +532,13 @@
   "M. SKŁODOWSKIEJ",
   "-CURIE",
   "BAR MLECZNY"
- ]
+ ],
+ "rekwizyty": {
+  "drzewo_verdant": 266,
+  "las_drzewko": 68,
+  "las_jodla_b": 9,
+  "las_jodla_c": 13,
+  "las_sosna_b": 4,
+  "park_shrub": 48
+ }
 }

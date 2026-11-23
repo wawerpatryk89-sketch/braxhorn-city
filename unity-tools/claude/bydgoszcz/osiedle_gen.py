@@ -40,8 +40,11 @@ MATS = {
     "drzwi": ((.34, .22, .16), "drewno"), "szyba": ((.16, .21, .27), "szklo"), "rama": ((.95, .95, .95), "gladki"), "rama_ciemna": ((.20, .21, .22), "gladki"),
     "balkon_a": ((.42, .60, .44), "gladki"), "balkon_b": ((.72, .72, .70), "gladki"), "balkon_c": ((.62, .30, .24), "gladki"),
     "asfalt": ((.27, .27, .28), "asfalt"), "asfalt_stary": ((.36, .35, .34), "asfalt_stary"), "chodnik": ((.62, .60, .57), "chodnik"),
-    "mural_bar_mleczny": ((.42, .12, .12), "obraz"),   # właściciel 23.11, 08:01: mural kolegi — „możesz go normalnie wstawić”
-    "kraweznik": ((.66, .65, .62), "beton"), "trawa": ((.36, .52, .24), "trawa"), "ziemia": ((.30, .24, .17), "ziemia"),
+    "mural_bar_mleczny_sciana": ((.42, .12, .12), "obraz"),   # właściciel 23.11, 08:01: mural kolegi — „możesz go normalnie wstawić”
+    "kraweznik": ((.66, .65, .62), "beton"),
+    "szyba_firanka": ((.80, .80, .77), "szklo"), "szyba_zaslona": ((.62, .54, .44), "szklo"), "parapet": ((.80, .80, .78), "gladki"),
+    "rynna": ((.58, .59, .60), "gladki"), "stal_grafit": ((.12, .13, .13), "gladki"), "klosz": ((.90, .89, .84), "gladki"),
+    "lamela_zielona": ((.22, .42, .30), "gladki"), "siatka": ((.16, .17, .17), "gladki"), "trawa": ((.36, .52, .24), "trawa"), "ziemia": ((.30, .24, .17), "ziemia"),
 }
 
 
@@ -59,7 +62,16 @@ def tint(barwa, rodzaj):
 
 class Siatki:
     def __init__(s):
-        s.m = {}; s.boksy = []; s.napisy = []
+        s.m = {}; s.boksy = []; s.napisy = []; s.rekw = []; s.trawa = None; s.obrysy = []
+    def walec(s, g, mat, a, b, r, n=10, r2=None):
+        a, b = np.asarray(a, float), np.asarray(b, float); r2 = r if r2 is None else r2
+        ax = b - a; ax /= np.linalg.norm(ax); u = np.cross(ax, (0, 0, 1) if abs(ax[1]) > .9 else UP); u /= np.linalg.norm(u); w = np.cross(ax, u)
+        kier = [u * math.cos(2 * math.pi * i / n) + w * math.sin(2 * math.pi * i / n) for i in range(n)]
+        for i in range(n):
+            d0, d1 = kier[i], kier[(i + 1) % n]
+            s.quad(g, mat, [a + d0 * r, a + d1 * r, b + d1 * r2, b + d0 * r2], d0 + d1)
+        for i in range(1, n - 1):
+            s.quad(g, mat, [b + kier[0] * r2, b + kier[i] * r2, b + kier[i + 1] * r2], ax); s.quad(g, mat, [a + kier[0] * r, a + kier[i] * r, a + kier[i + 1] * r], -ax)
     def quad(s, g, mat, pts, hint):
         pts = [np.asarray(p, float) for p in pts]
         n = np.cross(pts[1] - pts[0], pts[2] - pts[0]); dl = np.linalg.norm(n)
@@ -128,10 +140,17 @@ class Siatki:
             s.quad(g, oscieze, [P(a, c), P(b, c), P(b, c, R), P(a, c, R)], UP); s.quad(g, oscieze, [P(a, e), P(b, e), P(b, e, R), P(a, e, R)], -UP)
             if rodzaj in ("drzwi", "brama"):
                 s.quad(g, "drzwi" if rodzaj == "drzwi" else "brama_drewno", [P(a, c, R), P(b, c, R), P(b, e, R), P(a, e, R)], n); continue
-            s.quad(g, "szyba", [P(a, c, R), P(b, c, R), P(b, e, R), P(a, e, R)], n)
-            rama, t, gl = ("rama_ciemna" if rodzaj == "witryna" else "rama"), .07, R - .04
-            for q in ((a, a + t, c, e), (b - t, b, c, e), (a + t, b - t, c, c + t), (a + t, b - t, e - t, e), ((a + b) / 2 - t / 2, (a + b) / 2 + t / 2, c + t, e - t)):
-                s.quad(g, rama, [P(q[0], q[2], gl), P(q[1], q[2], gl), P(q[1], q[3], gl), P(q[0], q[3], gl)], n)
+            los = int(abs(a * 7.31 + c * 3.17 + p0[0] * 1.71 + p0[2] * 2.37) * 1000) % 10
+            szyba = "szyba" if rodzaj == "witryna" or los >= 7 else ("szyba_firanka" if los < 5 else "szyba_zaslona")
+            s.quad(g, szyba, [P(a, c, R), P(b, c, R), P(b, e, R), P(a, e, R)], n)
+            if rodzaj == "okno": s.skrzynka(g, "parapet", p0, d, n, a - .05, b + .05, c - .04, c, -.02, .1)
+            rama, t = ("rama_ciemna" if rodzaj == "witryna" else "rama"), .07
+            R0, R1 = R - .075, R - .005                           # profil PCV 7 cm, lico 5 cm za licem ściany
+            Q = lambda q0, q1, v0, v1: s.skrzynka(g, rama, p0 + n * 0, d, n, q0, q1, v0, v1, -R1, -R0)
+            Q(a, a + t, c, e); Q(b - t, b, c, e); Q(a + t, b - t, c, c + t); Q(a + t, b - t, e - t, e)
+            szer = b - a; slupki = [] if szer < .9 else ([(a + b) / 2] if szer < 1.8 else [a + szer / 3, a + 2 * szer / 3])
+            for x in slupki: Q(x - .045, x + .045, c + t, e - t)
+            if rodzaj == "okno" and e - c > 1.3: Q(a + t, b - t, e - .42, e - .36)
 
 
 def Baza(f, progi=()):
@@ -149,6 +168,22 @@ def okna_w_przeslach(dl, przeslo, szer, margines=1.2):
 # ---------------------------------------------------------------------------------------------- typy budynków (ze zdjęć)
 WIEZOWCE_SZARE = {"28a", "30a", "32a", "34a"}
 BLOKI4 = {"28", "30", "32", "34", "36", "38"}
+
+def mural_sciana(szer, wys):
+    """Mural właściciela na całą ścianę baru (08:18). Plik od właściciela ma proporcje 1,61 i jest ucięty z prawej, ściana ~3,5 : 1:
+    oryginał na środku na pełną wysokość, boki w jego barwach (czerń, czerwień płomieni), bez powielania postaci i liter.
+    Pełne zdjęcie muralu od właściciela = podmiana pliku mural_bar_mleczny.jpg i ponowne osiedle_gen.py."""
+    from PIL import Image, ImageFilter
+    if not MURAL.exists(): return
+    zr = Image.open(MURAL).convert("RGB"); H = 1024; W = int(round(H * szer / wys)); s = H / zr.height
+    o = zr.resize((int(zr.width * s), H), Image.LANCZOS); x0 = (W - o.width) // 2
+    # tło boków: barwy samego muralu (czerń dołem, czerwień płomieni górą), mocno rozmyte — bez powielania postaci i napisów
+    tlo = o.resize((W, H), Image.BILINEAR).filter(ImageFilter.GaussianBlur(90))
+    tlo = Image.blend(tlo, Image.new("RGB", (W, H), (10, 9, 11)), .35)
+    maska = Image.new("L", (W, H), 0); maska.paste(255, (x0 + 40, 0, x0 + o.width - 40, H)); maska = maska.filter(ImageFilter.GaussianBlur(26))
+    warstwa = tlo.copy(); warstwa.paste(o, (x0, 0)); plotno = Image.composite(warstwa, tlo, maska)
+    plotno.save(MURAL.with_name("mural_bar_mleczny_sciana.jpg"), quality=90)
+
 
 def typ_budynku(b):
     ul, nr, rodz = b["ulica"] or "", (b["nr"] or ""), b["rodzaj"]
@@ -205,12 +240,17 @@ def buduj(S, b, typ, nr_kol, drogi):
                             pan = ("balkon_a", "balkon_b", "balkon_c")[(i + k + nr_kol) % 3]
                             S.skrzynka(g, pan, p0, d, n, q - 1.5, q + 1.5, y + .1, y + 1.12, 1.2, 1.25)
                             S.skrzynka(g, pan, p0, d, n, q - 1.5, q - 1.45, y + .1, y + 1.12, 0, 1.2); S.skrzynka(g, pan, p0, d, n, q + 1.45, q + 1.5, y + .1, y + 1.12, 0, 1.2)
+                            S.skrzynka(g, "stal_grafit", p0, d, n, q - 1.52, q + 1.52, y + 1.12, y + 1.17, 1.17, 1.29)
+                            S.skrzynka(g, "stal_grafit", p0, d, n, q - 1.52, q - 1.44, y + 1.12, y + 1.17, 0, 1.29); S.skrzynka(g, "stal_grafit", p0, d, n, q + 1.44, q + 1.52, y + 1.12, y + 1.17, 0, 1.29)
                         elif not (k == 0 and not balkony and not drzwi_dane and dluga and abs(q - dl / 2) < 1.6):
                             otw.append((q - .7, q + .7, y + .95, y + 2.35, "okno"))
                 if dluga and not balkony and not drzwi_dane:
                     otw.append((dl / 2 - .8, dl / 2 + .8, .15, 2.35, "drzwi")); drzwi_dane = True
                     S.skrzynka(g, "beton", p0, d, n, dl / 2 - 1.6, dl / 2 + 1.6, 2.5, 2.65, 0, 1.6); S.skrzynka(g, "beton", p0, d, n, dl / 2 - 1.4, dl / 2 + 1.4, 0, .15, 0, 1.2)
-            elif dl > 8 and not napis_dany:      # ślepy szczyt: pole oliwkowe z adresem (zdjęcie 28a)
+            elif dl > 8:                         # szczyt: dwa piony małych okien (zdjęcie 28a: kuchnie i łazienki przy krawędzi)
+                for q in (dl * .80, dl * .90):
+                    for k in range(pietra): otw.append((q - .32, q + .32, cok + k * hk + 1.2, cok + k * hk + 2.2, "okno"))
+            if not dluga and dl > 8 and not napis_dany:      # ślepy szczyt: pole oliwkowe z adresem (zdjęcie 28a)
                 napis_dany = True; y = H - 9.5
                 pola.append((dl / 2 - 3.6, dl / 2 + 3.6, y, y + 6.2, "tynk_oliwka"))
                 srod = p0 + d * (dl / 2) + n * .02
@@ -252,6 +292,7 @@ def buduj(S, b, typ, nr_kol, drogi):
                             otw.append((q - 1.0, q + 1.0, y + .12, y + 2.25, "okno"))
                             S.skrzynka(g, "beton", p0, d, n, q - 1.5, q + 1.5, y - .06, y + .1, 0, 1.3)
                             S.skrzynka(g, "balkon_c", p0, d, n, q - 1.5, q + 1.5, y + .1, y + 1.1, 1.25, 1.3)
+                            S.skrzynka(g, "stal_grafit", p0, d, n, q - 1.52, q + 1.52, y + 1.1, y + 1.15, 1.2, 1.32)
                         else:
                             otw.append((q - .75, q + .75, y + .95, y + 2.4, "okno"))
                             if i % 2 == 0 and i + 1 < len(srodki): pola.append((q + .75, q + 3.3 - .75, y + .95, y + 2.4, "tynk_zolty"))
@@ -292,10 +333,28 @@ def buduj(S, b, typ, nr_kol, drogi):
             elif typ == "bar" and dl > 5 and j != mural:
                 for q in okna_w_przeslach(dl, 3.4, 1.8): otw.append((q - .9, q + .9, 1.0, 2.5, "okno"))
         if typ == "bar" and j == mural:
-            szer = min(3.0 * MURAL_ASPEKT, dl - .6); wys = szer / MURAL_ASPEKT
-            mur = (dl / 2 - szer / 2, dl / 2 + szer / 2, .45, .45 + wys); pola.append((*mur, "__puste"))
+            mur = (.05, dl - .05, cok + .02, H - .05); pola.append((*mur, "__puste")); mural_sciana(mur[1] - mur[0], mur[3] - mur[2])
         S.sciana(g, p0, d, dl, 0, H, baza, otw, pola)
-        if mur: S.obraz(g, "mural_bar_mleczny", p0, d, *mur)
+        if dluga and typ in ("wiezowiec_szary", "wiezowiec_kolor", "blok4", "szkola"):
+            for q in (.35, dl - .35): S.skrzynka(g, "rynna", p0, d, n, q - .055, q + .055, .1, H - .05, .06, .17)
+        if typ == "wiezowiec_szary" and dluga and drzwi_dane and not getattr(S, "_wiata_" + b["osm"], False) and S.trawa is not None:
+            from shapely.geometry import Point as _Pt
+            trawnik = S.trawa.buffer(-.3)
+            for q, odl in sorted(((q, odl) for q in np.arange(2.0, dl - 8.0, 1.5) for odl in (3.5, 4.5, 5.5, 6.5, 8.0)), key=lambda t: (abs(t[0] + 3.1 - dl / 2 - 10), t[1])):
+                o = p0 + d * q + n * odl
+                if trawnik.contains(Polygon([(o + d * x + n * y)[[0, 2]] for x, y in ((0, 0), (6.2, 0), (6.2, 2.6), (0, 2.6))])):
+                    setattr(S, "_wiata_" + b["osm"], True); gw = "wiata_" + b["osm"]
+                    S.plyta(gw, "beton", Polygon([(o + d * x + n * y)[[0, 2]] for x, y in ((-.2, -.2), (6.4, -.2), (6.4, 2.8), (-.2, 2.8))]), 0, .12)
+                    for x in (0, 3.1, 6.2):
+                        for y in (0, 2.6): S.skrzynka(gw, "stal_grafit", o, d, n, x - .05, x + .05, .12, 2.3, y - .05, y + .05)
+                    S.skrzynka(gw, "lamela_zielona", o, d, n, 0, 6.2, .2, 1.45, 2.55, 2.6)
+                    S.skrzynka(gw, "lamela_zielona", o, d, n, -.02, .02, .2, 1.45, 0, 2.6); S.skrzynka(gw, "lamela_zielona", o, d, n, 6.18, 6.22, .2, 1.45, 0, 2.6)
+                    for k in range(6): S.skrzynka(gw, "siatka", o, d, n, -.03, 6.23, .26 + k * .2, .29 + k * .2, 2.61, 2.63)
+                    S.skrzynka(gw, "siatka", o, d, n, 0, 6.2, 1.5, 2.25, 2.58, 2.59)
+                    S.skrzynka(gw, "rynna", o, d, n, -.3, 6.5, 2.3, 2.36, -.35, 2.9)
+                    S.boksy.append((*(o + d * 3.1 + n * 1.3 + UP * 1.2)[[0, 1, 2]], 6.2, 2.4, 2.6, -math.degrees(math.atan2(d[2], d[0]))))
+                    break
+        if mur: S.obraz(g, "mural_bar_mleczny_sciana", p0, d, *mur)
     okap = {"garaze": .25, "bar": .7, "blok4": .35, "pawilon": .1}.get(typ, 0)
     S.plyta(g, "dach", poly.buffer(okap, join_style=2) if okap else poly, H, H + .14)
     if typ == "blok4":
@@ -316,7 +375,83 @@ def grunt(S):
     for g, mat, w, y in (("grunt_asfalt", "asfalt", asf, 0), ("grunt_asfalt_stary", "asfalt_stary", stary, 0), ("grunt_chodnik", "chodnik", chod, .12), ("grunt_trawa", "trawa", trawa, .05)):
         S.plaszcz(g, mat, w, y, skrot=True)
     S.fartuch("grunt_kraweznik", "kraweznik", chod, 0, .12); S.fartuch("grunt_skraj", "ziemia", trawa, 0, .05)
+    S.trawa = trawa; S.utw = unary_union([asf, stary, chod])
     return {n: round(w.area) for n, w in (("asfalt_m2", asf), ("asfalt_osiedlowy_m2", stary), ("chodnik_m2", chod), ("trawa_m2", trawa))}
+
+
+def latarnia(S, x, z, h, ku=None):
+    """Latarnia: słup stalowy; na uliczkach klosz na szczycie (zdjęcie Wyszyńskiego), przy Skłodowskiej wysięgnik nad jezdnię (zdjęcia ulicy)."""
+    p = np.array([x, .05, z]); g = "latarnie"
+    S.walec(g, "stal_grafit", p, p + UP * .7, .13, 10, .1); S.walec(g, "stal_grafit", p + UP * .7, p + UP * h, .085, 10, .06)
+    if ku is None:
+        S.walec(g, "klosz", p + UP * h, p + UP * (h + .42), .17, 12, .24); S.walec(g, "stal_grafit", p + UP * (h + .42), p + UP * (h + .5), .3, 12, .06)
+    else:
+        k = np.array([ku[0], 0, ku[1]]); k /= np.linalg.norm(k); kon = p + UP * (h + .35) + k * 1.8
+        S.walec(g, "stal_grafit", p + UP * (h - .05), kon, .045, 8)
+        S.skrzynka(g, "stal_grafit", kon, k, np.cross(k, UP), -.1, .55, -.12, .05, -.17, .17); S.skrzynka(g, "klosz", kon, k, np.cross(k, UP), -.05, .5, -.14, -.12, -.13, .13)
+
+
+def rekwizyty(S):
+    """Drzewa i krzewy z BIBLIOTEKI WŁAŚCICIELA (Assets/Source/Claude/Library: drzewo_verdant, las_drzewko, las_jodla_*, las_sosna_*, park_shrub —
+    Poly Haven / paczka Verdant właściciela; właściciel 23.11, 08:07: „drzewa naturalne, z Poly Haven, z mojej kolekcji”).
+    OpenStreetMap nie ma tu pojedynczych drzew, więc rozstaw idzie za zdjęciami: młode drzewka z palikami w pasie zieleni przy Skłodowskiej,
+    duże liściaste i pojedyncze iglaki na trawnikach między blokami, krzewy przy wejściach."""
+    from shapely.geometry import Point
+    from shapely.prepared import prep
+    rng = np.random.default_rng(23112026)
+    bud = unary_union([Polygon(b["obrys"]).buffer(0) for b in D["budynki"]])
+    wolne = prep(S.trawa.buffer(-1.1).difference(bud.buffer(3.8)))
+    przy = prep(S.trawa.buffer(-.6).difference(bud.buffer(1.4)))
+    pnie = []
+    def dodaj(model, x, z, h, odst):
+        if any((x - a) ** 2 + (z - c) ** 2 < odst ** 2 for a, c in pnie): return False
+        pnie.append((x, z)); S.rekw.append((model, float(x), .05, float(z), float(rng.uniform(0, 360)), float(h))); return True
+    glowna = [u for u in D["ulice"] if "Skłodowskiej" in (u["nazwa"] or "") and u["klasa"] in ("primary", "secondary", "tertiary") and len(u["linia"]) > 1]
+    for u in glowna:
+        L = LineString(u["linia"])
+        for odl in (6.0, -6.0):
+            o = L.offset_curve(odl)
+            for t in np.arange(5, o.length, 10.5):
+                q = o.interpolate(t)
+                if wolne.contains(q): dodaj("las_drzewko", q.x, q.y, float(rng.uniform(4.2, 5.2)), 5)
+        for odl in (5.2, -5.2):
+            o = L.offset_curve(odl)
+            for t in np.arange(15, o.length, 33):
+                q = o.interpolate(t); q2 = L.interpolate(L.project(q))
+                if przy.contains(q): latarnia(S, q.x, q.y, 8.5, (q2.x - q.x, q2.y - q.y))
+    x0, z0, x1, z1 = S.trawa.bounds
+    for u in D["ulice"]:                                   # szpalery wzdłuż uliczek osiedlowych (zdjęcia: drzewa po obu stronach)
+        if u["klasa"] != "service" or len(u["linia"]) < 2: continue
+        L = LineString(u["linia"])
+        for odl in (4.6, -4.6):
+            o = L.offset_curve(odl)
+            for t in np.arange(6, o.length, 13.0):
+                q = o.interpolate(t)
+                if wolne.contains(q): dodaj("drzewo_verdant", q.x, q.y, float(rng.uniform(9.5, 13.0)), 8)
+    for x in np.arange(x0, x1, 13.0):
+        for z in np.arange(z0, z1, 13.0):
+            px, pz = x + rng.uniform(-5, 5), z + rng.uniform(-5, 5)
+            if not wolne.contains(Point(px, pz)): continue
+            los = rng.random()
+            if los < .62: dodaj("drzewo_verdant", px, pz, float(rng.uniform(9.5, 13.5)), 8.5)
+            elif los < .74: dodaj(("las_jodla_b", "las_jodla_c", "las_sosna_b")[int(rng.integers(3))], px, pz, float(rng.uniform(10, 13)), 9)
+    krzewy = 0
+    for b in S.obrysy:
+        for (ax, az), (bx, bz) in zip(b.exterior.coords[:-1], b.exterior.coords[1:]):
+            dlg = math.hypot(bx - ax, bz - az)
+            if dlg < 8 or krzewy >= 48: continue
+            d = np.array([bx - ax, bz - az]) / dlg; n = np.array([d[1], -d[0]])
+            for t in (dlg * .22, dlg * .78):
+                q = np.array([ax, az]) + d * t + n * 1.9
+                if b.contains(Point(*q)): q = np.array([ax, az]) + d * t - n * 1.9
+                if przy.contains(Point(*q)) and rng.random() < .55 and dodaj("park_shrub", q[0], q[1], float(rng.uniform(1.2, 1.7)), 2.2): krzewy += 1
+    for u in D["ulice"]:
+        if u["klasa"] != "service" or len(u["linia"]) < 2: continue
+        L = LineString(u["linia"])
+        for i, t in enumerate(np.arange(12, L.length, 30)):
+            for odl in ((3.1, -3.1) if i % 2 == 0 else (-3.1, 3.1)):
+                q = L.offset_curve(odl).interpolate(t)
+                if przy.contains(q) and all((q.x - a) ** 2 + (q.y - c) ** 2 > 9 for a, c in pnie): latarnia(S, q.x, q.y, 5.0); pnie.append((q.x, q.y)); break
 
 
 def zapisz(S, sciezka):
@@ -330,6 +465,7 @@ def zapisz(S, sciezka):
         out += txt(g) + struct.pack("<iBii", nazwy.index(m), flagi, len(a), len(i)) + a.tobytes() + np.asarray(i, "<i4").tobytes()
     out += struct.pack("<i", len(S.boksy)) + b"".join(struct.pack("<7f", *b) for b in S.boksy)
     out += struct.pack("<i", len(S.napisy)) + b"".join(txt(n[0]) + struct.pack("<10f", *n[1:]) for n in S.napisy)
+    out += struct.pack("<i", len(S.rekw)) + b"".join(txt(r[0]) + struct.pack("<5f", *r[1:]) for r in S.rekw)
     sciezka.write_bytes(gzip.compress(bytes(out), 9, mtime=0)); return len(out), sciezka.stat().st_size
 
 
@@ -374,13 +510,15 @@ def main():
         if typ is None:
             braki.append({"osm": b["osm"], "adres": ((b["ulica"] or "") + " " + (b["nr"] or "")).strip() or "bez adresu w mapie", "rodzaj_w_mapie": b["rodzaj"], "wymiar_m": [b["dlugosc_m"], b["szerokosc_m"]], "srodek": b["srodek"]})
             continue
-        zbudowane.append(buduj(S, b, typ, nr_kol, drogi))
+        zbudowane.append(buduj(S, b, typ, nr_kol, drogi)); S.obrysy.append(Polygon(b["obrys"]).buffer(0))
+    rekwizyty(S)
     surowe, spak = zapisz(S, TU / "osiedle.bin")
     tr = {}; razem = 0
     for (g, m), (v, i) in S.m.items(): tr[g.split("_")[0] if g.startswith("grunt") else g] = tr.get(g.split("_")[0] if g.startswith("grunt") else g, 0) + len(i) // 3; razem += len(i) // 3
     opis = {"trojkatow_razem": razem, "trojkatow_grunt": tr.get("grunt", 0), "najciezszy_budynek": max((v, k) for k, v in tr.items() if k != "grunt"),
             "siatek": len(S.m), "plik_bajtow": spak, "powierzchnie": pow_, "budynkow_zbudowanych": len(zbudowane), "wg_typu": {t: sum(1 for z in zbudowane if z["typ"] == t) for t in sorted({z["typ"] for z in zbudowane})},
-            "zbudowane": zbudowane, "braki_bez_zdjecia": braki, "napisy": [n[0] for n in S.napisy]}
+            "zbudowane": zbudowane, "braki_bez_zdjecia": braki, "napisy": [n[0] for n in S.napisy],
+            "rekwizyty": {m: sum(1 for r in S.rekw if r[0] == m) for m in sorted({r[0] for r in S.rekw})}}
     (TU / "osiedle_opis.json").write_text(json.dumps(opis, ensure_ascii=False, indent=1), encoding="utf-8")
     print({k: v for k, v in opis.items() if k not in ("zbudowane", "braki_bez_zdjecia")}); print("braki:", len(braki))
     from shapely.geometry import Point
