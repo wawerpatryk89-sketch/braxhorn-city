@@ -34,18 +34,6 @@ public static class TorMain
         }
         var root = new GameObject("preview tor").transform;
         BraxChampionsTorKladow.Zbuduj(root);
-        if (Environment.GetEnvironmentVariable("PREVIEW_PODIUM") == "1")
-        {
-            // the ceremony as the race sets it (BraxChampionsWyscig.Podium): three rivals on the steps facing the paddock, the
-            // cups moved onto the steps before them
-            var w = root.GetComponentsInChildren<BraxChampionsWyscig>()[0];
-            for (int i = 0; i < 3; i++)
-            {
-                var r = BraxChampionsTorKladow.Rywale[i];
-                BraxChampionsKlady.PostawRywala(root, r.model, r.kolor, r.imie, r.numer, w.podium[i], 180f, r.stroj, r.akcent, r.umiejetnosc, r.pas);
-                w.puchary[i].position = w.pucharyNaPodium[i]; w.puchary[i].rotation = w.podiumObrot;
-            }
-        }
         MeshDump.Write("tor_geometry.json", root, BraxClaudeOsiedle.K, go => go.name.EndsWith(" LOD1") || go.name.EndsWith(" LOD2"));   // the tyres' near level only
         foreach (var m in BraxChampionsKlady.Miejsca) Console.WriteLine("KLAD " + m.napis + " at " + F(m.p.x / BraxClaudeOsiedle.K) + "," + F(m.p.y / BraxClaudeOsiedle.K) + "," + F(m.p.z / BraxClaudeOsiedle.K) + " yaw " + m.yaw);
         Console.WriteLine("DUMP tor length=" + F(o.dlugosc) + " triangles=" + BraxChampionsTorKladow.Trojkaty + " colliders=" + BraxChampionsTorKladow.Kolizje + " fence=" + BraxChampionsTorKladow.Ogrodzenie + " quads=" + Rec.Quads.Count);

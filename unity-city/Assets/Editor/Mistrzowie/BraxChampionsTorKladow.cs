@@ -24,8 +24,8 @@ using W = BraxWnetrzaKit;
 /// The paddock: the rental booth (WYPOŻYCZALNIA KŁADÓW BRAXHORN) with the six quads in their bays (BraxChampionsKlady), the
 /// grandstand over the start straight, the start gate, the START / META arch, light masts, the riders' park; the freestyle
 /// zone north of the start straight; the road from the city's north-west corner (the street mouth at x 60, z 935). The lap
-/// timer: BraxChampionsTorCzas; the race and the cup: BraxChampionsWyscig; the podium, the cups and the TOP 10 board by the
-/// finish line: BraxChampionsPodiumKladow. All in nominal metres x K.</summary>
+/// timer: BraxChampionsTorCzas; the race: BraxChampionsWyscig; the TOP 10 board in the paddock: BraxChampionsTablicaTop. All in
+/// nominal metres x K.</summary>
 public static class BraxChampionsTorKladow
 {
     static float K => BraxClaudeOsiedle.K;
@@ -1105,7 +1105,7 @@ public static class BraxChampionsTorKladow
     static BraxChampionsWyscig Wyscig(Transform g, BraxChampionsMeshBatch b)
     {
         var o = Linia(); var pr = ProfilWyscigu(); float y = PaddockY;
-        var w = new GameObject("TOR DO KŁADÓW | wyścig z rywalami (2 okrążenia) i Puchar BRAXHORN").AddComponent<BraxChampionsWyscig>();
+        var w = new GameObject("TOR DO KŁADÓW | wyścig z rywalami (2 okrążenia)").AddComponent<BraxChampionsWyscig>();
         w.transform.SetParent(g, false);
         int n = pr.p.Length;
         w.punkty = new Vector3[n]; w.lewo = new Vector3[n]; w.vCel = new float[n]; w.skok = new bool[n]; w.szer = new float[n];
@@ -1162,12 +1162,34 @@ public static class BraxChampionsTorKladow
         var te = be.Build(g, "TOR DO KŁADÓW | tablica wyników LED", Folder, false, K);
         var ekrany = te.GetComponentsInChildren<MeshRenderer>(true); w.tablica = ekrany.Length > 0 ? ekrany[0] : null;
         Trojkaty += be.Triangles;
-        // the podium by the finish line, the cups, the TOP 10 board (owner 20:31: "Tablica TOP 10", "Turniej z rywalami",
-        // "Podium i puchar"); the cup: three races of one lap, the MXGP points
-        w.okrazenPucharu = 1; w.wyscigowPucharu = 3;
-        BraxChampionsPodiumKladow.Zbuduj(g, b, y, w, Folder);
-        Trojkaty += BraxChampionsPodiumKladow.Trojkaty;
-        Debug.Log("MISTRZOWIE_TOR_KLADOW_WYSCIG punkty=" + n + " meta=" + pr.sMety.ToString("F0") + "m rywale=" + Rywali + " belki=" + Belek + " podium=" + w.podium.Length + " puchary=" + BraxChampionsPodiumKladow.Pucharow + " " + string.Join(" | ", pr.doubles));
+        TablicaTop(g, b, y);
+        Debug.Log("MISTRZOWIE_TOR_KLADOW_WYSCIG punkty=" + n + " meta=" + pr.sMety.ToString("F0") + "m rywale=" + Rywali + " belki=" + Belek + " " + string.Join(" | ", pr.doubles));
         return w;
+    }
+
+    // ---------------------------------------------------------------- the TOP 10 board (owner 24.11 20:31 his pick "Tablica TOP
+    // 10"; 22:06 no podium, no cup: "to miało być wypożyczalna rozrywka, a nie ... zawody"): in the paddock's west between the
+    // grandstand's back and the riders' park, facing south (the paddock, the way in from the finish line); 9.6 x 4.8 m (256 x 128
+    // LEDs, 3.75 cm) on two steel legs, 2.2 m up, a black frame, the screen 3 cm before it (BraxChampionsTablicaTop paints it)
+    public const float TopX = -120f, TopZ = 966.5f, TopW = 9.6f, TopH = 4.8f, TopNad = 2.2f;
+    static void TablicaTop(Transform g, BraxChampionsMeshBatch b, float y)
+    {
+        float x0 = TopX - TopW * .5f, x1 = TopX + TopW * .5f, yb = y + TopNad, yt = yb + TopH;
+        b.BoxMinMax(czern, x0 - .3f, x1 + .3f, yb - .3f, yt + .3f, TopZ - .15f, TopZ + .25f);
+        foreach (float lx in new[] { TopX - 3f, TopX + 3f })
+        {
+            b.Cylinder(stal, new Vector3(lx, y - .4f, TopZ + .05f), .16f, TopNad + .2f, 12);
+            W.Kolizja(new Vector3(lx, y + TopNad * .5f, TopZ + .05f) * K, new Vector3(.36f, TopNad + .4f, .36f) * K, Quaternion.identity);
+        }
+        W.Kolizja(new Vector3(TopX, (yb + yt) * .5f, TopZ + .05f) * K, new Vector3(TopW + .6f, TopH + .6f, .4f) * K, Quaternion.identity);
+        var ekran = BraxChampionsHarbour.Surface("tor_kladow_tablica_led", Color.white, .35f, 0f, new Color(1.6f, 1.6f, 1.6f));   // the race board's screen
+        var be = new BraxChampionsMeshBatch(); float zs = TopZ - .18f;
+        // seen from the south (looking north) its left is west: u 0 at x0
+        be.QuadUV(ekran, new Vector3(x0, yb, zs), new Vector3(x0, yt, zs), new Vector3(x1, yt, zs), new Vector3(x1, yb, zs), new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(1f, 0f));
+        var te = be.Build(g, "TOR DO KŁADÓW | tablica TOP 10", Folder, false, K);
+        Trojkaty += be.Triangles;
+        var t = new GameObject("TOR DO KŁADÓW | tablica TOP 10 (wyniki)").AddComponent<BraxChampionsTablicaTop>();
+        t.transform.SetParent(g, false);
+        var r = te.GetComponentsInChildren<MeshRenderer>(true); t.ekran = r.Length > 0 ? r[0] : null;
     }
 }

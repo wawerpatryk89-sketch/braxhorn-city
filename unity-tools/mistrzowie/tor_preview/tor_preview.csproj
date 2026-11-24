@@ -22,7 +22,6 @@
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsLasKladow.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsKlubKladow.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsOponyKladow.cs" />
-    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsPodiumKladow.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsKladZawodnik.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsModel.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsPalmTrunk.cs" />

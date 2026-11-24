@@ -12,9 +12,8 @@ public sealed class BraxChampionsWyscig : MonoBehaviour
 {
     public Vector3[] punkty, lewo, sloty; public float[] vCel, szer; public bool[] skok; public float krok, dlugosc, sMety, polSzerokosci, K, strefaPromien; public int okrazen;
     public Quaternion kierunekStartu, belkaGora, belkaDol; public Transform[] belki; public BraxChampionsKladRywal[] rywale; public Renderer tablica; public Vector3 strefaStartu;
-    public int okrazenPucharu, wyscigowPucharu; public Vector3[] podium, pucharyNaPodium; public Quaternion podiumObrot, podiumWidzObrot; public Vector3 podiumWidz; public Transform[] puchary;
 }
-public sealed class BraxChampionsTablicaTop : MonoBehaviour { public Renderer ekran; public BraxChampionsWyscig wyscig; public float naStrone; }
+public sealed class BraxChampionsTablicaTop : MonoBehaviour { public Renderer ekran; public float naStrone; }
 public static class BraxChampionsKlady
 {
     public static readonly (string model, string kolor, string napis)[] Flota =
