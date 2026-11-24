@@ -99,6 +99,10 @@ def zbuduj(poly, sp, nazwa="budynek"):
                                 continue                           # okno na froncie wykusza (ozdoby_sciany)
                             elif f == 1 and i == balk_os:              # drzwi balkonowe
                                 okna.append((c - ow / 2, c + ow / 2, fl + .05, fl + opar + oh, rodz, f))
+                            elif sp.get("drzwi_bal") and (f, i) == sp["drzwi_bal"][:2] and k == sp["drzwi_bal"][2] and \
+                                    n[0] * sp["drzwi_bal"][3][0] + n[2] * sp["drzwi_bal"][3][1] > .8:
+                                # 24.11: drzwi na balkon z DJ-em (rynek_bdg/balkon_dj.py) — kondygnacja, oś, liczba osi, ściana
+                                okna.append((c - ow / 2, c + ow / 2, fl + .05, fl + opar + oh, rodz, f))
                             else:
                                 okna.append((c - ow / 2, c + ow / 2, fl + opar, fl + opar + oh, rodz, f))
             cok = sp.get("h_cokol", .5)

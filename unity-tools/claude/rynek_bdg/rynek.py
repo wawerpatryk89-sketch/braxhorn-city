@@ -25,6 +25,7 @@ TU = Path(__file__).resolve().parent
 sys.path.insert(0, str(TU.parent / "osiedle_bdg"))
 from kit import Siatka, UP, nrm, zapisz_bin, zapisz_glb, trojkaty, scal_wg_materialu, scal_wg_budynku  # noqa: E402
 import ogolny  # noqa: E402
+import balkon_dj  # noqa: E402
 import paleta  # noqa: E402
 
 R = json.loads((TU / "dane" / "rynek_rzut.json").read_text())
@@ -223,6 +224,14 @@ def spec(b, R_):
     if pastel and not ("urząd miasta" in nz or "opera" in nz or "lloyd" in nz or "spichlerz" in nz):
         sp_["tynk"] = pastel[0]; sp_["parter_mat"] = ("kb" + pastel[0][1:]) if pastel[1] else None
         if sp_["szczyt_mat"] == tynk: sp_["szczyt_mat"] = pastel[0]
+    if b.get("osm") == balkon_dj.OSM and RYNEK_PIERZEJE[0] is not None:
+        # 24.11, 14:09 (zdjęcie z nagrania z Rynku): kamienica z balkonem DJ — 4 kondygnacje, 3 osie od Rynku, ochra nad
+        # kremowym parterem, naczółki; drzwi balkonowe na II piętrze w środkowej osi (balkon_dj.py)
+        sc = balkon_dj.sciana_od_rynku(balkon_dj.obrys(P), RYNEK_PIERZEJE[0])
+        sp_.update(kond=balkon_dj.KOND, h_kond=balkon_dj.HK, parter=balkon_dj.P0, tynk="k_ochra", parter_mat="kb_krem",
+                   okna=(2.0, 1.1, 2.1, .85), ozdoby=dict(trojkat=True, plyciny=True, lizeny=False, wykusz=False, balkon=False),
+                   drzwi_bal=(balkon_dj.PIETRO, 1, 3, (float(sc[3][0]), float(sc[3][2]))),
+                   zr="ZAŁ wg zdjęcia z nagrania z Rynku (balkon DJ, 24.11)")
     return sp_
 
 
@@ -737,9 +746,19 @@ def main(out):
         dd = D._c(g, m); b0 = len(dd["v"])
         for f in ("v", "n", "t", "uv", "uv1"): dd[f] += c[f]
         dd["i"] += [b0 + q for q in c["i"]]
+    # balkon z DJ-em (24.11, właściciel 14:09): płyta, balustrada, baner, konsoleta, kolumny, światła + wpis muzyki
+    muzyka = []
+    kub = next((b for b in budynki if b.get("osm") == balkon_dj.OSM), None)
+    if kub is not None and RYNEK_PIERZEJE[0] is not None:
+        Sb = Siatka(); wpis, _ = balkon_dj.zbuduj(Sb, balkon_dj.obrys(kub["poly"]), RYNEK_PIERZEJE[0]); muzyka.append(wpis)
+        for (g, m), c in Sb.dane().items():
+            dd = D._c(g, m); b0 = len(dd["v"])
+            for f in ("v", "n", "t", "uv", "uv1"): dd[f] += c[f]
+            dd["i"] += [b0 + q for q in c["i"]]
     bud = unary_union([b["poly"] for b in budynki] + [q for k, q in wlasne.items() if k not in (zabytki.OSM_BARKA, zabytki.OSM_AMFITEATR, "pomost_opery")] + [Q.buffer(.3) for Q in OBCE])
     T, pola, mosty, (PLAC_, CHOD_, NABRZ_) = teren(d, bud, W)
     Dt, pola_d, punkty = detale(d, budynki, PLAC_, CHOD_, NABRZ_, W, random.Random(5))
+    if muzyka: punkty["muzyka"] = muzyka      # [plik, x0, z0, x1, z1, wys, głośność, głośnik1 xyz, głośnik2 xyz, materiał świateł, bpm, faza]
     # drzewa na skarpie między Operą a Brdą (m44–m45: kilkanaście drzew na trawniku przed kręgami)
     if zabytki.OSM_OPERA in wlasne and TRAWNIK[0] is not None:
         op = wlasne[zabytki.OSM_OPERA]; Rd = random.Random(44)

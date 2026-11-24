@@ -58,7 +58,7 @@
   "k11": {
    "nazwa": "Mostowa 27",
    "kond": 4,
-   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Mostowa)"
+   "zrodlo": "ZAŁ wg zdjęcia z nagrania z Rynku (balkon DJ, 24.11)"
   },
   "k12": {
    "nazwa": "Stary Rynek 3",
@@ -1567,5 +1567,5 @@
   "mosty_zespoly": 4
  },
  "mostow": 5,
- "trojkatow": 841819
+ "trojkatow": 842544
 }

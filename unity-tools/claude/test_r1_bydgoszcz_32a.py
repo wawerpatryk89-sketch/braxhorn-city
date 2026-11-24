@@ -245,3 +245,26 @@ def test_build_45304516914_poprawki():
     wf = (R / ".github/workflows/claude-region-build.yml").read_text(encoding="utf-8")
     i = wf.index("python3 unity-tools/claude/fetch_region.py"); krok = wf[wf.rindex("- name:", 0, i):i]
     assert "numpy" in krok
+
+
+def test_balkon_dj_na_rynku():
+    """24.11, 14:09 (właściciel: balkon na zaznaczonej kamienicy, sprzęt DJ, głośniki i muzyka leci): wpis muzyki w punktach
+    Rynku (utwór istnieje, plac przed kamienicą, dwie kolumny na wysokości balkonu), C# tworzy BraxClaudeMuzyka i puls diod,
+    diody świecą (emisja), baner z naklejką w Assets, drzwi balkonowe tylko na ścianie od Rynku."""
+    import json
+    from pathlib import Path
+    R = Path(__file__).resolve().parents[2]
+    pk = json.loads((R / "unity-tools/claude/rynek_bdg/gen/rynek_punkty.json").read_text(encoding="utf-8"))
+    assert list(pk)[-1] == "modele" and len(pk["muzyka"]) == 1
+    m = pk["muzyka"][0]
+    assert (R / "unity-city/Assets/Claude/Audio" / m[0]).exists() and len(m) == 16
+    x0, z0, x1, z1 = m[1:5]; assert x1 - x0 > 20 and z1 - z0 > 20                  # plac przed kamienicą
+    assert 9 < m[8] < 11 and 9 < m[11] < 11                                         # kolumny na balkonie II piętra
+    assert m[13] == "dj_led" and 120 < m[14] < 150
+    import sys; sys.path.insert(0, str(R / "unity-tools/claude/osiedle_bdg")); import paleta
+    assert paleta.P["dj_led"]["emisja"] > 0 and paleta.P["dj_baner"]["nakl"] == "dj_baner.png"
+    assert (R / "unity-city/Assets/Source/Claude/Bydgoszcz/dj_baner.png").exists()
+    cs = (R / "unity-city/Assets/Editor/Claude/Region/BraxBydgoszcz.cs").read_text(encoding="utf-8")
+    assert "Muzyka(root, Swiat, punkty, maty)" in cs and "AddComponent<BraxClaudeMuzyka>()" in cs and "BraxPulsSwiatla" in cs
+    assert "d.emisja > 0f" in cs and 'mat.StartsWith("dj_")' in cs
+    assert (R / "unity-city/Assets/Claude/Runtime/BraxPulsSwiatla.cs").exists()

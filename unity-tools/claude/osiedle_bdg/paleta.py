@@ -264,6 +264,15 @@ P["rynek_plyty"] = {"tex": "granite_tile_04", "m": 4.5, "kol": [196, 188, 176], 
 P["rynek_pas"] = {"tex": "granite_tile_04", "m": 4.5, "kol": [166, 152, 140], "szorst": .8}
 # drogi rowerowe (zdjęcia 11, 13 — Focha): czerwony asfalt
 P["droga_rowerowa"] = {"tex": "clean_asphalt", "m": 4.0, "kol": [150, 74, 64], "szorst": 1.0}
+# balkon z DJ-em na Rynku (24.11, 14:09; rynek_bdg/balkon_dj.py): sprzęt w lakierowanej czerni, membrany i baner z płótna,
+# diody różowo-fioletowe świecą (emisja; w grze pulsują w rytm — BraxPulsSwiatla); baner bez prawdziwej nazwy lokalu
+P["dj_czarny"] = {"tex": "lakier_blacha", "m": 1.0, "kol": [26, 26, 28], "szorst": .6}
+P["dj_szary"] = {"tex": "lakier_blacha", "m": 1.0, "kol": [56, 58, 62], "szorst": .6}
+P["dj_metal"] = {"tex": "lakier_blacha", "m": 1.0, "kol": [170, 172, 176], "szorst": .4, "metal": .8}
+P["dj_membrana"] = {"tex": "plotno_parasol", "m": .5, "kol": [36, 36, 38], "szorst": .9}
+P["dj_led"] = {"tex": None, "kol": [255, 72, 205], "szorst": .4, "emisja": 2.6}
+P["dj_plotno"] = {"tex": "plotno_parasol", "m": 1.0, "kol": [236, 234, 228], "szorst": .95}
+P["dj_baner"] = {"tex": "plotno_parasol", "m": 1.0, "kol": [236, 234, 228], "szorst": .95, "nakl": "dj_baner.png"}
 P["nabrzeze"] = {"tex": "granite_tile_04", "m": 2.0, "kol": [150, 146, 140], "szorst": .9}
 P["mur_nabrzeza"] = {"tex": "granite_tile", "m": 2.3, "kol": [128, 126, 122], "szorst": .8}
 P["woda_brda"] = {"tex": None, "kol": [30, 42, 36], "szorst": .14, "metal": .0, "woda": "HarbourWater"}   # w grze: materiał wody portu (fale, odbicia)

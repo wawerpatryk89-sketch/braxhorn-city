@@ -48,7 +48,7 @@ public static class BraxBydgoszcz
     static float K => BraxClaudeOsiedle.K;
     static string Out => BraxRegion.Out + "/Bydgoszcz";
 
-    [Serializable] class Mat { public string tex; public float m; public float[] kol; public float[] tint; public float szorst; public float metal; public string nakl; public string alfa; public bool okno; public string gra; public string woda; }
+    [Serializable] class Mat { public string tex; public float m; public float[] kol; public float[] tint; public float szorst; public float metal; public string nakl; public string alfa; public bool okno; public string gra; public string woda; public float emisja; }
 
     static string Sciezka(string plik = Plik)
     {
@@ -155,6 +155,8 @@ public static class BraxBydgoszcz
                 return m;
             }
         }
+        // 24.11: świecące diody (balkon z DJ-em na Rynku) — sama emisja, bez światła czasu rzeczywistego; pulsuje BraxPulsSwiatla
+        if (d.emisja > 0f) return BraxRegionMeble.Swiecacy(n, C(d.tint), d.emisja);
         if (!string.IsNullOrEmpty(d.tex))
             return BraxRegionMeble.Tex(n, d.m, C(d.tint), d.szorst, d.tex);
         return BraxRegionMeble.Gladki(n, C(d.tint), d.szorst, d.metal);
@@ -163,7 +165,7 @@ public static class BraxBydgoszcz
     static bool Kolizja(string mat) =>
         !(mat.StartsWith("okno") || mat.StartsWith("balustrada") || mat == "pcv" || mat == "opaska" || mat == "parapet" || mat == "stal" ||
           mat == "stal_balustrada" || mat == "rura_gaz" || mat == "linia_biala" || mat == "lampa" || mat == "tabliczka" || mat == "domofon" ||
-          mat == "kratka" || mat == "obrobka" || mat == "szyba_drzwi" || mat == "szyba_piwnica");
+          mat == "kratka" || mat == "obrobka" || mat == "szyba_drzwi" || mat == "szyba_piwnica" || mat.StartsWith("dj_"));
 
     /// <summary>Folder zasobów z rodzicami (AssetDatabase.CreateFolder + dysk). Build 45304516914 (24.11): CreateAsset w nieistniejącym
     /// ClaudeRegion/Bydgoszcz rzucił wyjątek na pierwszej siatce — osiedle i Stary Rynek nie weszły do świata.</summary>
@@ -263,11 +265,12 @@ public static class BraxBydgoszcz
         int barier = Bezpiecznie(przedrostek + " bariery", () => Bariery(root, Swiat, punkty));
         int drzew = Bezpiecznie(przedrostek + " drzewa", () => Drzewa(root, Swiat, punkty));
         int modeli = Bezpiecznie(przedrostek + " modele właściciela", () => ModeleWlasciciela(root, Swiat, punkty));
+        int muzyk = Bezpiecznie(przedrostek + " muzyka", () => Muzyka(root, Swiat, punkty, maty));
         int akcji = Bezpiecznie(przedrostek + " akcje", () => Akcje(root, Swiat, Obok(sciezka, przedrostek, "akcje.json")));
         Bezpiecznie(przedrostek + " maska trawy", () => { TrawaMaska(root, Obok(sciezka, przedrostek, "trawa_maska.bin"), katalogSiatek); return 1; });
         int lodow = Bezpiecznie(przedrostek + " LOD", () => Zasiegi(root));
         Debug.Log("BRAXHORN_BYDGOSZCZ_" + przedrostek.ToUpperInvariant() + " siatek=" + siatek + " trojkatow=" + trojkatow + " kolizji=" + kolizji + " materialow=" + maty.Count +
-                  " drzew=" + drzew + " modeli_wlasciciela=" + modeli + " akcji=" + akcji + " barier=" + barier + " lod=" + lodow + " bledow_zapisu=" + bledowZapisu + " punkt_zerowy=(" + zero.x + "; " + zero.y + ")");
+                  " drzew=" + drzew + " modeli_wlasciciela=" + modeli + " muzyki=" + muzyk + " akcji=" + akcji + " barier=" + barier + " lod=" + lodow + " bledow_zapisu=" + bledowZapisu + " punkt_zerowy=(" + zero.x + "; " + zero.y + ")");
     }
 
     /// <summary>Niewidzialne ściany (punkty.json → "bariery": [x0, z0, x1, z1, y0, y1], metry): Brda ucięta granicą miasta —
@@ -402,6 +405,59 @@ public static class BraxBydgoszcz
             }
             if (jest) { var kol = o.AddComponent<BoxCollider>(); kol.center = lb.center; kol.size = lb.size; }
             licz++;
+        }
+        return licz;
+    }
+
+    /// <summary>Muzyka z głośników w świecie (punkty.json → "muzyka": [plik, x0, z0, x1, z1, wys, głośność, g1x, g1y, g1z, g2x, g2y,
+    /// g2z, materiał świateł, bpm, faza], metry). 24.11, 14:09 właściciel: balkon z DJ-em na Starym Rynku — „sprzęt DJ, głośniki
+    /// i muzyka leci”. BraxClaudeMuzyka (jak dyskoteka osiedla): „sala” = plac przed kamienicą (pełne pasmo, głośniej przy
+    /// kolumnach), dalej zza budynków stłumiona; suwak muzyki z ustawień działa (BraxUstawienia). Diody pulsują w rytm.</summary>
+    static int Muzyka(Transform root, Func<float, float, float, Vector3> swiat, string p, Dictionary<string, Material> maty)
+    {
+        if (!File.Exists(p)) return 0;
+        string json = File.ReadAllText(p);
+        int a = json.IndexOf("\"muzyka\"", StringComparison.Ordinal);
+        if (a < 0) return 0;
+        int e = json.IndexOf("]]", a, StringComparison.Ordinal); if (e < 0) return 0;
+        var ci = System.Globalization.CultureInfo.InvariantCulture; var fs = System.Globalization.NumberStyles.Float;
+        int licz = 0;
+        foreach (var wpis in json.Substring(a, e + 2 - a).Split(new[] { "[" }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            var pola = wpis.Split(',');
+            if (pola.Length < 13) continue;
+            for (int k = 0; k < pola.Length; k++) pola[k] = pola[k].Trim().Trim('"', ' ', ']', '}', '\n', '\r');
+            var v = new float[13]; bool ok = true;
+            for (int k = 1; k < 13; k++) ok &= float.TryParse(pola[k], fs, ci, out v[k]);
+            if (!ok) continue;
+            string sciezka = "Assets/Claude/Audio/" + pola[0];
+            if (!File.Exists(sciezka)) { BraxRegion.Note("Bydgoszcz: brak utworu " + sciezka + " — balkon bez muzyki"); continue; }
+            AssetDatabase.ImportAsset(sciezka, ImportAssetOptions.ForceSynchronousImport);
+            if (AssetImporter.GetAtPath(sciezka) is AudioImporter imp)
+            {
+                var st = imp.defaultSampleSettings;                       // strumień z pliku (telefon: bez całego utworu w RAM)
+                if (st.loadType != AudioClipLoadType.Streaming || st.compressionFormat != AudioCompressionFormat.Vorbis)
+                {
+                    st.loadType = AudioClipLoadType.Streaming; st.compressionFormat = AudioCompressionFormat.Vorbis; st.quality = .6f;
+                    imp.defaultSampleSettings = st; imp.loadInBackground = true; imp.SaveAndReimport();
+                }
+            }
+            var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(sciezka);
+            if (!clip) { BraxRegion.Note("Bydgoszcz: utwór " + sciezka + " się nie wczytał"); continue; }
+            Vector3 c0 = swiat(v[1], 0f, v[2]), c1 = swiat(v[3], v[5], v[4]);
+            var b = new Bounds(); b.SetMinMax(Vector3.Min(c0, c1), Vector3.Max(c0, c1));
+            var go = new GameObject("Bydgoszcz: muzyka · balkon DJ"); go.transform.SetParent(root, false); go.transform.position = b.center;
+            var mz = go.AddComponent<BraxClaudeMuzyka>();
+            mz.utwor = clip; mz.wnetrze = b; mz.glosnosc = Mathf.Clamp(v[6], .05f, 1f); mz.wygaszenie = 3f; mz.zasiegZewn = 40f * K;
+            mz.glosniki = new[] { swiat(v[7], v[8], v[9]), swiat(v[10], v[11], v[12]) };
+            if (pola.Length >= 16 && maty.TryGetValue(pola[13], out var led) && led)
+            {
+                var puls = go.AddComponent<BraxPulsSwiatla>(); puls.material = led;
+                if (float.TryParse(pola[14], fs, ci, out float bpm)) puls.bpm = bpm;
+                if (float.TryParse(pola[15], fs, ci, out float faza)) puls.faza = faza;
+            }
+            licz++;
+            Debug.Log("BRAXHORN_BYDGOSZCZ_MUZYKA " + clip.name + " " + clip.length.ToString("F0") + " s, plac " + b.size + ", głośniki " + mz.glosniki.Length);
         }
         return licz;
     }
