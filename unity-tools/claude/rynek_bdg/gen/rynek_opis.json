@@ -1497,8 +1497,8 @@
   },
   "k299": {
    "nazwa": "Spichlerz nad Brdą przy ul. Grodzkiej 11",
-   "kond": 1,
-   "zrodlo": "ZAŁ spichlerz wg zdjęć m22–m26, m33–m35"
+   "kond": 3,
+   "zrodlo": "ZAŁ spichlerz Grodzka 11 wg IMG_2010 (3 kondygnacje)"
   },
   "k300": {
    "nazwa": "",
@@ -1567,5 +1567,5 @@
   "mosty_zespoly": 4
  },
  "mostow": 5,
- "trojkatow": 837375
+ "trojkatow": 840435
 }

@@ -179,6 +179,14 @@ def spec(b, R_):
     oz = dict(trojkat=R_.random() < .5, plyciny=R_.random() < .6, lizeny=R_.random() < .45,
               wykusz=R_.random() < .22, balkon=R_.random() < .35)
     nz = nazwa.lower()
+    if "spichlerz" in nz and "grodzkiej 11" in nz:
+        # Grodzka 11 (24.11, IMG_2010 + Wikipedia „Grodzka Street, Bydgoszcz”: „has only three storey”): trzy kondygnacje
+        # muru pruskiego (ok. 9 m do okapu), szczyt od ulicy w murze pruskim, dach dwuspadowy 58°, jeden rząd małych lukarn
+        return dict(kond=3, h_kond=2.9, parter=3.2, tynk="k_wypelnienie", cokol="cokol4", h_cokol=.4,
+                    okna=(2.3, .75, 1.0, 1.1), witryny=False, gzymsy=False, dach="kamienica", dach_mat="dachowka_03", spadek=58,
+                    attyka=.15, kalenica_max=40.0, zr="ZAŁ spichlerz Grodzka 11 wg IMG_2010 (3 kondygnacje)", ozdoby=None,
+                    parter_mat=None, lukarny=True, lukarny_rzedy=1, kominy=False, mur_pruski=True, dwuspad=True, szczyt_mat=None,
+                    okno_lekkie=True, rama_mat="deska_ciemna", osc_mat="deska_ciemna")   # IMG_2010: okna w ciemnym drewnie
     if "spichlerz" in nz:                                             # spichrze nad Brdą: mur pruski, dach dwuspadowy 58°
         # IMG_2009 (Grodzka 8): niskie ściany podłużne (ok. 3,3 m) w murze pruskim, ogromny stromy dach z rzędami lukarn,
         # wysokie szczyty w murze pruskim

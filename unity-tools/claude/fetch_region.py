@@ -62,6 +62,9 @@ TEXTURES_BYDGOSZCZ = ["white_stucco_02", "brushed_concrete_04", "concrete_pavers
                       "castle_wall_varriation", "rustic_stone_wall", "stone_wall_04", "rock_wall_13", "plastered_wall_05",
                       "clay_roof_tiles_03", "ceramic_roof_01", "roof_tiles", "grey_roof_01", "stone_tiles_03", "brick_pavement_02",
                       "pavement_02", "rough_linen", "dark_paneled_wood",
+                      # 24.11: belki muru pruskiego — dark_paneled_wood ma kasetony (kwadraty widoczne na belkach z bliska);
+                      # lacquered_cherry_wood z listy właściciela (drewno wykończeniowe): same słoje, bez podziałów
+                      "lacquered_cherry_wood",
                       # 24.11, 01:15 („spichrze chujowo… bardzo źle”): stary tynk z zaciekami. Spoza listy właściciela (ZASADY 5.8) —
                       # na liście są tylko tynki czyste (plastered_wall_05, white_stucco_02), żaden zabrudzony.
                       "plaster_grey_04"]

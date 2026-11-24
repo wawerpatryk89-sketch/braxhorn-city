@@ -144,7 +144,7 @@ SREDNIE = {"white_stucco_02": [.683, .679, .666], "brushed_concrete_04": [.409, 
            "rock_wall_13": [.298, .259, .223], "tynk_kamienica": [.744, .744, .744], "tynk_plamy": [.744, .744, .744], "tynk_stary": [.714, .714, .714], "clay_roof_tiles_03": [.555, .334, .215],
            "ceramic_roof_01": [.557, .462, .322], "roof_tiles": [.675, .556, .430], "grey_roof_01": [.341, .336, .322],
            "stone_tiles_03": [.478, .427, .317], "brick_pavement_02": [.312, .286, .255], "pavement_02": [.588, .502, .414],
-           "dark_paneled_wood": [.163, .084, .069]}
+           "dark_paneled_wood": [.163, .084, .069], "lacquered_cherry_wood": [.184, .110, .059]}
 
 
 def tint(v):
@@ -231,12 +231,20 @@ P["kadlub"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [36, 34, 34], "szorst": 
 P["kadlub_pas"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [150, 32, 28], "szorst": .6}
 P["kabina_biala"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [226, 224, 216], "szorst": .6}
 # 24.11, 01:15 („spichrze chujowo”): stary tynk z zaciekami (plaster_grey_04, fetch_region.lakier_blacha → tynk_stary)
-P["k_szarobez"] = {"tex": "tynk_stary", "m": 3.0, "kol": [196, 174, 138], "szorst": 1.0}       # spichrze: beżowy tynk (góra, odnowiona)
-P["k_szarobez_dol"] = {"tex": "tynk_stary", "m": 3.0, "kol": [156, 132, 98], "szorst": 1.0}    # dół szczytu: ciemniejszy, zabrudzony (IMG_2010)
+# 24.11, 12:40 pomiar IMG_2010 (pochmurno): tynk spichrzy ten sam odcień (R/B ≈ 1,38): parter ceglanego 179/158/133,
+# szczyt holenderskiego góra 164/142/118, dół 144/125/104 (ok. 12% ciemniej, nie brąz)
+# w podglądzie (niebieskie niebo) R/B spada o ok. 1/4 — przy 1,38 tynk wychodził szary; barwa podniesiona do R/B ≈ 1,5,
+# żeby w słońcu czytał się jak beż ze zdjęcia
+P["k_szarobez"] = {"tex": "tynk_stary", "m": 3.0, "kol": [206, 178, 136], "szorst": 1.0}       # spichrze: beżowy tynk
+# cegła spichrza Grodzka 9: na IMG_2010 cegła/tynk parteru = 0,91/0,73/0,71 (w podglądzie było 0,62/0,48/0,47 — za ciemna)
+P["c_spichrz"] = {"tex": "red_brick", "m": 1.4, "kol": [182, 128, 102], "szorst": .95}
+P["k_szarobez_dol"] = {"tex": "tynk_stary", "m": 3.0, "kol": [188, 160, 122], "szorst": 1.0}   # dół szczytu: lekko zabrudzony (IMG_2010)
 P["k_wypelnienie"] = {"tex": "tynk_stary", "m": 2.5, "kol": [214, 200, 172], "szorst": 1.0}    # wypełnienie muru pruskiego (kremowe)
 P["deska_ciemna"] = {"tex": "weathered_brown_planks", "m": 1.6, "kol": [66, 54, 44], "szorst": .85}   # wrota, okiennice spichrzy
 P["szyna"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [118, 116, 112], "szorst": .4}                # szyny i przewody trakcji
-P["belka_ciemna"] = {"tex": "dark_paneled_wood", "m": 1.4, "kol": [64, 48, 38], "szorst": .8}       # mur pruski spichrzy (24.11: jaśniej — widać słoje)
+# mur pruski spichrzy (24.11, 12:55: lacquered_cherry_wood zamiast dark_paneled_wood — kasetony wyglądały na belkach jak
+# tabliczka czekolady; kolor belek z IMG_2010 ciemny brąz)
+P["belka_ciemna"] = {"tex": "lacquered_cherry_wood", "m": 1.4, "kol": [62, 46, 36], "szorst": .7}
 P["dachowka_braz"] = {"tex": "clay_roof_tiles_02", "m": 2.0, "kol": [150, 84, 62], "szorst": .8}
 P["dachowka_stara"] = {"tex": "clay_roof_tiles_02", "m": 2.0, "kol": [128, 70, 54], "szorst": .85}
 P["cegla_komin"] = {"tex": "red_bricks_04", "m": 1.5, "kol": [150, 84, 62], "szorst": .95}

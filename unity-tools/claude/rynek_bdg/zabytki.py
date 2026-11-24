@@ -497,7 +497,8 @@ def spichrz_lukowy(S, g, P, k0=0):
         fala = Polygon([(-1, -1), (Wd + 1, -1)] + [(Wd + 1 - k * (Wd + 2) / 12, 6.2 + .15 * math.sin(k * 1.7)) for k in range(13)])
         dol, gora = obrys.intersection(fala), obrys.difference(fala)
         fasada(S, g, "k_szarobez_dol", orig, t_, kier, Wd, y0 + H, [q for q in otw if q.intersects(dol)], gl=.25, mat_osc="k_szarobez_dol", obrys=dol.difference(unary_union([q for q in otw if q.intersects(dol) and q.intersects(gora)])) if False else dol)
-        fasada(S, g, "k_szarobez", orig, t_, kier, Wd, y0 + H, [q for q in otw if q.intersects(gora)], gl=.0, obrys=gora)
+        # 24.11: ościeża także w górnym pasie (bez nich przez otwór obok szyby było widać niebo — render 14)
+        fasada(S, g, "k_szarobez", orig, t_, kier, Wd, y0 + H, [q for q in otw if q.intersects(gora)], gl=.25, mat_osc="k_szarobez", obrys=gora)
         for k, q in enumerate(otw):
             u0, v0, u1, v1 = q.bounds
             if v0 < .1:                                                       # wrota dwuskrzydłowe
@@ -549,39 +550,44 @@ def spichrz_ceglany(S, g, P, k0=0):
     wyżej czerwona cegła z małymi oknami z łukiem odcinkowym, gzyms, szczyt trójkątny (24.11, 01:38 właściciel: „musi mieć
     tak trójkątny” — nie schodkowy) z kotwami „X”, dach 58° z dachówki wysunięty 0,3 m przed szczyt, deska wiatrowa
     i podbitka pod okapem."""
+    # 24.11, 12:45 wg IMG_2010 i Wikipedii („the four-storey granary at Grodzka 9”): 4 kondygnacje — parter w tynku tylko
+    # z wrotami (do 4,7 m), wyżej 3 rzędy po 4 okna w cegle (parapety 4,9 / 7,5 / 10,1 m), cienki gzyms ceglany między 2.
+    # a 3. rzędem, okap 11,8 m; w szczycie 3 okna i 1 na górze; kotwy „X” na wysokości okapu (narożniki + środek) i dwie
+    # w szczycie przy górnym oknie; ramy okien ciemne (drewno), nie białe.
     o, ax, bx, L, Wd = _prostokat(P)
-    a = Wd / 2; Hw = 10.8; tg = math.tan(math.radians(58)); Hs = a * tg
+    a = Wd / 2; Hw = 11.8; Ht = 4.7; tg = math.tan(math.radians(58)); Hs = a * tg
     c0 = o + bx * a
     Q = lambda s, x, y: c0 + ax * s + bx * x + UP * y
     # ściany boczne (przy sąsiadach — gładka cegła, bez okien)
     for sx in (-1, 1):
         a3 = Q(0 if sx > 0 else L, sx * a, 0); t_ = ax if sx > 0 else -ax
-        fasada(S, g, "c_czerwona", a3, t_, bx * sx, L, Hw, [])
+        fasada(S, g, "c_spichrz", a3, t_, bx * sx, L, Hw, [])
     for (s, kier) in ((0.0, -ax), (L, ax)):
         t_ = bx if kier is ax else -bx; sx = 1 if kier is ax else -1
         orig = Q(s, -a * sx, 0)
         # szczyt trójkątny: krawędzie pod połaciami dachu
         szczyt = Hw + Hs
         obrys = Polygon([(0, 0), (Wd, 0), (Wd, Hw), (a, szczyt), (0, Hw)])
-        dol = box(0, 0, Wd, 5.6)
+        dol = box(0, 0, Wd, Ht)
         otw = [box(.6, 0, 2.2, 3.2), box(Wd - 2.2, 0, Wd - .6, 3.2), luk_pol(a - .7, a + .7, 0, 2.6, 8)]
-        for v, n_ in ((3.9, 4), (6.6, 4), (9.0, 4), (11.8, 4), (14.2, 3), (16.4, 1)):
+        for v, n_ in ((4.9, 4), (7.5, 4), (10.1, 4), (12.6, 3), (15.0, 1)):
             for k in range(n_):
                 uc = a + (k - (n_ - 1) / 2) * (Wd / 5.2)
                 q = okno_lukowe(S, g, orig, t_, kier, uc, v, .85, 1.25, 0)
                 if obrys.buffer(-.5).contains(q): otw.append(q)
         gora = obrys.difference(dol)
-        fasada(S, g, "c_czerwona", orig, t_, kier, Wd, szczyt, [q for q in otw if q.bounds[1] >= 5.6], gl=.25, mat_osc="c_czerwona", obrys=gora)
-        fasada(S, g, "k_szarobez_dol", orig, t_, kier, Wd, 5.6, [q for q in otw if q.bounds[1] < 5.6], gl=.25, mat_osc="k_szarobez_dol", obrys=dol)
-        S.box(g, "c_czerwona", orig + t_ * -.04 + UP * 5.55, t_, UP, -kier, Wd + .08, .18, .1, bez=("-z",))    # gzyms nad tynkiem
-        S.box(g, "c_czerwona", orig + t_ * -.05 + UP * (Hw - .05), t_, UP, -kier, Wd + .1, .25, .15, bez=("-z",))   # gzyms
+        fasada(S, g, "c_spichrz", orig, t_, kier, Wd, szczyt, [q for q in otw if q.bounds[1] >= Ht], gl=.25, mat_osc="c_spichrz", obrys=gora)
+        fasada(S, g, "k_szarobez", orig, t_, kier, Wd, Ht, [q for q in otw if q.bounds[1] < Ht], gl=.25, mat_osc="k_szarobez", obrys=dol)
+        S.box(g, "c_spichrz", orig + t_ * -.04 + UP * (Ht - .05), t_, UP, -kier, Wd + .08, .16, .1, bez=("-z",))   # gzyms nad tynkiem
+        S.box(g, "c_spichrz", orig + t_ * -.03 + UP * 9.35, t_, UP, -kier, Wd + .06, .12, .06, bez=("-z",))       # cienki gzyms
+        S.box(g, "c_spichrz", orig + t_ * -.05 + UP * (Hw - .05), t_, UP, -kier, Wd + .1, .25, .15, bez=("-z",))   # gzyms
         for k, q in enumerate(otw):
             u0, v0, u1, v1 = q.bounds
             if v0 < .1:
                 wrota(S, g, orig, t_, kier, u0, u1, v0, v1); continue
             szyba(S, g, orig, t_, kier, q, .22, k0 + k, mat="witraz")
-            rama(S, g, orig, t_, kier, q, .2, w=.06, mat="kiosk_bialy", slupki=[(u0 + u1) / 2])
-        for (u, v) in ((a - 2.6, Hw + 1.2), (a + 2.6, Hw + 1.2), (a, Hw + 3.6), (.9, 9.8), (Wd - .9, 9.8), (a - 1.2, 7.9), (a + 1.2, 7.9)):
+            rama(S, g, orig, t_, kier, q, .2, w=.06, mat="deska_ciemna", slupki=[(u0 + u1) / 2])
+        for (u, v) in ((.9, Hw - .45), (a, Hw - .45), (Wd - .9, Hw - .45), (a - 1.3, 14.6), (a + 1.3, 14.6)):
             p_ = orig + t_ * u + UP * v - kier * -.03                           # kotwy „X”
             for sgn in (1, -1):
                 A = p_ - t_ * .25 - UP * .25 * sgn; Bq = p_ + t_ * .25 + UP * .25 * sgn; tt = nrm(Bq - A)

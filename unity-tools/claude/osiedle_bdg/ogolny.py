@@ -17,6 +17,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from kit import Siatka, UP, nrm  # noqa: E402
 import blok_32a as B  # noqa: E402
 
+# materiały okna na czas jednego budynku (sp["osc_mat"], sp["rama_mat"]); spichrze: ciemne drewno zamiast białych opasek
+STYL = {"opaska": "opaska", "rama": "pcv"}
+
 
 def zbuduj(poly, sp, nazwa="budynek"):
     """poly — obrys w metrach (shapely), sp — słownik: kond, h_kond, parter (wysokość parteru), tynk, cokol, okna
@@ -29,6 +32,8 @@ def zbuduj(poly, sp, nazwa="budynek"):
     B.POZIOM0, B.KOND = 0.0, hk
     H = p0 + (kond - 1) * hk
     att = sp.get("attyka", .6)
+    stary_styl = dict(STYL)
+    STYL["opaska"] = sp.get("osc_mat", "opaska"); STYL["rama"] = sp.get("rama_mat", "pcv")
     try:
         P = poly.buffer(0)
         if P.geom_type == "MultiPolygon": P = max(P.geoms, key=lambda q: q.area)
@@ -200,6 +205,7 @@ def zbuduj(poly, sp, nazwa="budynek"):
             dach_plaski(S, nazwa, P, y, att, sp.get("dach_mat", "papa"))
     finally:
         B.S, B.okno_nr[0], B.POZIOM0, B.KOND = stare
+        STYL.update(stary_styl)
     return S
 
 
@@ -239,7 +245,7 @@ def sciana(g, mat, o, t, n, L, H, okna, uv1, styl=None):
             for aa, bb, cc, dd in (((u0 - B.OPASKA, v0), (u0, v0), (u0, v1 + B.OPASKA), (u0 - B.OPASKA, v1 + B.OPASKA)),
                                    ((u1, v0), (u1 + B.OPASKA, v0), (u1 + B.OPASKA, v1 + B.OPASKA), (u1, v1 + B.OPASKA)),
                                    ((u0, v1), (u1, v1), (u1, v1 + B.OPASKA), (u0, v1 + B.OPASKA))):
-                S.quad(g, "opaska", P(*aa), P(*bb), P(*cc), P(*dd), t=t, kier=n)
+                S.quad(g, STYL["opaska"], P(*aa), P(*bb), P(*cc), P(*dd), t=t, kier=n)
             if r == "okno_l": okno_lekkie(g, P, t, n, u0, u1, v0, v1, pp, True)
             else: B.okno(g, o, t, n, u0, u1, v0, v1, "okno", pp)
         else:
@@ -251,9 +257,9 @@ def okno_lekkie(g, P, t, n, u0, u1, v0, v1, pietro, rama):
     (słupek + ślemię z naświetlem, typowe okno skrzynkowe kamienic) tylko licem, szyba 3 cm za ramą. ~30 trójkątów zamiast
     ~80 okna bloku 32a — kamienic jest 249 i ~25 tys. okien. rama=False (podwórze): bez ramy, sama szyba w ościeżu."""
     S = B.S; G = B.GL_OSC; w = B.RAMA
-    S.quad(g, "opaska", P(u0, v1, 0), P(u0, v1, G), P(u1, v1, G), P(u1, v1, 0), t=t, kier=-UP)
-    S.quad(g, "opaska", P(u0, v0, 0), P(u0, v1, 0), P(u0, v1, G), P(u0, v0, G), kier=t)
-    S.quad(g, "opaska", P(u1, v0, 0), P(u1, v0, G), P(u1, v1, G), P(u1, v1, 0), kier=-t)
+    S.quad(g, STYL["opaska"], P(u0, v1, 0), P(u0, v1, G), P(u1, v1, G), P(u1, v1, 0), t=t, kier=-UP)
+    S.quad(g, STYL["opaska"], P(u0, v0, 0), P(u0, v1, 0), P(u0, v1, G), P(u0, v0, G), kier=t)
+    S.quad(g, STYL["opaska"], P(u1, v0, 0), P(u1, v0, G), P(u1, v1, G), P(u1, v1, 0), kier=-t)
     S.quad(g, "parapet", P(u0 - .03, v0, -.05), P(u1 + .03, v0, -.05), P(u1 + .03, v0, G), P(u0 - .03, v0, G), t=t, kier=UP)
     S.quad(g, "parapet", P(u0 - .03, v0 - .03, -.05), P(u1 + .03, v0 - .03, -.05), P(u1 + .03, v0, -.05), P(u0 - .03, v0, -.05), t=t, kier=n)
     d0 = G; vs = v0 + (v1 - v0) * .72; us = (u0 + u1) / 2
@@ -261,7 +267,7 @@ def okno_lekkie(g, P, t, n, u0, u1, v0, v1, pietro, rama):
         pasy = [((u0, v0), (u1, v0 + w)), ((u0, v1 - w), (u1, v1)), ((u0, v0 + w), (u0 + w, v1 - w)), ((u1 - w, v0 + w), (u1, v1 - w)),
                 ((us - .035, v0 + w), (us + .035, vs - .035)), ((u0 + w, vs - .035), (u1 - w, vs + .035))]
         for (a_, b_) in pasy:
-            S.quad(g, "pcv", P(a_[0], a_[1], d0), P(b_[0], a_[1], d0), P(b_[0], b_[1], d0), P(a_[0], b_[1], d0), t=t, kier=n)
+            S.quad(g, STYL["rama"], P(a_[0], a_[1], d0), P(b_[0], a_[1], d0), P(b_[0], b_[1], d0), P(a_[0], b_[1], d0), t=t, kier=n)
     fl = B.POZIOM0 + pietro * B.KOND; k = B.okno_nr[0]; W = u1 - u0
     RW = max(W, 2.2) + .8; ru0 = (u0 + u1) / 2 - RW / 2
     gx0, gx1, gy0, gy1 = u0 + .02, u1 - .02, v0 + .02, v1 - .02
@@ -316,16 +322,18 @@ def mur_pruski(S, g, a, t, n, L, okna, p0, hk, kond, Hs, rozst, off, k, mat="bel
     for v in sorted(set(round(x, 2) for x in poz)):
         if v < .2 or v > Hs - w + .01: continue
         S.box(g, mat, P(0, v, -.005), t, UP, n, L, w, e + .005, bez=("-z",))
-    # zastrzały (zdjęcia IMG_2010–2012): w skrajnych polach każdej kondygnacji i w co trzecim wolnym polu, na przemian
-    # „/” i „\”; pola z oknem bez zastrzałów. Belki zastrzałów 1 cm przed słupami i ryglami (bez wspólnych płaszczyzn).
+    # zastrzały (24.11, IMG_2010 Grodzka 11 i IMG_2013 spichrz holenderski): regularna siatka, zastrzały tylko w skrajnych
+    # polach każdej kondygnacji („/” przy lewym narożniku, „\” przy prawym), na długich ścianach (>12 pól) dodatkowo w co
+    # szóstym polu; pola z oknem bez zastrzałów. Belki zastrzałów 1 cm przed słupami i ryglami (bez wspólnych płaszczyzn).
     for f_, (y0, y1) in enumerate(pietra):
         okn = [(u0, u1) for (u0, u1, v0, v1, r, pp) in okna if v0 >= y0 - .05 and v1 <= y1 + .05]
         pola_ = [(slupy[i] + w, slupy[i + 1]) for i in range(len(slupy) - 1)]
         for i, (ua, ub) in enumerate(pola_):
             if ub - ua < .3 or y1 - y0 < .8: continue
             if any(u0 - w < ub and u1 > ua for (u0, u1) in okn): continue
-            if not (i == 0 or i == len(pola_) - 1 or (i + f_) % 2 == 1): continue
-            ya, yb = (y0 + w, y1 - w) if (i + f_) % 2 == 0 else (y1 - w, y0 + w)
+            if not (i == 0 or i == len(pola_) - 1 or (len(pola_) > 12 and i % 6 == 3)): continue
+            lewo = i < len(pola_) / 2
+            ya, yb = (y0 + w, y1 - w) if lewo else (y1 - w, y0 + w)
             A = P(ua, ya, -.01); Bq = P(ub, yb, -.01); dl = float(np.linalg.norm(Bq - A)); tt = (Bq - A) / dl
             nn = nrm(np.cross(tt, n)); S.box(g, mat, A - nn * w / 2, tt, nn, n, dl, w, e + .01, bez=("-z",))
 
@@ -533,13 +541,33 @@ def dach_kamienica(S, g, P, wolne, y, mat, spadek, tynk, kal_max=7.5, ulica=None
                 if belki:                                                  # szczyt spichrza: słupy co 1,1 m do połaci, rygle co 2,6 m
                     nz = np.array([-nin[0], 0., -nin[1]]); dl = float(np.hypot(x1 - x0, z1 - z0)); tz = (p1 - p0) / max(dl, 1e-6)
                     for u in np.arange(.0, dl, .85):
-                        hu = h0 + (h1 - h0) * u / max(dl, 1e-6) - .05
+                        # 24.11: wysokość słupa liczona po niższej krawędzi (u albo u + 0,16) — bez wystawania za połać
+                        hu = h0 + (h1 - h0) * min(u, u + .16, key=lambda x: h0 + (h1 - h0) * x / max(dl, 1e-6)) / max(dl, 1e-6) - .08
                         if hu - y < .3: continue
                         S.box(g, belki, p0 + tz * u + UP * .05 + nz * .0, tz, UP, nz, .16, hu - y, .03, bez=("-z",))
                     for v in np.arange(y + 1.3, max(h0, h1), 1.3):
                         us_ = [u for u in np.linspace(0, dl, 60) if h0 + (h1 - h0) * u / max(dl, 1e-6) > v + .2]
                         if len(us_) < 2: continue
                         S.box(g, belki, p0 + tz * us_[0] + UP * (v - y - .05) - nz * .0, tz, UP, nz, us_[-1] - us_[0], .16, .035, bez=("-z",))
+                    # 24.11 (IMG_2010): ciemna belka 0,24 m wzdłuż połaci nad końcami słupów (krawędź szczytu jak na zdjęciu,
+                    # bez schodków z końców słupów); 1,5 cm przed słupami i ryglami
+                    A0 = np.array([x0, h0 - .02, z0]); B0 = np.array([x1, h1 - .02, z1]); dd0 = float(np.linalg.norm(B0 - A0))
+                    if dd0 > .3:
+                        tt0 = (B0 - A0) / dd0; nn0 = nrm(np.cross(tt0, nz))
+                        if nn0[1] < 0: nn0 = -nn0
+                        S.box(g, belki, A0 - nn0 * .24 + nz * .015, tt0, nn0, nz, dd0, .24, .035, bez=("-z",))
+                    # 24.11 (IMG_2010, Grodzka 11): zastrzały w szczycie — w każdym pasie między ryglami w skrajnym pełnym polu
+                    # z lewej („/”) i z prawej („\”); 1 cm przed licem, 1 cm przed ryglami (bez wspólnych płaszczyzn)
+                    sl_ = list(np.arange(.0, dl, .85))
+                    hu_ = lambda u: h0 + (h1 - h0) * u / max(dl, 1e-6)
+                    for v in np.arange(y, max(h0, h1) - 1.3, 1.3):
+                        pola_ = [(ua, ub) for ua, ub in zip(sl_, sl_[1:]) if min(hu_(ua), hu_(ub)) > v + 1.3 + .25]
+                        if len(pola_) < 3: continue
+                        for (ua, ub), lewo in ((pola_[0], True), (pola_[-1], False)):
+                            va, vb = (v + .06, v + 1.3 - .16) if lewo else (v + 1.3 - .16, v + .06)
+                            A = p0 + UP * .05 + tz * (ua + .16) + UP * (va - y); Bq = p0 + UP * .05 + tz * ub + UP * (vb - y)
+                            dd_ = float(np.linalg.norm(Bq - A)); tt_ = (Bq - A) / dd_; nn_ = nrm(np.cross(tt_, nz))
+                            S.box(g, belki, A - nn_ * .07 + nz * .01, tt_, nn_, nz, dd_, .14, .035, bez=("-z",))
 
 
 def _zewn(Q, a, b):
