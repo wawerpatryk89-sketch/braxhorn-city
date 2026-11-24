@@ -157,3 +157,39 @@ def test_bus_z_bosna_okienko_i_miejsce_sprzedawcy():
     assert 1.5 < d < 2.5                                            # klient przed ladą, sprzedawca za nią
     cs = (R / "unity-city/Assets/Editor/Claude/Region/BraxBydgoszcz.cs").read_text(encoding="utf-8")
     assert "Akcje(root, Swiat)" in cs and "osiedle_akcje.json" in cs
+
+
+def test_kazdy_mur_i_tynk_z_tekstura():
+    """24.11, 01:14: „czy wszędzie każdy mur ma teksturę, cegłę” — każdy materiał ścian (tynki k_, parter kb_, cegły c_,
+    kamień s_, mur pruski, wrota) ma teksturę, a każda tekstura palety jest pobierana albo liczona w fetch_region.py."""
+    import re
+    from pathlib import Path
+    R = Path(__file__).resolve().parents[2]
+    sys.path.insert(0, str(BDG))
+    import paleta
+    sciany = [k for k in paleta.P if k.split("_")[0] in ("k", "kb", "c", "s") or k in ("belka_ciemna", "deska_ciemna", "cokol4")]
+    assert len(sciany) > 30
+    bez = [k for k in sciany if not paleta.P[k].get("tex")]
+    assert not bez, bez
+    fr = (R / "unity-tools/claude/fetch_region.py").read_text(encoding="utf-8")
+    fp = (R / "unity-tools/claude/fetch_polyhaven.py").read_text(encoding="utf-8")
+    for k in sciany:
+        t = paleta.P[k]["tex"]
+        assert f'"{t}"' in fr or f'"{t}"' in fp, (k, t)
+    assert paleta.P["k_szarobez"]["tex"] == paleta.P["k_szarobez_dol"]["tex"] == paleta.P["k_wypelnienie"]["tex"] == "tynk_stary"
+    assert "tynk_stary" in paleta.SREDNIE and "tynk_plamy" in paleta.SREDNIE
+    assert re.search(r'def tynk_plamy\(report', fr) and "tynk_plamy(report)" in fr
+
+
+@unittest.skipUnless(MA_NUMPY, "brak numpy")
+def test_mur_ogrodzeniowy_z_cegly():
+    """barrier=wall z OSM to mur z cegły (filary, czapa z betonu), nie płot z prętów — osiedle i Stary Rynek."""
+    from pathlib import Path
+    sys.path.insert(0, str(BDG))
+    import wyposazenie
+    from kit import Siatka
+    S = Siatka(); wyposazenie.mur(S, [(0, 0), (7, 0), (7, 5)], 2.0, "c_stara")
+    mats = {m for (_g, m) in S.dane()}
+    assert mats == {"c_stara", "cokol4"}
+    R = Path(__file__).resolve().parents[2]
+    assert "wyposazenie.mur(" in (R / "unity-tools/claude/rynek_bdg/rynek.py").read_text(encoding="utf-8")

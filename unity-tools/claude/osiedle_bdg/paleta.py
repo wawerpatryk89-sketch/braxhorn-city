@@ -141,7 +141,7 @@ SREDNIE = {"white_stucco_02": [.683, .679, .666], "brushed_concrete_04": [.409, 
            "red_brick": [.557, .403, .315], "medieval_red_brick": [.509, .388, .312], "brick_wall_006": [.676, .456, .326],
            "brick_wall_02": [.636, .559, .463], "stacked_brick_wall": [.442, .273, .177], "whitewashed_brick": [.650, .601, .551],
            "castle_wall_varriation": [.535, .499, .417], "rustic_stone_wall": [.466, .401, .300], "stone_wall_04": [.436, .403, .371],
-           "rock_wall_13": [.298, .259, .223], "tynk_kamienica": [.744, .744, .744], "clay_roof_tiles_03": [.555, .334, .215],
+           "rock_wall_13": [.298, .259, .223], "tynk_kamienica": [.744, .744, .744], "tynk_plamy": [.744, .744, .744], "tynk_stary": [.714, .714, .714], "clay_roof_tiles_03": [.555, .334, .215],
            "ceramic_roof_01": [.557, .462, .322], "roof_tiles": [.675, .556, .430], "grey_roof_01": [.341, .336, .322],
            "stone_tiles_03": [.478, .427, .317], "brick_pavement_02": [.312, .286, .255], "pavement_02": [.588, .502, .414],
            "dark_paneled_wood": [.163, .084, .069]}
@@ -198,7 +198,7 @@ for _k in range(1, 5):
 for _k, _c in (("k_zolty", [222, 196, 120]), ("k_krem", [232, 220, 190]), ("k_szaroniebieski", [170, 182, 190]), ("k_rozowy", [222, 172, 160]),
                ("k_bialy", [236, 232, 222]), ("k_ochra", [206, 168, 104]), ("k_zielony", [188, 202, 168]), ("k_terakota", [196, 128, 96]),
                ("k_kremowy2", [226, 206, 160]), ("k_jasnozolty", [228, 212, 150]), ("k_losos", [226, 194, 180]), ("k_niebieskoszary", [176, 186, 194])):
-    P[_k] = {"tex": "tynk_kamienica", "m": 2.0, "kol": _c, "szorst": 1.0}
+    P[_k] = {"tex": "tynk_plamy", "m": 2.0, "kol": _c, "szorst": 1.0}   # 24.11: faktura + miękkie plamy (fetch_region.tynk_plamy)
     P["kb" + _k[1:]] = {"tex": "rustic_stone_wall", "m": 1.52, "kol": [int((c + s_ * 255) / 2 * .92) for c, s_ in zip(_c, [.466, .401, .300])], "szorst": .95}
 # stare cegły z listy właściciela — każda w swojej barwie (kol = średnia skanu), kilka odmian, żeby nie było jednej
 for _k, (_t, _m) in {"c_czerwona": ("red_brick", 1.4), "c_sredniowieczna": ("medieval_red_brick", 2.0), "c_ceglasta": ("brick_wall_006", 3.0),
@@ -218,7 +218,7 @@ P["bruk"] = {"tex": "stone_tiles_03", "m": 1.92, "kol": [128, 120, 106], "szorst
 # skrzyżowanie Focha × Gdańska × Jagiellońska (22:02, zdjęcia IMG_1983–1992): jasny kamień okładziny, piaskowy tynk Focha 2,
 # brązowa miedź hełmu kościoła, szyld klubu w podcieniach
 P["s_jasny"] = {"tex": "granite_tile_04", "m": 2.4, "kol": [178, 174, 164], "szorst": .85}          # okładzina z ciosów (Jagiellońska 2)
-P["k_piaskowy"] = {"tex": "tynk_kamienica", "m": 2.0, "kol": [178, 166, 142], "szorst": 1.0}
+P["k_piaskowy"] = {"tex": "tynk_plamy", "m": 2.0, "kol": [178, 166, 142], "szorst": 1.0}
 P["kb_piaskowy"] = {"tex": "granite_tile_04", "m": 2.4, "kol": [158, 146, 122], "szorst": .9}       # ciosy podcieni Focha 2
 P["miedz_braz"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [104, 80, 62], "szorst": .55}
 P["szyld_klub"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [24, 22, 26], "szorst": .6, "nakl": "szyld_klub.png"}
@@ -228,12 +228,13 @@ P["witraz"] = {"tex": None, "kol": [46, 52, 58], "szorst": .15, "metal": .3}    
 P["kadlub"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [36, 34, 34], "szorst": .6}                 # barka: kadłub stalowy
 P["kadlub_pas"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [150, 32, 28], "szorst": .6}
 P["kabina_biala"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [226, 224, 216], "szorst": .6}
-P["k_szarobez"] = {"tex": "tynk_kamienica", "m": 2.0, "kol": [188, 170, 142], "szorst": 1.0}       # spichrze: beżowy tynk (góra, odnowiona)
-P["k_szarobez_dol"] = {"tex": "tynk_kamienica", "m": 2.0, "kol": [146, 128, 104], "szorst": 1.0}   # dół szczytu: ciemniejszy, zabrudzony (IMG_2010)
-P["k_wypelnienie"] = {"tex": "tynk_kamienica", "m": 2.0, "kol": [230, 220, 198], "szorst": 1.0}    # wypełnienie muru pruskiego (kremowe)
+# 24.11, 01:15 („spichrze chujowo”): stary tynk z zaciekami (plaster_grey_04, fetch_region.lakier_blacha → tynk_stary)
+P["k_szarobez"] = {"tex": "tynk_stary", "m": 3.0, "kol": [196, 174, 138], "szorst": 1.0}       # spichrze: beżowy tynk (góra, odnowiona)
+P["k_szarobez_dol"] = {"tex": "tynk_stary", "m": 3.0, "kol": [156, 132, 98], "szorst": 1.0}    # dół szczytu: ciemniejszy, zabrudzony (IMG_2010)
+P["k_wypelnienie"] = {"tex": "tynk_stary", "m": 2.5, "kol": [214, 200, 172], "szorst": 1.0}    # wypełnienie muru pruskiego (kremowe)
 P["deska_ciemna"] = {"tex": "weathered_brown_planks", "m": 1.6, "kol": [66, 54, 44], "szorst": .85}   # wrota, okiennice spichrzy
 P["szyna"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [118, 116, 112], "szorst": .4}                # szyny i przewody trakcji
-P["belka_ciemna"] = {"tex": "dark_paneled_wood", "m": 1.4, "kol": [46, 34, 28], "szorst": .8}       # mur pruski spichrzy
+P["belka_ciemna"] = {"tex": "dark_paneled_wood", "m": 1.4, "kol": [64, 48, 38], "szorst": .8}       # mur pruski spichrzy (24.11: jaśniej — widać słoje)
 P["dachowka_braz"] = {"tex": "clay_roof_tiles_02", "m": 2.0, "kol": [150, 84, 62], "szorst": .8}
 P["dachowka_stara"] = {"tex": "clay_roof_tiles_02", "m": 2.0, "kol": [128, 70, 54], "szorst": .85}
 P["cegla_komin"] = {"tex": "red_bricks_04", "m": 1.5, "kol": [150, 84, 62], "szorst": .95}

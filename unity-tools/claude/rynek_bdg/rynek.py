@@ -516,6 +516,30 @@ def detale(d, bud_lista, PLAC_, CHOD_, NABRZ_, W, R_):
         tg = pk["tagi"]
         if tg.get("amenity") == "bench" and OKNO.contains(Point(*pk["xz"])):
             lawka(S, pk["xz"][0], pk["xz"][1], float(tg.get("direction", "0") or 0) * math.pi / 180 if str(tg.get("direction", "0")).replace(".", "").isdigit() else 0.0); lawki += 1
+    # ogrodzenia z OSM (24.11 01:14 „każdy mur ma mieć teksturę, cegłę”): mury ze starej cegły z filarami i czapą,
+    # płoty żeliwne jak balustrady nabrzeży, żywopłoty jak na osiedlu
+    import wyposazenie
+    budy = unary_union([b["poly"] for b in bud_lista]).buffer(.2)
+    nmur = nplot = nzyw = 0
+    for t_ in d["tereny"]:
+        if not t_["rodzaj"].startswith("ogrodzenie:") or len(t_["linia"]) < 2: continue
+        L_ = LineString(t_["linia"]).intersection(OKNO).difference(budy).difference(W)
+        for g_ in ([L_] if L_.geom_type == "LineString" else [q for q in getattr(L_, "geoms", []) if q.geom_type == "LineString"]):
+            if g_.length < .5: continue
+            pts = list(g_.coords); rodz = t_["rodzaj"].split(":")[1]
+            if rodz == "wall":
+                wyposazenie.mur(S, pts, R_.choice((1.8, 2.0, 2.2)), R_.choice(("c_stara", "c_sredniowieczna", "c_czerwona", "c_mieszana")), .12, g="mury"); nmur += 1
+            elif rodz == "fence":
+                for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
+                    a = np.array([x0, .12, z0]); b_ = np.array([x1, .12, z1]); Ls = float(np.linalg.norm(b_ - a))
+                    if Ls < .1: continue
+                    tt = (b_ - a) / Ls; nn = nrm(np.cross(UP, tt))
+                    S.quad("ploty", "balustrada_kuta", a, b_, b_ + UP * 1.2, a + UP * 1.2, uv_o=a, kier=nn)
+                    S.quad("ploty", "balustrada_kuta", b_, a, a + UP * 1.2, b_ + UP * 1.2, uv_o=b_, kier=-nn)
+                    for k in np.arange(0, Ls, 2.4): S.box("ploty", "latarnia_czarna", a + tt * k - tt * .04 - nn * .04, tt, UP, nn, .08, 1.26, .08)
+                nplot += 1
+            elif rodz == "hedge":
+                wyposazenie.zywoplot(S, pts, R_); nzyw += 1
     drzewa = []
     for pk in d["punkty"]:
         tg = pk["tagi"]
@@ -527,7 +551,7 @@ def detale(d, bud_lista, PLAC_, CHOD_, NABRZ_, W, R_):
                     S.box("detale", "krawoznik", oo, ax, UP, az, sx, .1, sz)
                 S.quad("detale", "zwir", o_ + X * .14 + Z * .14 + UP * .02, o_ + X * 1.66 + Z * .14 + UP * .02, o_ + X * 1.66 + Z * 1.66 + UP * .02, o_ + X * .14 + Z * 1.66 + UP * .02, kier=UP)
             drzewa.append([round(x, 2), round(z, 2), "duze" if blisko_wody or "Salix" in (tg.get("genus", "") + tg.get("species", "")) else "srednie"])
-    return S, {"latarnie": len(zaj), "lawki": lawki, "drzewa": len(drzewa), "slupki": nsl}, {"drzewa": drzewa, "latarnie": [[round(q[0], 2), round(q[2], 2), "stylowa"] for q in zaj]}
+    return S, {"latarnie": len(zaj), "lawki": lawki, "drzewa": len(drzewa), "slupki": nsl, "mury": nmur, "ploty": nplot, "zywoploty": nzyw}, {"drzewa": drzewa, "latarnie": [[round(q[0], 2), round(q[2], 2), "stylowa"] for q in zaj]}
 
 
 def main(out):

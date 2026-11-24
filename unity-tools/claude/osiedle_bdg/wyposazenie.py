@@ -149,6 +149,9 @@ def zbuduj(d, G, szer, okno, drzewa, latarnie):
             if t.get("barrier") == "hedge": zywoplot(S, list(g.coords), R); ile("zywoploty")
             elif t.get("barrier") == "bollard": slupki(S, g); ile("slupki")
             elif t.get("barrier") in ("kerb",): continue
+            elif t.get("barrier") == "wall":                         # 24.11 01:14: mur to mur — z cegły, nie płot z prętów
+                h = float(t.get("height", "1.6").split()[0]) if str(t.get("height", "1.6")).split()[0].replace(".", "").isdigit() else 1.6
+                mur(S, list(g.coords), h, R.choice(("c_czerwona", "c_mieszana", "c_stara")), .12); ile("mury")
             else: plot(S, list(g.coords)); ile("ploty")
     latarnie = [q for q in latarnie if not zajete.contains(Point(q[0], q[1]))]
     for (x, z, typ) in latarnie:
@@ -252,6 +255,26 @@ def hydrant(S, o):
     S.rura(g, "hydrant", o, o + UP * .75, .09, seg=8)
     S.rura(g, "hydrant", o + UP * .75, o + UP * .85, .06, seg=8)
     S.rura(g, "hydrant", o + UP * .45 + np.array([-.16, 0, 0]), o + UP * .45 + np.array([.16, 0, 0]), .04, seg=6)
+
+
+def mur(S, pts, H, mat, y0=.1, g="wyposazenie", gr=.3):
+    """Mur ogrodzeniowy (24.11 01:14 właściciel: „każdy mur ma mieć teksturę, cegłę”): ściana z cegły grubości 0,3 m na
+    fundamencie, filary 0,45 × 0,45 m co ok. 3,5 m wyższe o 15 cm, czapa z betonu 5 cm szersza z obu stron. Wszystkie
+    płaszczyzny przesunięte ≥ 2 cm (bez migotania): filar wystaje 7,5 cm z lica, czapa 5 cm."""
+    pierwszy = True
+    zamk = len(pts) > 2 and np.hypot(pts[0][0] - pts[-1][0], pts[0][1] - pts[-1][1]) < .05
+    for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
+        a = np.array([x0, y0, z0]); b = np.array([x1, y0, z1]); L = float(np.linalg.norm(b - a))
+        if L < .2: continue
+        t = (b - a) / L; n = np.array([-t[2], 0., t[0]])
+        S.box(g, mat, a - n * gr / 2 + UP * -.15, t, UP, n, L, H + .15, gr)
+        S.box(g, "cokol4", a - n * (gr / 2 + .05) - t * .02 + UP * H, t, UP, n, L + .04, .07, gr + .1)
+        m = max(1, int(round(L / 3.5)))
+        for k in range(0 if (pierwszy and not zamk) else 1, m + 1):     # filar na styku odcinków tylko raz
+            c = a + t * (L * k / m)
+            S.box(g, mat, c - t * .225 - n * .225 + UP * -.15, t, UP, n, .45, H + .3, .45)
+            S.box(g, "cokol4", c - t * .26 - n * .26 + UP * (H + .15), t, UP, n, .52, .06, .52)
+        pierwszy = False
 
 
 def plot(S, pts):

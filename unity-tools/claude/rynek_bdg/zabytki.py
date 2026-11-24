@@ -432,11 +432,30 @@ def _prostokat(P):
 def okiennica(S, g, o, t, n, u0, u1, v0, v1):
     """Drewniana okiennica z deskami i zastrzałem „Z” (IMG_2010), 4 cm przed licem."""
     P = lambda u, v, d: o + t * u + UP * v - n * d
-    S.box(g, "deska_ciemna", P(u0, v0, -.02), t, UP, n, u1 - u0, v1 - v0, .04, bez=("-z",))
+    S.box(g, "deska_ciemna", P(u0, v0, -.02), t, UP, n, u1 - u0, v1 - v0, .04, bez=("-z", "+z"))
+    S.quad(g, "deska_ciemna", P(u0, v0, -.06), P(u1, v0, -.06), P(u1, v1, -.06), P(u0, v1, -.06), kier=n, obrot=True)   # deski pionowo
     for v in (v0 + .12, v1 - .22):
         S.box(g, "deska_ciemna", P(u0 + .04, v, -.06), t, UP, n, u1 - u0 - .08, .1, .03, bez=("-z",))
     A = P(u0 + .08, v0 + .2, -.06); Bq = P(u1 - .08, v1 - .3, -.06); dl = float(np.linalg.norm(Bq - A)); tt = (Bq - A) / dl
     S.box(g, "deska_ciemna", A - nrm(np.cross(tt, n)) * .05, tt, nrm(np.cross(tt, n)), n, dl, .1, .03)
+
+
+def wrota(S, g, o, t, n, u0, u1, v0, v1, d=.2):
+    """Drewniane wrota dwuskrzydłowe spichrza (24.11, właściciel 01:15): skrzydła z pionowych desek (tekstura obrócona),
+    po dwie poprzeczki i zastrzał „Z”, czarne okucia pasowe; d = głębokość osadzenia w ościeżu (lico skrzydła)."""
+    P = lambda u, v, dd: o + t * u + UP * v - n * dd
+    w = (u1 - u0) / 2
+    for k in range(2):
+        a, b = u0 + k * w + .005, u0 + (k + 1) * w - .005
+        S.box(g, "deska_ciemna", P(a, v0, d + .05), t, UP, n, b - a, v1 - v0, .05, bez=("-z", "+z"))
+        S.quad(g, "deska_ciemna", P(a, v0, d), P(b, v0, d), P(b, v1, d), P(a, v1, d), kier=n, obrot=True)
+        for v in (v0 + .35, v1 - .5):
+            S.box(g, "deska_ciemna", P(a + .06, v, d), t, UP, n, b - a - .12, .14, .035, bez=("-z",))
+        A = P(a + .1, v0 + .5, d - .005); Bq = P(b - .1, v1 - .62, d - .005); dl = float(np.linalg.norm(Bq - A)); tt = (Bq - A) / dl
+        nn = nrm(np.cross(tt, n)); S.box(g, "deska_ciemna", A - nn * .06, tt, nn, n, dl, .12, .03, bez=("-z",))
+        for v in (v0 + .37, v1 - .48):                                       # okucia pasowe od zawiasów
+            x0, x1 = (a + .02, a + .55) if k == 0 else (b - .55, b - .02)
+            S.box(g, "latarnia_czarna", P(x0, v, d - .035), t, UP, n, x1 - x0, .06, .012, bez=("-z",))
 
 
 def okno_lukowe(S, g, o, t, n, uc, v0, w, h, k_nr, gl=.25):
@@ -479,18 +498,17 @@ def spichrz_lukowy(S, g, P, k0=0):
         for k, q in enumerate(otw):
             u0, v0, u1, v1 = q.bounds
             if v0 < .1:                                                       # wrota dwuskrzydłowe
-                S.box(g, "deska_ciemna", orig + t_ * u0 + UP * .0 - kier * .2, t_, UP, kier, u1 - u0, v1 - v0, .05)
-                continue
+                wrota(S, g, orig, t_, kier, u0, u1, v0, v1); continue
             szyba(S, g, orig, t_, kier, q, .22, k0 + k, mat="witraz")
             rama(S, g, orig, t_, kier, q, .2, w=.06, mat="deska_ciemna", slupki=[(u0 + u1) / 2], rygle=[(v0 + v1) / 2 + .1])
             if 3.5 < v0 < 5 and (u1 - u0) < 1.0:                              # okiennice przy oknach I piętra
                 okiennica(S, g, orig, t_, kier, u1 + .05, u1 + .75, v0, v1); okiennica(S, g, orig, t_, kier, u0 - .75, u0 - .05, v0, v1)
-        # deska wiatrowa po łuku (ciemna, 0,35 m, 6 cm przed szczytem)
+        # deska wiatrowa po łuku (24.11: 0,32 m z desek zamiast czarnego pasa 0,58 m; 6 cm przed szczytem)
         for (x0_, y0_), (x1_, y1_) in zip(profil, profil[1:]):
             A = Q(s, x0_, y0_) + kier * .06; Bq = Q(s, x1_, y1_) + kier * .06
             tt = nrm(Bq - A); nn = nrm(np.cross(kier, tt))
             if nn[1] < 0: nn = -nn
-            S.quad(g, "belka_ciemna", A - nn * .5, Bq - nn * .5, Bq + nn * .08, A + nn * .08, kier=kier)
+            S.quad(g, "deska_ciemna", A - nn * .26, Bq - nn * .26, Bq + nn * .06, A + nn * .06, kier=kier)
     # dach: wyciągnięty ostrołuk (okap 0,3 m na szczytach)
     for (x0_, y0_), (x1_, y1_) in zip(profil, profil[1:]):
         p = [Q(-.3, x0_, y0_ + .02), Q(-.3, x1_, y1_ + .02), Q(L + .3, x1_, y1_ + .02), Q(L + .3, x0_, y0_ + .02)]
@@ -564,7 +582,7 @@ def spichrz_ceglany(S, g, P, k0=0):
         for k, q in enumerate(otw):
             u0, v0, u1, v1 = q.bounds
             if v0 < .1:
-                S.box(g, "deska_ciemna", orig + t_ * u0 - kier * .2, t_, UP, kier, u1 - u0, v1 - v0, .05); continue
+                wrota(S, g, orig, t_, kier, u0, u1, v0, v1); continue
             szyba(S, g, orig, t_, kier, q, .22, k0 + k, mat="witraz")
             rama(S, g, orig, t_, kier, q, .2, w=.06, mat="kiosk_bialy", slupki=[(u0 + u1) / 2])
         for (u, v) in ((a - 2.6, Hw + 1.2), (a + 2.6, Hw + 1.2), (a, Hw + 3.6), (.9, 9.8), (Wd - .9, 9.8), (a - 1.2, 7.9), (a + 1.2, 7.9)):

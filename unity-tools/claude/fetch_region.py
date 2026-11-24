@@ -61,7 +61,10 @@ TEXTURES_BYDGOSZCZ = ["white_stucco_02", "brushed_concrete_04", "concrete_pavers
                       "red_brick", "medieval_red_brick", "brick_wall_006", "brick_wall_02", "stacked_brick_wall", "whitewashed_brick",
                       "castle_wall_varriation", "rustic_stone_wall", "stone_wall_04", "rock_wall_13", "plastered_wall_05",
                       "clay_roof_tiles_03", "ceramic_roof_01", "roof_tiles", "grey_roof_01", "stone_tiles_03", "brick_pavement_02",
-                      "pavement_02", "rough_linen", "dark_paneled_wood"]
+                      "pavement_02", "rough_linen", "dark_paneled_wood",
+                      # 24.11, 01:15 („spichrze chujowo… bardzo źle”): stary tynk z zaciekami. Spoza listy właściciela (ZASADY 5.8) —
+                      # na liście są tylko tynki czyste (plastered_wall_05, white_stucco_02), żaden zabrudzony.
+                      "plaster_grey_04"]
 
 
 BERMUDA_KARTY = [(94, 846, 299, 275), (561, 816, 394, 298), (1091, 726, 388, 405), (1385, 212, 568, 287), (1580, 646, 348, 488), (78, 314, 568, 288)]
@@ -114,6 +117,36 @@ def lakier_blacha(report: dict) -> None:
     odbarwiona(report, "grey_tiles", "plyty_szare", srednia=.8, kontrast=2.4, bez_plam=48)   # 19:38–19:58: bez zacieków, wyraźne fugi
     odbarwiona(report, "rough_linen", "plotno_parasol", srednia=.85, kontrast=.7)                    # parasole ogródków Rynku
     odbarwiona(report, "plastered_wall_05", "tynk_kamienica", srednia=.75, kontrast=1.4)          # tynk kamienic Starego Rynku
+    odbarwiona(report, "plaster_grey_04", "tynk_stary", srednia=.72, kontrast=1.25)                # spichrze: tynk z zaciekami (24.11)
+
+
+def tynk_plamy(report: dict) -> None:
+    """Tynk kamienic Starego Rynku (24.11, właściciel 01:15): drobna faktura plastered_wall_05 z listy właściciela (filtr
+    górnoprzepustowy) razy duże miękkie plamy i zacieki painted_plaster_wall (filtr dolnoprzepustowy, 1K z listy fawelowej
+    wystarcza — po rozmyciu zostają tylko plamy). Bez barwy: odcień daje _Color z palety. Ta sama operacja w podglądzie."""
+    dst = ROOT / "textures" / "tynk_plamy"
+    if (dst / "diffuse.jpg").exists():
+        report["textures"]["tynk_plamy"] = "already"; return
+    texture("painted_plaster_wall", report, ("1k", "2k"))
+    import numpy as np
+    from PIL import Image, ImageFilter
+    def lum(nazwa, rozmiar=None):
+        im = Image.open(ROOT / "textures" / nazwa / "diffuse.jpg").convert("RGB")
+        if rozmiar: im = im.resize(rozmiar, Image.LANCZOS)
+        return (np.asarray(im, float) / 255) ** 2.2 @ np.array([.2126, .7152, .0722])
+    def rozmyj(L, r):
+        m = L.max()
+        return np.asarray(Image.fromarray((L / m * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(r)), float) / 255 * m
+    A = lum("plastered_wall_05"); W = A.shape[1]; B = lum("painted_plaster_wall", (W, A.shape[0]))
+    drobna = A / np.maximum(rozmyj(A, 24 / 2048 * W), 1e-4)
+    plamy = rozmyj(B, 10 / 2048 * W); plamy = plamy / plamy.mean()
+    L = drobna * (1 + (plamy - 1) * 1.6)
+    L = L / L.mean(); L = (1 + (L - 1) * 1.25) * (.75 ** 2.2)
+    g = (np.clip(L, 0, 1) ** (1 / 2.2) * 255).astype(np.uint8)
+    dst.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(np.dstack([g] * 3)).save(dst / "diffuse.jpg", quality=92)
+    for f in ("normal.jpg", "arm.jpg"): (dst / f).write_bytes((ROOT / "textures" / "plastered_wall_05" / f).read_bytes())
+    report["textures"]["tynk_plamy"] = "pochodna plastered_wall_05 × plamy painted_plaster_wall (odbarwiona)"
 # FAWELA (9.11, właściciel: „z Poly Haven wykończenia, tekstury wszędzie”): stare tynki, cegła, pustak, beton, blacha falista,
 # rdzawe drzwi i rolety, okiennice, asfalt, ziemia, płótno, skóra — lista = Materialy w BraxRegionFawela.cs (TylkoFawela).
 # W 1K (telefon): 38 zestawów w 2K to ok. 0,5 GB tekstur w pamięci naraz — ściany dostają kolor + normalną 1024, drobne
@@ -278,6 +311,11 @@ def main() -> int:
         except Exception as exc:  # noqa: BLE001
             report["missing"].append(f"tex:{t}: {exc}")
             print("BRAK TEKSTURY", t, exc)
+    try:
+        tynk_plamy(report)
+    except Exception as exc:  # noqa: BLE001
+        report["missing"].append(f"tex:tynk_plamy: {exc}")
+        print("BRAK TEKSTURY tynk_plamy", exc)
     for m in MODELS_2K:
         try:
             model(m, "2k", report)
