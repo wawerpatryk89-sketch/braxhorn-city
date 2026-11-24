@@ -1552,20 +1552,20 @@
   }
  },
  "teren": {
-  "jezdnie": 39670,
-  "rynek": 14996,
-  "chodniki": 62791,
+  "jezdnie": 39626,
+  "rynek": 15336,
+  "chodniki": 62691,
   "trawa": 83580,
   "woda": 27230,
   "latarnie": 313,
   "lawki": 34,
   "drzewa": 80,
-  "slupki": 168,
+  "slupki": 166,
   "mury": 17,
   "ploty": 40,
   "zywoploty": 17,
   "mosty_zespoly": 4
  },
  "mostow": 5,
- "trojkatow": 840435
+ "trojkatow": 841819
 }

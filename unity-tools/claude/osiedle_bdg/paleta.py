@@ -256,8 +256,14 @@ P["parasol"] = {"tex": "plotno_parasol", "m": 1.2, "kol": [236, 232, 222], "szor
 P["donica"] = {"tex": "weathered_brown_planks", "m": 1.0, "kol": [118, 72, 48], "szorst": .85}
 P["balustrada_kuta"] = {"tex": None, "kol": [34, 36, 36], "szorst": .5, "metal": .5, "alfa": "balustrada_kuta.png"}
 P["meble_ogrodka"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [44, 42, 40], "szorst": .6}
-P["rynek_plyty"] = {"tex": "pavement_02", "m": 2.12, "kol": [200, 186, 166], "szorst": .9}          # zdj. 02: jasne płyty (lista)
-P["rynek_pas"] = {"tex": "brick_pavement_02", "m": 2.0, "kol": [150, 106, 88], "szorst": .9}       # ukośne pasy ciemniejsze (lista)
+# 24.11, 13:20 (zdjęcia 01–04 Rynku): duże gładkie płyty granitowe na drobną fugę; pavement_02 to „szalony bruk”
+# z nieregularnych kamieni, a na liście właściciela nie ma gładkich płyt (rock_tile_floor — kamień łupany z mchem
+# w fugach). granite_tile_04 spoza listy (ZASADY 5.8), już w TEXTURES_BYDGOSZCZ; kafel 4,5 m = 5 płyt po 0,9 m.
+# Pomiar zdjęcia 03 (pochmurno): jasne płyty 187/180/170, ciemniejsze prostokąty 164/151/143 (tu o ok. 5% jaśniej i cieplej).
+P["rynek_plyty"] = {"tex": "granite_tile_04", "m": 4.5, "kol": [196, 188, 176], "szorst": .8}
+P["rynek_pas"] = {"tex": "granite_tile_04", "m": 4.5, "kol": [166, 152, 140], "szorst": .8}
+# drogi rowerowe (zdjęcia 11, 13 — Focha): czerwony asfalt
+P["droga_rowerowa"] = {"tex": "clean_asphalt", "m": 4.0, "kol": [150, 74, 64], "szorst": 1.0}
 P["nabrzeze"] = {"tex": "granite_tile_04", "m": 2.0, "kol": [150, 146, 140], "szorst": .9}
 P["mur_nabrzeza"] = {"tex": "granite_tile", "m": 2.3, "kol": [128, 126, 122], "szorst": .8}
 P["woda_brda"] = {"tex": None, "kol": [30, 42, 36], "szorst": .14, "metal": .0, "woda": "HarbourWater"}   # w grze: materiał wody portu (fale, odbicia)

@@ -42,6 +42,12 @@ KAMIENIE = ["s_piaskowiec", "s_szary", "s_zamkowy", "s_grafit", "s_ochra", "s_ro
 DACHY = ["dachowka", "dachowka_braz", "dachowka_stara", "dachowka_03", "dachowka_ceram", "dachowka_karpiowka", "lupek"]
 KOLORY = ["k_zolty", "k_krem", "k_szaroniebieski", "k_rozowy", "k_bialy", "k_ochra", "k_zielony", "k_terakota",
           "k_kremowy2", "k_jasnozolty", "k_losos", "k_niebieskoszary", "k_kremowy2", "k_jasnozolty", "k_losos"]
+# 24.11 (zdjęcia 01–03): pierzeje samego Rynku są tylko tynkowane, w pastelach — żółty i ochra, jasnoniebieski,
+# niebieskoszary, krem, róż, biel; cegła i kamień zostają w uliczkach dookoła
+# udziały policzone na zdjęciach 01–03 (17 frontów): żółte ok. 35%, niebieskie/szare 25%, krem 20%, białe 15%, róż 5%
+KOLORY_RYNEK = ["k_zolty", "k_zolty", "k_jasnozolty", "k_jasnozolty", "k_ochra", "k_krem", "k_kremowy2", "k_bialy", "k_bialy",
+                "k_szaroniebieski", "k_szaroniebieski", "k_niebieskoszary", "k_rozowy"]
+RYNEK_PIERZEJE = [None]                    # obszar placu Rynku (ustawiany w main) — budynki do 3 m od niego to pierzeje
 
 
 def wczytaj():
@@ -175,6 +181,10 @@ def spec(b, R_):
     # 21:56–21:59 właściciel: część budynków ze starej cegły (różnej), gdzieniegdzie elewacja kamienna, reszta tynk z fakturą
     los = R_.random(); rodzaj = "cegla" if los < .32 else "kamien" if los < .44 else "tynk"
     tynk = R_.choice(CEGLY if rodzaj == "cegla" else KAMIENIE if rodzaj == "kamien" else KOLORY)
+    pastel = None
+    if RYNEK_PIERZEJE[0] is not None and P.distance(RYNEK_PIERZEJE[0]) < 3.0:      # pierzeja Rynku: tylko pastelowy tynk
+        R_r = random.Random(round(P.centroid.x * 10) * 7919 + round(P.centroid.y * 10))   # osobne losowanie — reszta bez zmian
+        pastel = (R_r.choice(KOLORY_RYNEK), R_r.random() < .7)
     duzy = P.area >= 5000                                            # tylko hale/bloki płasko; duże kamienice i urząd — dach stromy
     oz = dict(trojkat=R_.random() < .5, plyciny=R_.random() < .6, lizeny=R_.random() < .45,
               wykusz=R_.random() < .22, balkon=R_.random() < .35)
@@ -202,7 +212,7 @@ def spec(b, R_):
         tynk, rodzaj = "c_czerwona", "cegla"
     elif "urząd miasta" in nz or "opera" in nz or "lloyd" in nz:
         tynk, rodzaj = "k_bialy", "tynk"
-    return dict(kond=kond, h_kond=hk, parter=p0, tynk=tynk, cokol="cokol4", h_cokol=.6, okna=okna,
+    sp_ = dict(kond=kond, h_kond=hk, parter=p0, tynk=tynk, cokol="cokol4", h_cokol=.6, okna=okna,
                 witryny=bool(b.get("ulica")) or bool(b.get("dzialka")), gzymsy=True, gzyms_mat="opaska",
                 dach="plaski" if duzy else "kamienica", dach_mat=R_.choice(DACHY),
                 spadek=R_.choice((38, 42, 45, 48)), attyka=.9 if duzy else .35, kalenica_max=6.5 if P.area < 500 else 4.2, zr=zr,
@@ -210,6 +220,10 @@ def spec(b, R_):
                 parter_mat=("kb" + tynk[1:]) if rodzaj == "tynk" and R_.random() < .7 else (R_.choice(("s_piaskowiec", "s_szary", "s_zamkowy")) if rodzaj == "cegla" and R_.random() < .5 else None),
                 lukarny=R_.random() < .75, kominy=True,
                 szczyt_mat=tynk if rodzaj != "tynk" else R_.choice(("c_stara", "c_sredniowieczna", "c_czerwona", "c_mieszana", tynk)))
+    if pastel and not ("urząd miasta" in nz or "opera" in nz or "lloyd" in nz or "spichlerz" in nz):
+        sp_["tynk"] = pastel[0]; sp_["parter_mat"] = ("kb" + pastel[0][1:]) if pastel[1] else None
+        if sp_["szczyt_mat"] == tynk: sp_["szczyt_mat"] = pastel[0]
+    return sp_
 
 
 def teren(d, bud, W):
@@ -249,12 +263,18 @@ def teren(d, bud, W):
     # krawężnik granitowy 15 cm między jezdnią (0) a chodnikiem/płytą (+0,12), wierzch +0,14, czoła do jezdni
     KRAW = JEZ.buffer(.15, join_style=2).difference(JEZ).intersection(unary_union([CHOD, PLAC]))
     CHOD = CHOD.difference(KRAW); PLAC = PLAC.difference(KRAW)
-    # płyta Rynku (zdjęcie 02): jasne płyty z ukośnymi pasami ciemniejszych płyt co 9 m
-    c_ = PLAC.centroid if not PLAC.is_empty else Point(0, 0); pasy = []
-    for k in range(-40, 41):
-        o_ = np.array([c_.x, c_.y]) + np.array([1, -1]) / math.sqrt(2) * k * 9.0; d_ = np.array([1, 1]) / math.sqrt(2) * 400
-        pasy.append(LineString([tuple(o_ - d_), tuple(o_ + d_)]).buffer(.45, cap_style=2))
-    PAS = PLAC.intersection(unary_union(pasy)); PLAC = PLAC.difference(PAS)
+    # płyta Rynku (24.11, zdjęcia 01–04): duże jasne płyty granitowe 0,9 m na drobną fugę, gdzieniegdzie prostokąty
+    # z ciemniejszych płyt (2–5 × 1–3 płyty) — bez ceglanych pasów. Prostokąty po fugach tekstury granite_tile_04
+    # (kafel 4,5 m = 5 płyt; fugi w x co 0,9 m od 0,43, w z co 0,9 m od 0)
+    R_p = random.Random(23); pasy = []
+    if not PLAC.is_empty:
+        bx0, bz0, bx1, bz1 = PLAC.bounds
+        for i in range(int((bx1 - bx0) // .9) + 2):
+            for j in range(int((bz1 - bz0) // .9) + 2):
+                if R_p.random() > .012: continue
+                x0_ = .43 + .9 * (math.floor((bx0 - .43) / .9) + i); z0_ = .9 * (math.floor(bz0 / .9) + j)
+                pasy.append(box(x0_, z0_, x0_ + .9 * R_p.randint(2, 5), z0_ + .9 * R_p.randint(1, 3)))
+    PAS = PLAC.intersection(unary_union(pasy)) if pasy else Polygon(); PLAC = PLAC.difference(PAS)
     GLOWNE = unary_union([LineString(u["linia"]).buffer(szer[u["klasa"]] / 2 + .3, cap_style=2, join_style=1) for u in d["ulice"]
                           if len(u["linia"]) > 1 and u["klasa"] in ("primary", "secondary", "tertiary")])
     BRUK = unary_union([LineString(u["linia"]).buffer(szer[u["klasa"]] / 2, cap_style=1, join_style=1) for u in d["ulice"]
@@ -276,7 +296,17 @@ def teren(d, bud, W):
                     c = p + nn * k * 1.0
                     ZEB.append(Polygon([tuple(c - nn * .25 - tt * 2), tuple(c + nn * .25 - tt * 2), tuple(c + nn * .25 + tt * 2), tuple(c - nn * .25 + tt * 2)]))
     ZEBRA = unary_union(ZEB).intersection(JEZ) if ZEB else Polygon()
+    JEZ_PELNA = JEZ                                   # cała jezdnia (z zebrami i przejazdami) — do czół krawężnika
     JEZ = JEZ.difference(ZEBRA)
+    # 24.11 (zdjęcia 11 i 13, Focha): drogi rowerowe z czerwonego asfaltu — na chodniku i przejazdy przez jezdnię
+    # (OSM highway=cycleway, szer. 2 m); wycięte z asfaltu, zebry i kostki (bez nakładania płaszczyzn)
+    ROW = unary_union([LineString(u["linia"]).buffer(1.0, cap_style=2, join_style=1) for u in d["ulice"]
+                       if u["klasa"] == "cycleway" and len(u["linia"]) > 1 and not u.get("most")]).intersection(OKNO).difference(W) \
+        if any(u["klasa"] == "cycleway" for u in d["ulice"]) else Polygon()
+    ROW_J = ROW.intersection(JEZ_PELNA); ROW_C = ROW.intersection(CHOD)
+    ZEBRA = ZEBRA.difference(ROW); JEZ = JEZ.difference(ROW_J); CHOD = CHOD.difference(ROW_C); BRUK = BRUK.difference(ROW_J)
+    plaski("droga_rowerowa", ROW_J.simplify(.05), 0.0)
+    plaski("droga_rowerowa", ROW_C.simplify(.05), .12)
     plaski("linia_biala", ZEBRA.simplify(.01), 0.0)
     plaski("asfalt", JEZ.difference(BRUK).simplify(.05), 0.0)
     plaski("bruk", BRUK.simplify(.05), 0.0)
@@ -297,7 +327,7 @@ def teren(d, bud, W):
                 if L < .03: continue
                 t = (b_ - a) / L; n = nrm(np.cross(UP, t))
                 if q.buffer(.001).contains(Point(*(((a + b_) / 2 + n * .05)[[0, 2]]))): n = -n
-                if not JEZ.buffer(.02).contains(Point(*(((a + b_) / 2 + n * .05)[[0, 2]]))): continue   # tylko od jezdni
+                if not JEZ_PELNA.buffer(.02).contains(Point(*(((a + b_) / 2 + n * .05)[[0, 2]]))): continue   # tylko od jezdni (też przy zebrze i przejeździe)
                 S.quad("teren", "krawoznik", a, b_, b_ + UP * .14, a + UP * .14, kier=n)
     # mur nabrzeża: od wody (−1,6) do bulwaru (+0,15), granitowy, po obwodzie wody (bez odcinków na krawędzi okna).
     # 24.11, 11:24 (właściciel, zdjęcie z Mostowej: „zabarykadowana droga?”): pod mostami i przy ich przyczółkach bez
@@ -373,7 +403,14 @@ def mosty_scal(S, mosty, W, d=None):
         spod = lambda x, z: .17 - (.8 + .5 * (2 * abs(os_.project(Point(x, z)) / Lb - .5)) ** 2)
         mostowa = any((u.get("nazwa") or "") == "Mostowa" for (ln, w, u) in mosty if ln.intersects(q))
         JEZ_M = unary_union([ln.buffer(3.0, cap_style=2) for (ln, w, u) in mosty if ln.intersects(q) and u["klasa"] in ("pedestrian", "residential", "tertiary", "secondary")]).intersection(q) if mostowa else Polygon()
-        for (cz, mat) in ((JEZ_M, "bruk"), (q.difference(JEZ_M) if not JEZ_M.is_empty else q, "kostka")):
+        # 24.11 (m34–m36, IMG_2013): most Staromiejski cały w jasnych płytach granitowych — jezdnia też, odcięta od chodników
+        # dwoma pasami ciemniejszego granitu 0,3 m (bez kostki i bez bruku); pozostałe mosty bez zmian
+        if mostowa and not JEZ_M.is_empty:
+            PAS_M = JEZ_M.boundary.buffer(.15, cap_style=2).intersection(q)
+            czesci = ((JEZ_M.difference(PAS_M), "rynek_plyty"), (PAS_M, "rynek_pas"), (q.difference(JEZ_M).difference(PAS_M), "rynek_plyty"))
+        else:
+            czesci = ((JEZ_M, "bruk"), (q.difference(JEZ_M) if not JEZ_M.is_empty else q, "kostka"))
+        for (cz, mat) in czesci:
             for part in getattr(cz, "geoms", [cz]):
                 if part.is_empty or part.geom_type != "Polygon": continue
                 for tri in shapely.constrained_delaunay_triangles(part).geoms:
@@ -674,6 +711,12 @@ def main(out):
     budynki = [b for b in budynki if b["osm"] not in zabytki.WLASNE]
     PUBL0 = przestrzen_publiczna(d, W)
     budynki = dzialki(budynki, PUBL0, R_)
+    # pierzeje Rynku: obszary pieszych w promieniu 75 m od środka obszaru „Stary Rynek” (plac składa się z kilku obszarów)
+    rynek_ = [Polygon(u["linia"]).buffer(0) for u in d["ulice"] if u.get("obszar") and u.get("nazwa") == "Stary Rynek" and len(u["linia"]) > 3]
+    if rynek_:
+        c_r = unary_union(rynek_).centroid
+        RYNEK_PIERZEJE[0] = unary_union([Polygon(u["linia"]).buffer(0) for u in d["ulice"] if u.get("obszar") and len(u["linia"]) > 3
+                                         and u["klasa"] == "pedestrian" and Polygon(u["linia"]).buffer(0).centroid.distance(c_r) < 75])
     from shapely.strtree import STRtree
     from shapely.prepared import prep
     drzewo = STRtree([b["poly"] for b in budynki])
