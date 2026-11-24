@@ -68,7 +68,9 @@ jobs:
         restore-keys: claude-cc0-
     - name: Pobierz materialy i modele CC0 (Poly Haven, ambientCG) - tylko brakujace
       run: |
-        python3 -m pip install --disable-pip-version-check Pillow==11.3.0
+        # 24.11 (build 45304516914): fetch_region liczy tekstury pochodne (lakier_blacha, plyty_szare, tynki Bydgoszczy) w numpy —
+        # bez niego „BRAK TEKSTURY … No module named 'numpy'” i osiedle/Stary Rynek w gładkich kolorach
+        python3 -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6
         python3 unity-tools/claude/fetch_polyhaven.py
         python3 unity-tools/claude/fetch_region.py
         du -sh unity-city/Assets/Source/Claude/PolyHaven

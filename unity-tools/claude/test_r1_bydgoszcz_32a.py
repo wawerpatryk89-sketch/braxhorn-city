@@ -230,3 +230,18 @@ def test_stary_rynek_podpiety_do_gry():
     sys.path.insert(0, str(R / "unity-tools/claude"))
     import bydgoszcz_skrot
     assert json.loads(bydgoszcz_skrot.CEL.read_text(encoding="utf-8")) == bydgoszcz_skrot.skrot(), "uruchom bydgoszcz_skrot.py po skopiowaniu gen"
+
+
+def test_build_45304516914_poprawki():
+    """Build 24.11 (run 45304516914): osiedle i Stary Rynek nie weszły do świata — CreateAsset w nieistniejącym folderze
+    ClaudeRegion/Bydgoszcz (wyjątek na pierwszej siatce), a tekstury pochodne (lakier_blacha, tynki) nie powstały, bo w jobie
+    cc0-assets nie było numpy. Pilnujemy: folder przed zapisem, osobne części (błąd osiedla nie zatrzymuje Rynku), numpy w CI."""
+    from pathlib import Path
+    R = Path(__file__).resolve().parents[2]
+    cs = (R / "unity-city/Assets/Editor/Claude/Region/BraxBydgoszcz.cs").read_text(encoding="utf-8")
+    assert "static void Folder(string sciezka)" in cs and "AssetDatabase.CreateFolder(rodzic, nazwa)" in cs
+    assert cs.index("Folder(katalogSiatek);") < cs.index("BraxZapisAssetu.Utworz(mesh")
+    assert 'Bezpiecznie("osiedle"' in cs and 'Bezpiecznie("Stary Rynek"' in cs
+    wf = (R / ".github/workflows/claude-region-build.yml").read_text(encoding="utf-8")
+    i = wf.index("python3 unity-tools/claude/fetch_region.py"); krok = wf[wf.rindex("- name:", 0, i):i]
+    assert "numpy" in krok

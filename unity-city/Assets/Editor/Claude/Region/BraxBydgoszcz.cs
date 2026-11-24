@@ -165,11 +165,31 @@ public static class BraxBydgoszcz
           mat == "stal_balustrada" || mat == "rura_gaz" || mat == "linia_biala" || mat == "lampa" || mat == "tabliczka" || mat == "domofon" ||
           mat == "kratka" || mat == "obrobka" || mat == "szyba_drzwi" || mat == "szyba_piwnica");
 
+    /// <summary>Folder zasobów z rodzicami (AssetDatabase.CreateFolder + dysk). Build 45304516914 (24.11): CreateAsset w nieistniejącym
+    /// ClaudeRegion/Bydgoszcz rzucił wyjątek na pierwszej siatce — osiedle i Stary Rynek nie weszły do świata.</summary>
+    static void Folder(string sciezka)
+    {
+        sciezka = sciezka.Replace('\\', '/').TrimEnd('/');
+        if (string.IsNullOrEmpty(sciezka) || sciezka == "Assets" || AssetDatabase.IsValidFolder(sciezka)) return;
+        string rodzic = (Path.GetDirectoryName(sciezka) ?? "Assets").Replace('\\', '/'), nazwa = Path.GetFileName(sciezka);
+        Folder(rodzic);
+        if (!AssetDatabase.IsValidFolder(sciezka)) AssetDatabase.CreateFolder(rodzic, nazwa);
+        if (!Directory.Exists(sciezka)) Directory.CreateDirectory(sciezka);
+    }
+
     public static void Apply(Transform cityRoot)
     {
         okna.Clear(); rzeka = null; rzekaProba = false;
-        Wczytaj(cityRoot, Plik, PunktZerowy, "BYDGOSZCZ osiedle Skłodowskiej-Curie", "osiedle", Out);
-        Wczytaj(cityRoot, PlikRynku, PunktZerowyRynku, "BYDGOSZCZ Stary Rynek (Mostowa, Focha, Brda)", "rynek", Out + "/Rynek");
+        Folder(Out); Folder(Out + "/Rynek");
+        // każda część osobno: błąd osiedla nie zatrzymuje Rynku (i odwrotnie) — w logu DO POPRAWKI z przyczyną
+        Bezpiecznie("osiedle", () => { Wczytaj(cityRoot, Plik, PunktZerowy, "BYDGOSZCZ osiedle Skłodowskiej-Curie", "osiedle", Out); return 1; });
+        Bezpiecznie("Stary Rynek", () => { Wczytaj(cityRoot, PlikRynku, PunktZerowyRynku, "BYDGOSZCZ Stary Rynek (Mostowa, Focha, Brda)", "rynek", Out + "/Rynek"); return 1; });
+    }
+
+    static int Bezpiecznie(string co, Func<int> f)
+    {
+        try { return f(); }
+        catch (Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_BYDGOSZCZ " + co + ": " + e); BraxRegion.Note("Bydgoszcz: " + co + " — BŁĄD " + e.Message); return 0; }
     }
 
     /// <summary>Jeden plik BYD2 (osiedle albo Stary Rynek): siatki × materiał w metrach → jednostki gry od punktu zerowego,
@@ -178,6 +198,7 @@ public static class BraxBydgoszcz
     {
         string sciezka = Sciezka(plikBin);
         if (sciezka == null) { BraxRegion.Note("Bydgoszcz: brak pliku " + plikBin + " — " + przedrostek + " pominięte"); return; }
+        Folder(katalogSiatek);
         var root = BraxRegion.Root(cityRoot, nazwaKorzenia);
         var grupy = new Dictionary<string, Transform>();
         Transform Grupa(string g)
@@ -187,7 +208,7 @@ public static class BraxBydgoszcz
             return t;
         }
         Vector3 Swiat(float x, float y, float z) => new Vector3(zero.x + x * K, y * K, zero.y + z * K);
-        int siatek = 0, trojkatow = 0, kolizji = 0;
+        int siatek = 0, trojkatow = 0, kolizji = 0, bledowZapisu = 0;
         var maty = new Dictionary<string, Material>();
         using (var plik = File.OpenRead(sciezka))
         using (var gz = new GZipStream(plik, CompressionMode.Decompress))
@@ -224,7 +245,8 @@ public static class BraxBydgoszcz
                     var mesh = new Mesh { name = "Bydgoszcz " + g + " " + mn, indexFormat = nv > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
                     mesh.vertices = v; mesh.normals = n; mesh.tangents = tg; mesh.uv = uv; mesh.uv2 = uv2;
                     mesh.SetTriangles(idx, 0); mesh.RecalculateBounds();
-                    BraxZapisAssetu.Utworz(mesh, katalogSiatek + "/" + g.Replace('#', '_') + "_" + mn + ".asset");
+                    try { BraxZapisAssetu.Utworz(mesh, katalogSiatek + "/" + g.Replace('#', '_') + "_" + mn + ".asset"); }
+                    catch (Exception e) { if (bledowZapisu++ < 5) Debug.LogWarning("DO POPRAWKI: BRAXHORN_BYDGOSZCZ zapis siatki " + g + "/" + mn + ": " + e.Message); }
                     var go = new GameObject(g + " [" + mn + "]"); go.transform.SetParent(Grupa(g), false);
                     go.AddComponent<MeshFilter>().sharedMesh = mesh;
                     var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterial = mat;
@@ -238,14 +260,14 @@ public static class BraxBydgoszcz
             }
         }
         string punkty = Obok(sciezka, przedrostek, "punkty.json");
-        int barier = Bariery(root, Swiat, punkty);
-        int drzew = Drzewa(root, Swiat, punkty);
-        int modeli = ModeleWlasciciela(root, Swiat, punkty);
-        int akcji = Akcje(root, Swiat, Obok(sciezka, przedrostek, "akcje.json"));
-        TrawaMaska(root, Obok(sciezka, przedrostek, "trawa_maska.bin"), katalogSiatek);
-        int lodow = Zasiegi(root);
+        int barier = Bezpiecznie(przedrostek + " bariery", () => Bariery(root, Swiat, punkty));
+        int drzew = Bezpiecznie(przedrostek + " drzewa", () => Drzewa(root, Swiat, punkty));
+        int modeli = Bezpiecznie(przedrostek + " modele właściciela", () => ModeleWlasciciela(root, Swiat, punkty));
+        int akcji = Bezpiecznie(przedrostek + " akcje", () => Akcje(root, Swiat, Obok(sciezka, przedrostek, "akcje.json")));
+        Bezpiecznie(przedrostek + " maska trawy", () => { TrawaMaska(root, Obok(sciezka, przedrostek, "trawa_maska.bin"), katalogSiatek); return 1; });
+        int lodow = Bezpiecznie(przedrostek + " LOD", () => Zasiegi(root));
         Debug.Log("BRAXHORN_BYDGOSZCZ_" + przedrostek.ToUpperInvariant() + " siatek=" + siatek + " trojkatow=" + trojkatow + " kolizji=" + kolizji + " materialow=" + maty.Count +
-                  " drzew=" + drzew + " modeli_wlasciciela=" + modeli + " akcji=" + akcji + " barier=" + barier + " lod=" + lodow + " punkt_zerowy=(" + zero.x + "; " + zero.y + ")");
+                  " drzew=" + drzew + " modeli_wlasciciela=" + modeli + " akcji=" + akcji + " barier=" + barier + " lod=" + lodow + " bledow_zapisu=" + bledowZapisu + " punkt_zerowy=(" + zero.x + "; " + zero.y + ")");
     }
 
     /// <summary>Niewidzialne ściany (punkty.json → "bariery": [x0, z0, x1, z1, y0, y1], metry): Brda ucięta granicą miasta —
