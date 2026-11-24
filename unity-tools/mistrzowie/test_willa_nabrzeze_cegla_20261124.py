@@ -123,7 +123,7 @@ class Wnetrza(unittest.TestCase):
 
 class PrywatnaPlaza(unittest.TestCase):
     def test_sand_from_the_stairs_foot_to_the_sea(self):
-        self.assertIn("public const float N3PlazaX0 = -56f, N3PlazaX1 = 46f, N3PlazaZ = PadZ0 - 4.4f;", CEGLA)
+        self.assertIn("public const float N3PlazaX0 = -46f, N3PlazaX1 = 46f, N3PlazaZ = PadZ0 - 4.4f;", CEGLA)   # 24.11 west wall off the rim band
         self.assertIn("f = Mathf.Min(f, l.y - BraxChampionsWille.N3PlazaZ);", SITES)
         self.assertIn("float hp = Pole(vl[p]), hq = Pole(vl[q]), t = Mathf.Clamp01(hp / (hp - hq));", SITES)
         # the stair's foot (23 treads of 30 cm) on the sand
@@ -135,14 +135,14 @@ class PrywatnaPlaza(unittest.TestCase):
                   'W.Siedzisko(new Vector3(x, dt + .5f, -34.6f), Vector3.back, "LEŻANKA");', "Lawka(new Vector3(-17f, dt, -33.0f), Vector3.back, 2.4f);",
                   "Lezaki(new Vector3(x, y, z), 2, 1.1f, Vector3.back);", "N3Parasol(x + .55f, z + 1.6f);"):
             self.assertIn(s, CEGLA)
-        loungers = re.search(r"foreach \(float x in new\[\] \{ ([^}]+) \}\)\s*\{\s*float z = -50f", CEGLA)
+        loungers = re.search(r"foreach \(float x in new\[\] \{ ([^}]+) \}\)\s*\{\s*float z = -45f", CEGLA)
         self.assertEqual(len(loungers.group(1).split(",")), 6)
         palms = re.search(r"foreach \(float x in new\[\] \{ ([^}]+) \}\)[^\n]*\n\s*\{ Palma\(x, -29f", CEGLA)
         xs = [float(v.strip().rstrip("f")) for v in palms.group(1).split(",")]
         for x in xs:
             self.assertTrue(x < -26 - 2 or x > -14 + 2, x)                        # clear of the deck and the stair
             self.assertTrue(abs(x) >= 9.5, x)                                     # none before the house (x -9..9)
-            self.assertTrue(-56 < x < 46, x)
+            self.assertTrue(-46 + 2 < x < 46 - 2, x)                             # inside its walls
 
     def test_closed_by_old_stone_walls_into_the_sea(self):
         self.assertIn("N3Mur(N3PlazaX0, 88f, N3Morze, 1.8f, morze);", CEGLA)

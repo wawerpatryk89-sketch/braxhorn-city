@@ -65,7 +65,14 @@ public static class BraxRegion
 
 // 23.11 the island's own sea (BraxChampionsWyspaMorze) is checked by morze_sim --wyspa and the sea's three.js picture; the
 // villa preview draws its own flat sea round a water site (WilleMain "dzialka")
-public static class BraxChampionsWyspaMorze { public static void Zbuduj(UnityEngine.Transform g, BraxChampionsWilleDzialki.Dzialka d) { } }
+public static class BraxChampionsWyspaMorze
+{
+    public const float Krok = 2f, Pas = 10f, Suchy = .5f, RantPas = 20f;   // as the real one (its grid, band, dry margin, rim)
+    public const int PoleN = 512;
+    public static void Zbuduj(UnityEngine.Transform g, BraxChampionsWilleDzialki.Dzialka d) { }
+}
+// 24.11 the seafront's own sea (BraxChampionsNabrzezeMorze, the private beach's waves): checked by WilleMain nabrzeze_morze
+public static class BraxChampionsNabrzezeMorze { public static void Zbuduj(UnityEngine.Transform g, BraxChampionsWilleDzialki.Dzialka d) { } }
 
 // 23.11 the garage doors' remote (runtime, Assets/Mistrzowie/BraxChampionsBramaPilot.cs): the preview only places it
 public sealed class BraxChampionsBramaPilot : UnityEngine.MonoBehaviour { public BraxChampionsSzafa brama; public UnityEngine.Transform przed, wGarazu; public float zasieg = 14f; }

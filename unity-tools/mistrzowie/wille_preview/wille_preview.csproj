@@ -42,5 +42,7 @@
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsWilleDzialki.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsDriveMouth.cs" />
     <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsHorizon.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsWyspaWoda.cs" />
+    <Compile Include="../../../unity-city/Assets/Editor/Mistrzowie/BraxChampionsMorzeBrzeg.cs" />
   </ItemGroup>
 </Project>

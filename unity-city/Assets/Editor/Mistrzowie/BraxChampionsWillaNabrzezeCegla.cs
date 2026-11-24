@@ -105,8 +105,11 @@ public static partial class BraxChampionsWille
         return m;
     }
     const float N3DeckX0 = -26f, N3DeckX1 = -14f, N3DeckZ0 = -37f, N3DeckZ1 = -32f;      // the beach deck (the stair's axis x -20)
-    // the beach's sand (the site's ground, BraxChampionsWilleDzialki.Teren): between its walls' lines, from 4.4 m before the pad
-    public const float N3PlazaX0 = -56f, N3PlazaX1 = 46f, N3PlazaZ = PadZ0 - 4.4f;
+    // the beach's sand (the site's ground, BraxChampionsWilleDzialki.Teren): between its walls' lines, from 4.4 m before the pad;
+    // 24.11 the west wall at -46 (was -56): the site's outer 25 m (x 1200-1225 world) is its rim band, where its ground goes
+    // under the far land - the far land's coarse mesh stood up to 0.6 m over the beach's sand by the old wall (measured on its
+    // real triangles); now the whole beach (x 1226-1318) is the site's own ground, 92 m along the sea, the villa in its middle
+    public const float N3PlazaX0 = -46f, N3PlazaX1 = 46f, N3PlazaZ = PadZ0 - 4.4f;
     const float N3Morze = -76f;                                                            // the walls' sea ends (the coast ~ -65)
     public static int N3Lezaki, N3Palmy;
     static void N3Plaza()
@@ -166,23 +169,25 @@ public static partial class BraxChampionsWille
             b.Cylinder(steel, new Vector3(x + .4f, y + 2.22f, z), .1f, .04f, 16, Quaternion.identity, true, true);
             W.Kolizja(new Vector3(x, y + 1.15f, z), new Vector3(.14f, 2.3f, .14f), Quaternion.identity);
         }
-        // ---- loungers in pairs under a white parasol on the dry sand (4 cm under the sand's top at their feet), the sea before
-        foreach (float x in new[] { -46f, -34f, -6f, 6f, 18f, 30f })
+        // ---- loungers in pairs under a white parasol on the dry sand (4 cm under the sand's top at their feet), the sea before;
+        // 24.11 7 m from the waterline (local z -52/-53), 0.45-0.55 m over the sea: the waves' run-up (BraxChampionsNabrzezeMorze,
+        // up to 0.21 m) and the wet band never reach them
+        foreach (float x in new[] { -40f, -32f, -6f, 6f, 18f, 30f })
         {
-            float z = -50f, y = N3Grunt(x + .55f, z);
+            float z = -45f, y = N3Grunt(x + .55f, z);
             Lezaki(new Vector3(x, y, z), 2, 1.1f, Vector3.back); N3Lezaki += 2;
             N3Parasol(x + .55f, z + 1.6f);
         }
         // ---- palms on the beach's back edge (clear of the deck, the stair and the boardwalk)
-        foreach (float x in new[] { -50f, -40f, -30f, -9.5f, 9.5f, 20f, 30f, 40f })                 // framing the house (x -9..9), none before it
+        foreach (float x in new[] { -40f, -30f, -9.5f, 9.5f, 20f, 30f, 40f })                       // framing the house (x -9..9), none before it
         { Palma(x, -29f, N3Grunt(x, -29f)); N3Palmy++; }
         // ---- the old stone walls closing it: the west wall from the drive down into the sea (1.8 m on the land, 0.9 over the
         // sea), the east one off the fence's end; "PLAŻA PRYWATNA" on the west wall's face toward the region's beach
         N3Mur(N3PlazaX0, 88f, N3Morze, 1.8f, morze);
         N3Mur(N3PlazaX1, N3PlazaZ, N3Morze, 1.2f, morze);
-        float ty = N3Grunt(-56.6f, -31f) + 1.05f;
-        BraxChampionsLetters3D.Text(b, steel, black, "PLAŻA PRYWATNA", new Vector3(-56.45f, ty, -31f), BraxChampionsLetters3D.YawFacing(Vector3.left), .26f, .02f);
-        BraxChampionsLetters3D.Text(b, steel, black, Nazwy[2], new Vector3(-56.45f, ty - .42f, -31f), BraxChampionsLetters3D.YawFacing(Vector3.left), .13f, .015f);
+        float ty = N3Grunt(N3PlazaX0 - .6f, -31f) + 1.05f;
+        BraxChampionsLetters3D.Text(b, steel, black, "PLAŻA PRYWATNA", new Vector3(N3PlazaX0 - .45f, ty, -31f), BraxChampionsLetters3D.YawFacing(Vector3.left), .26f, .02f);
+        BraxChampionsLetters3D.Text(b, steel, black, Nazwy[2], new Vector3(N3PlazaX0 - .45f, ty - .42f, -31f), BraxChampionsLetters3D.YawFacing(Vector3.left), .13f, .015f);
     }
     /// <summary>An old stone wall along z at x, from z0 down toward the sea to z1: 90 cm thick, in 2 m lengths each up to h
     /// over the highest ground under it (at least 0.9 m over the sea), on a travertine coping 5 cm wider; its foot under the

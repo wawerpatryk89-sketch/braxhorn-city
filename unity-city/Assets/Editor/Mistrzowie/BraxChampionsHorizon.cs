@@ -171,6 +171,39 @@ public static class BraxChampionsHorizon
 
     public sealed class Chunk { public List<Vector3> v = new List<Vector3>(); public List<Vector3> n = new List<Vector3>(); public List<Color> c = new List<Color>(); public List<int> t = new List<int>(); }
 
+    /// <summary>24.11 the far land's surface at (x, z) nominal exactly as Land() draws it (its polar cell's two triangles,
+    /// Height at their corners), or -infinity where it draws none (the region, the open sea, past its rings) - for a shore
+    /// field over a site's rim band, where the far land covers the site's ground (BraxChampionsNabrzezeMorze). docisk: the
+    /// sites' press (BraxChampionsWilleDzialki.Docisk) before the build sets Docisk.</summary>
+    public static float Lad(float x, float z, Func<float, float, float> docisk = null)
+    {
+        float dx = x - CentreX, dz = z - CentreZ, r = MathF.Sqrt(dx * dx + dz * dz);
+        if (r <= RingIn || r >= RingOut) return float.NegativeInfinity;
+        float fa = MathF.Atan2(dz, dx) / (2 * MathF.PI) * Columns; if (fa < 0) fa += Columns;
+        float fr = MathF.Log(r / RingIn) / MathF.Log(RingOut / RingIn) * Rings;
+        int c = Math.Clamp((int)fa, 0, Columns - 1), ri = Math.Clamp((int)fr, 0, Rings - 1);
+        Vector3 P(int cc, int rr)
+        {
+            float ang = cc * 2 * MathF.PI / Columns, rad = RingIn * MathF.Pow(RingOut / RingIn, rr / (float)Rings);
+            float px = CentreX + rad * MathF.Cos(ang), pz = CentreZ + rad * MathF.Sin(ang), h = Height(px, pz);
+            if (docisk != null && !Inside(px, pz)) h = MathF.Min(h, docisk(px, pz));
+            return new Vector3(px, h, pz);
+        }
+        int Keep(Vector3 q) => Inside(q.x, q.z) ? 0 : q.y < SeaLevel - .5f ? -1 : 1;
+        var p00 = P(c, ri); var p01 = P(c, ri + 1); var p10 = P(c + 1, ri); var p11 = P(c + 1, ri + 1);
+        if (Keep(p00) <= 0 && Keep(p01) <= 0 && Keep(p10) <= 0 && Keep(p11) <= 0) return float.NegativeInfinity;
+        // the cell's triangles as Land(): (00, 10, 01) and (01, 10, 11); the one the point is in (the nearer at a rounding edge)
+        float best = float.NegativeInfinity, y = float.NegativeInfinity;
+        foreach (var (a, b, e) in new[] { (p00, p10, p01), (p01, p10, p11) })
+        {
+            float den = (b.z - e.z) * (a.x - e.x) + (e.x - b.x) * (a.z - e.z);
+            float l1 = ((b.z - e.z) * (x - e.x) + (e.x - b.x) * (z - e.z)) / den, l2 = ((e.z - a.z) * (x - e.x) + (a.x - e.x) * (z - e.z)) / den, l3 = 1 - l1 - l2;
+            float m = MathF.Min(l1, MathF.Min(l2, l3));
+            if (m > best) { best = m; y = l1 * a.y + l2 * b.y + l3 * e.y; }
+        }
+        return y;
+    }
+
     // polar grid round the region centre, geometric rings 560 m -> 10 km nominal, 8 chunks of 40 columns (frustum culling)
     public static List<Chunk> Land(float k)
     {
@@ -210,14 +243,23 @@ public static class BraxChampionsHorizon
     // the sea round the region's own sea rectangle (x 0..1200, z -500..shore), flush with its edges, under the coast. 23.11:
     // with a hole for the villa island's own water (otwor: x0, z0, x1, z1 nominal, BraxChampionsWyspaMorze) - the south piece
     // cut round it into eight rectangles on the hole's lines, so every piece meets the island's water at its corners only
-    public static List<(Vector3 a, Vector3 b, Vector3 c, Vector3 d)> Sea(float k, Vector4? otwor = null)
+    public static List<(Vector3 a, Vector3 b, Vector3 c, Vector3 d)> Sea(float k, Vector4? otwor = null, Vector4? wschod = null)
     {
         float y = SeaLevel * k, R = SeaOut, top = -100f;
         var q = new List<(Vector3, Vector3, Vector3, Vector3)>();
         void Rect(float x0, float z0, float x1, float z1) =>
             q.Add((new Vector3(x0 * k, y, z0 * k), new Vector3(x0 * k, y, z1 * k), new Vector3(x1 * k, y, z1 * k), new Vector3(x1 * k, y, z0 * k)));
         Rect(CentreX - R, CentreZ - R, X0, top);              // west, under the west coast
-        Rect(X1, CentreZ - R, CentreX + R, top);              // east, under the east coast
+        // 24.11 the seafront villa's water (BraxChampionsNabrzezeMorze, its private beach's waves) takes its window out of the
+        // east part (the window's top clipped to the part's; no sliver left)
+        if (wschod is Vector4 e && e.x >= X1 && e.x < e.z && e.z < CentreX + R && e.y > CentreZ - R && e.y < Mathf.Min(e.w, top))
+        {
+            float[] xs = { X1, e.x, e.z, CentreX + R }, zs = { CentreZ - R, e.y, Mathf.Min(e.w, top), top };
+            for (int i = 0; i < 3; i++)
+                for (int j = 0; j < 3; j++)
+                    if ((i != 1 || j != 1) && xs[i + 1] - xs[i] > .01f && zs[j + 1] - zs[j] > .01f) Rect(xs[i], zs[j], xs[i + 1], zs[j + 1]);
+        }
+        else Rect(X1, CentreZ - R, CentreX + R, top);         // east, under the east coast
         if (otwor is Vector4 o && o.x > X0 && o.z < X1 && o.y > CentreZ - R && o.w < Z0 && o.x < o.z && o.y < o.w)
         {
             float[] xs = { X0, o.x, o.z, X1 }, zs = { CentreZ - R, o.y, o.w, Z0 };
@@ -286,13 +328,15 @@ public static class BraxChampionsHorizon
             // the island's water (BraxChampionsWilleDzialki, built before) takes its patch out of the far sea - only if it is there
             Vector4? otwor = BraxChampionsWyspaMorze.JestWScenie() ? BraxChampionsWyspaMorze.Otwor : (Vector4?)null;
             if (otwor == null) Debug.Log("CHAMPIONS_HORIZON_SEA no island water in the scene: the far sea whole");
-            var q = Sea(k, otwor); var v = new List<Vector3>(); var t = new List<int>();
+            Vector4? wschod = BraxChampionsNabrzezeMorze.JestWScenie() ? BraxChampionsNabrzezeMorze.Otwor : (Vector4?)null;   // 24.11 the seafront's
+            var q = Sea(k, otwor, wschod); var v = new List<Vector3>(); var t = new List<int>();
             foreach (var (a, b, c, d) in q) { int s = v.Count; v.Add(a); v.Add(b); v.Add(c); v.Add(d); t.AddRange(new[] { s, s + 1, s + 2, s, s + 2, s + 3 }); }
             var mesh = new Mesh { name = "champions horizon sea" }; mesh.SetVertices(v); mesh.SetTriangles(t, 0);
             mesh.RecalculateNormals(); var bounds = mesh.bounds; bounds.Expand(new Vector3(0, 1, 0)); mesh.bounds = bounds;
             AssetDatabase.CreateAsset(mesh, Out + "/Meshes/champions_horizon_sea.asset");
             Renderer(root.transform, "far sea to the horizon", mesh, sea); parts++;
-            Debug.Log("CHAMPIONS_HORIZON_SEA pieces=" + q.Count + (otwor is Vector4 h ? " island hole=(" + h.x + "," + h.y + ")-(" + h.z + "," + h.w + ")" : ""));
+            Debug.Log("CHAMPIONS_HORIZON_SEA pieces=" + q.Count + (otwor is Vector4 h ? " island hole=(" + h.x + "," + h.y + ")-(" + h.z + "," + h.w + ")" : "") +
+                      (wschod is Vector4 hw ? " seafront hole=(" + hw.x + "," + hw.y + ")-(" + hw.z + "," + hw.w + ")" : ""));
         }
         Debug.Log("CHAMPIONS_HORIZON parts=" + parts + " landTriangles=" + tris + " ring=" + RingIn + ".." + RingOut + " seaOut=" + SeaOut + " fog=exp2 " + FogDensity);
         return parts;

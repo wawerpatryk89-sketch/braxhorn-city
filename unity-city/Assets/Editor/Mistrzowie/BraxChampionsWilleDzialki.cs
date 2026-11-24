@@ -201,6 +201,9 @@ public static class BraxChampionsWilleDzialki
         if (dr < RoadHalf + 1f + 8f) h = Mathf.Lerp(y - .12f, h, Smooth(0f, 8f, dr - RoadHalf - 1f));                 // the road's bed, 1:2 banks
         return h;
     }
+    /// <summary>24.11 the ground one sees at (x, z): the site's, or over it in its rim band the far land's mesh where that is
+    /// higher (BraxChampionsHorizon.Lad, pressed under the sites as it will be built) - the seafront's sea field sees this.</summary>
+    public static float Widoczny(Dzialka d, float x, float z) => Mathf.Max(Grunt(d, x, z), BraxChampionsHorizon.Lad(x, z, Docisk));
     /// <summary>For BraxChampionsHorizon.Height: under a land patch (inside its rim band) the far land goes down 1 m under it.</summary>
     public static float Docisk(float x, float z)
     {
@@ -266,6 +269,7 @@ public static class BraxChampionsWilleDzialki
             if (d.rodzaj != Rodzaj.Wyspa) Plot(b, d);
             if (d.woda) MurPodWoda(d);
             if (d.rodzaj == Rodzaj.Wyspa) { Pomost(b, d); Lodz(g, d); BraxChampionsWyspaMorze.Zbuduj(g, d); PlazaWyspy(b, d); }
+            if (d.rodzaj == Rodzaj.Nabrzeze) BraxChampionsNabrzezeMorze.Zbuduj(g, d);          // 24.11 the private beach's real waves
             b.Build(g, "WILLA " + d.nr + " | działka " + d.nazwa + " | detale", Folder, true, K);
             W.Zapisz("mistrzowie_wille_dzialka_" + d.nr);
             Kolizje += W.Kolizje - k0;
@@ -527,7 +531,7 @@ public static class BraxChampionsWilleDzialki
             float od = OdPadu(d, l); if (od < 4.5f || od > maxOd) continue;
             var w = d.srodek + new Vector2(l.x * cs + l.y * sn, -l.x * sn + l.y * cs);
             if ((hill || shore) && Blisko(d, w, RoadHalf + 4.5f)) continue;
-            if (shore && (Grunt(d, w.x, w.y) < SeaY + 1.0f || l.x < -54f ||                              // the lawns: off the beach, inside its west wall
+            if (shore && (Grunt(d, w.x, w.y) < SeaY + 1.0f || l.x < BraxChampionsWille.N3PlazaX0 + 2f ||   // the lawns: off the beach, inside its west wall
                           (l.y < BraxChampionsWille.N3PlazaZ + 2f && l.x > BraxChampionsWille.N3PlazaX0 - 1f && l.x < BraxChampionsWille.N3PlazaX1 + 1f))) continue;
             if (!hill && !shore && (Grunt(d, w.x, w.y) < SeaY + .55f || (Mathf.Abs(w.x - ps.x) < 6f && w.y > ps.y - 30f))) continue;
             bool palma = palmy < maxP && (drzewa >= maxD || rnd.NextDouble() < (hill ? .4 : .75));

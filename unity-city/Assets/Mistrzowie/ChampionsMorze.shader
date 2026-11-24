@@ -14,6 +14,8 @@
 // To samo morze wokół wyspy z willą (23.11, BraxChampionsWyspaMorze): jej własne pole brzegu, fale ze wszystkich stron.
 // Kołysanie otwartej wody gaśnie przy brzegu prostokąta pola: tam morze tego pola styka się z płaskim dalekim morzem
 // (BraxChampionsHorizon) krawędź w krawędź, bez schodka.
+// 24.11 morze przy prywatnej plaży willi nad morzem (BraxChampionsNabrzezeMorze): jego pole kończy się po obu bokach na
+// brzegu dalekiego lądu, więc przybój i wbieganie gasną w pasie _Boki przy bokach x pola (0 = bez: plaża, wyspa).
 Shader "Braxhorn/ChampionsMorze"
 {
     Properties
@@ -34,6 +36,7 @@ Shader "Braxhorn/ChampionsMorze"
         _Fala ("Fala: długość, okres, wbieganie, zasięg wbiegania", Vector) = (20,7,.27,22)
         _Przyboj ("Przybój: od, do (j. od brzegu)", Vector) = (52,36,0,0)
         _WzdluzZ ("Fale różne wzdłuż z (wyspa: brzeg z każdej strony)", Float) = 0
+        _Boki ("Przybój gaśnie przy bokach x pola (j.; 0 = bez)", Float) = 0
         _SkyHorizon ("Niebo przy horyzoncie bez sondy", Color) = (0.62,0.70,0.78,1)
         _SkyZenith ("Niebo w zenicie bez sondy", Color) = (0.36,0.52,0.72,1)
     }
@@ -56,7 +59,7 @@ Shader "Braxhorn/ChampionsMorze"
 
             sampler2D _Brzeg, _Szum, _Dno;
             float4 _BrzegRect, _DnoTint, _Plytka, _Srednia, _Gleboka, _Pochlanianie, _Fala, _Przyboj;
-            float _Poziom, _DnoKafel, _Metnosc, _Odbicie, _WzdluzZ;
+            float _Poziom, _DnoKafel, _Metnosc, _Odbicie, _WzdluzZ, _Boki;
             half4 _SkyHorizon, _SkyZenith;
 
             struct appdata { float4 vertex : POSITION; };
@@ -89,6 +92,13 @@ Shader "Braxhorn/ChampionsMorze"
                 float2 r = min(uv, 1 - uv) / _BrzegRect.zw;
                 return smoothstep(9, 60, min(r.x, r.y));
             }
+            // the surf and the run-up die out toward the field's two x sides over _Boki units (a shore field that ends on
+            // land either side: the seafront villa's); 1 everywhere when _Boki is 0
+            float Boki(float2 w)
+            {
+                float u = (w.x - _BrzegRect.x) * _BrzegRect.z;
+                return _Boki > 0 ? smoothstep(0, _Boki, min(u, 1 - u) / _BrzegRect.z) : 1;
+            }
 
             v2f vert(appdata v)
             {
@@ -99,6 +109,7 @@ Shader "Braxhorn/ChampionsMorze"
                 // the run-up: the water at the shore rises fast after a wave comes in and drains slowly
                 float run = smoothstep(0, .10, p) * (1 - smoothstep(.10, .80, p));
                 float env = 1 - smoothstep(0, _Fala.w, d);
+                env *= Boki(w.xz);
                 float swell = (sin(dot(w.xz, float2(.034, .021)) - _Time.y * .65) * .06
                              + sin(dot(w.xz, float2(-.013, .041)) - _Time.y * .92) * .04) * smoothstep(15, 60, d) * Rant(w.xz);
                 w.y += _Fala.z * env * run + swell;
@@ -141,6 +152,7 @@ Shader "Braxhorn/ChampionsMorze"
                 float p = frac(ph0), idx = floor(ph0);
                 // the surface: the breaking waves' faces in the surf zone and ripples (finer than a pixel: gone)
                 float surf = smoothstep(55, 30, d) * smoothstep(-2, 6, d);
+                float boki = Boki(w); surf *= boki;
                 float face = smoothstep(0, .08, p) - smoothstep(.08, .55, p) * .85;
                 float2 slope = -toSea * (face * surf * .18) * (.7 + .3 * n38.g);
                 float3 ph = float3(dot(w, float2(.6, .8)) * 2.1, dot(w, float2(.958, -.287)) * 1.6, dot(w, float2(-.21, .978)) * 1.15)
@@ -172,6 +184,7 @@ Shader "Braxhorn/ChampionsMorze"
                 float seg = tex2Dlod(_Szum, float4(w.x / 70 + idx * .37, idx * .61 + w.y / 90, 0, 2)).g;
                 float power = smoothstep(.30, .62, seg);
                 float zone = smoothstep(_Przyboj.x, _Przyboj.y, d) * smoothstep(-1, 3, d);
+                zone *= boki;
                 float crest = smoothstep(0, .02, p) * (1 - smoothstep(.07, .24, p)) * (.75 + .25 * smoothstep(.2, .6, lace + blob * .5));
                 float pat = lace * .55 + lace2 * .45 + blob * .35;
                 float near = 1 - smoothstep(4, 18, d);
