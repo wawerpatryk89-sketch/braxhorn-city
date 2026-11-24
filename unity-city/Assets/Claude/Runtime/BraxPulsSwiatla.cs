@@ -8,6 +8,7 @@ public class BraxPulsSwiatla : MonoBehaviour
 {
     public Material material;
     public float bpm = 138f, faza = .18f, moc = 2.6f, zasieg = 160f;
+    public float[] mapa;                                   // mapa uderzeń utworu (BraxRytm) — długi set ze zmiennym tempem
     public Color kolorA = new Color(1f, .28f, .80f), kolorB = new Color(.55f, .22f, 1f);
     static readonly int Emisja = Shader.PropertyToID("_EmissionColor");
     Material kopia; AudioSource src;
@@ -27,8 +28,8 @@ public class BraxPulsSwiatla : MonoBehaviour
         var kam = Camera.main;
         if (kam && (kam.transform.position - transform.position).sqrMagnitude > zasieg * zasieg) return;
         if (!src) src = GetComponent<AudioSource>();
-        float czas = src && src.isPlaying ? src.time - faza : Time.time;
-        float t = czas * bpm / 60f, f = t - Mathf.Floor(t);
+        bool gra = src && src.isPlaying;
+        float t = gra ? BraxRytm.Uderzenie(src.time - faza, bpm, mapa) : Time.time * bpm / 60f, f = t - Mathf.Floor(t);
         float puls = Mathf.Lerp(.3f, 1f, Mathf.Exp(-f * 5f));             // błysk na uderzeniu, wygaszanie do następnego
         float mix = .5f + .5f * Mathf.Sin(t * Mathf.PI / 16f);             // zmiana barwy co 16 uderzeń
         kopia.SetColor(Emisja, Color.Lerp(kolorA, kolorB, mix) * (moc * puls));

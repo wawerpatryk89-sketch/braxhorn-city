@@ -438,6 +438,23 @@ public static class BraxBydgoszcz
     /// g2z, materiał świateł, bpm, faza], metry). 24.11, 14:09 właściciel: balkon z DJ-em na Starym Rynku — „sprzęt DJ, głośniki
     /// i muzyka leci”. BraxClaudeMuzyka (jak dyskoteka osiedla): „sala” = plac przed kamienicą (pełne pasmo, głośniej przy
     /// kolumnach), dalej zza budynków stłumiona; suwak muzyki z ustawień działa (BraxUstawienia). Diody pulsują w rytm.</summary>
+    const string SetBalkonu = "Assets/Source/Prywatne/Miasto/bydgoszcz_balkon_dj/chometowo_club_mix_2003_cd1.ogg";
+    const string SetBalkonuMapa = "Assets/Source/Prywatne/Miasto/bydgoszcz_balkon_dj/uderzenia.json";
+    const float SetBalkonuBpm = 139.7f;                    // mediana tempa seta (poza zakresem mapy)
+
+    /// <summary>Czasy uderzeń z pliku {"bpm":…, "uderzenia":[t0, t1, …]} (s od początku seta) albo null.</summary>
+    static float[] MapaUderzen(string p)
+    {
+        if (!File.Exists(p)) return null;
+        string j = File.ReadAllText(p); int a = j.IndexOf("\"uderzenia\"", StringComparison.Ordinal);
+        if (a < 0) return null;
+        int o = j.IndexOf('[', a), z = j.IndexOf(']', o + 1); if (o < 0 || z < 0) return null;
+        var ci = System.Globalization.CultureInfo.InvariantCulture; var l = new List<float>();
+        foreach (var s in j.Substring(o + 1, z - o - 1).Split(','))
+            if (float.TryParse(s.Trim(), System.Globalization.NumberStyles.Float, ci, out float t)) l.Add(t);
+        return l.Count > 1 ? l.ToArray() : null;
+    }
+
     static int Muzyka(Transform root, Func<float, float, float, Vector3> swiat, string p, Dictionary<string, Material> maty, string katalog)
     {
         if (!File.Exists(p)) return 0;
@@ -456,14 +473,19 @@ public static class BraxBydgoszcz
             for (int k = 1; k < 13; k++) ok &= float.TryParse(pola[k], fs, ci, out v[k]);
             if (!ok) continue;
             string sciezka = "Assets/Claude/Audio/" + pola[0];
+            // 24.11, 22:04 właściciel: „tego seta puść na balkonie na starym rynku” — set z prywatnej paczki (odszyfrowany w CI);
+            // bez paczki/klucza gra dotychczasowy utwór. Set ma 71 min — jakość Vorbis 0,3 (ok. 60 MB w APK), mapa uderzeń z paczki.
+            float[] mapa = null; bool zSetu = File.Exists(SetBalkonu);
+            if (zSetu) { sciezka = SetBalkonu; mapa = MapaUderzen(SetBalkonuMapa); }
             if (!File.Exists(sciezka)) { BraxRegion.Note("Bydgoszcz: brak utworu " + sciezka + " — balkon bez muzyki"); continue; }
             AssetDatabase.ImportAsset(sciezka, ImportAssetOptions.ForceSynchronousImport);
+            float jakosc = zSetu ? .3f : .6f;
             if (AssetImporter.GetAtPath(sciezka) is AudioImporter imp)
             {
                 var st = imp.defaultSampleSettings;                       // strumień z pliku (telefon: bez całego utworu w RAM)
-                if (st.loadType != AudioClipLoadType.Streaming || st.compressionFormat != AudioCompressionFormat.Vorbis)
+                if (st.loadType != AudioClipLoadType.Streaming || st.compressionFormat != AudioCompressionFormat.Vorbis || Mathf.Abs(st.quality - jakosc) > .01f)
                 {
-                    st.loadType = AudioClipLoadType.Streaming; st.compressionFormat = AudioCompressionFormat.Vorbis; st.quality = .6f;
+                    st.loadType = AudioClipLoadType.Streaming; st.compressionFormat = AudioCompressionFormat.Vorbis; st.quality = jakosc;
                     imp.defaultSampleSettings = st; imp.loadInBackground = true; imp.SaveAndReimport();
                 }
             }
@@ -480,6 +502,7 @@ public static class BraxBydgoszcz
                 var puls = go.AddComponent<BraxPulsSwiatla>(); puls.material = led;
                 if (float.TryParse(pola[14], fs, ci, out float bpm)) puls.bpm = bpm;
                 if (float.TryParse(pola[15], fs, ci, out float faza)) puls.faza = faza;
+                if (mapa != null) { puls.mapa = mapa; puls.faza = 0f; puls.bpm = SetBalkonuBpm; }
             }
             // 24.11, 14:40 właściciel: „daj lasery, że w nocy będą odpalać, ruszające się i migające” — dwie głowice na narożnikach
             // balustrady (pola 16–21), kierunek frontu (22–23); wachlarze promieni (shader klubu NOVA: addytywny, bez głębi)
@@ -505,10 +528,12 @@ public static class BraxBydgoszcz
                 {
                     var las = go.AddComponent<BraxLaseryBalkonu>(); las.lasery = piv.ToArray(); las.bpm = float.TryParse(pola[14], fs, ci, out float bl) ? bl : 138f;
                     if (float.TryParse(pola[15], fs, ci, out float fl)) las.faza = fl;
+                    if (mapa != null) { las.mapa = mapa; las.faza = 0f; las.bpm = SetBalkonuBpm; }
                 }
             }
             licz++;
-            Debug.Log("BRAXHORN_BYDGOSZCZ_MUZYKA " + clip.name + " " + clip.length.ToString("F0") + " s, plac " + b.size + ", głośniki " + mz.glosniki.Length);
+            Debug.Log("BRAXHORN_BYDGOSZCZ_MUZYKA " + clip.name + " " + clip.length.ToString("F0") + " s, plac " + b.size + ", głośniki " + mz.glosniki.Length
+                      + (zSetu ? ", set z paczki prywatnej, uderzeń w mapie " + (mapa != null ? mapa.Length : 0) : ", utwór domyślny"));
         }
         return licz;
     }

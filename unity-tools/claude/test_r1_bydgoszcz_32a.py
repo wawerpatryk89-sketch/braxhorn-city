@@ -290,6 +290,15 @@ def test_balkon_dj_na_rynku():
     assert "Muzyka(root, Swiat, punkty, maty, katalogSiatek)" in cs and "AddComponent<BraxClaudeMuzyka>()" in cs and "BraxPulsSwiatla" in cs
     assert "d.emisja > 0f" in cs and 'mat.StartsWith("dj_")' in cs
     assert (R / "unity-city/Assets/Claude/Runtime/BraxPulsSwiatla.cs").exists()
+    # 24.11, 22:04 „tego seta puść na balkonie” — set w zaszyfrowanej paczce (repo publiczne: w gicie tylko CMS), mapa uderzeń
+    pak = R / "unity-city/Prywatne/braxhorn-sklep-bydgoszcz-balkon-dj-01"
+    man = json.loads((pak / "manifest.json").read_text(encoding="utf-8"))
+    assert man["target"] == "bydgoszcz_balkon_dj" and "bydgoszcz_balkon_dj/chometowo_club_mix_2003_cd1.ogg" in man["files"]
+    assert "bydgoszcz_balkon_dj/uderzenia.json" in man["files"] and not list(pak.glob("*.ogg")) and not list(pak.glob("*.mp3"))
+    assert all(p_["bytes"] <= 90 * 1024 * 1024 for p_ in man["parts"])
+    assert 'Miasto/bydgoszcz_balkon_dj/chometowo_club_mix_2003_cd1.ogg' in cs and "puls.mapa = mapa" in cs and "las.mapa = mapa" in cs
+    rt = (R / "unity-city/Assets/Claude/Runtime/BraxRytm.cs").read_text(encoding="utf-8")
+    assert "public static float Uderzenie(float czas, float bpm, float[] mapa)" in rt
     las = (R / "unity-city/Assets/Claude/Runtime/BraxLaseryBalkonu.cs").read_text(encoding="utf-8")
     assert "JestNoc()" in las and "slonceNoc" in las and "AddComponent<BraxLaseryBalkonu>()" in cs and "Braxhorn/WnetrzaPromien" in cs
     assert (R / "unity-city/Assets/Claude/Shaders/BraxWnetrzaPromien.shader").exists()

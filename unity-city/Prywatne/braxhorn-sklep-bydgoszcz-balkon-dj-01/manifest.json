@@ -1,0 +1,22 @@
+{
+ "source": "właściciel 24.11.2026, 22:04: „tego seta puść na balkonie na starym rynku” — DJ Kris & Pablo de Silva, Chomętowo Club Mix (Dance Mission 2003, CD1), 71 min, OGG Vorbis q4 + mapa uderzeń",
+ "target": "bydgoszcz_balkon_dj",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/bydgoszcz_balkon_dj (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "777f43006d492d6e317d860027c2333bb8597a99fecc84f83c3cf61e89624a64",
+ "cmsSha256": "e8dd59f28b67d2ea4576a9db4057891ef8dd86433c0eef4a31b4b66a36ae5ace",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 62782021,
+   "sha256": "e8dd59f28b67d2ea4576a9db4057891ef8dd86433c0eef4a31b4b66a36ae5ace"
+  }
+ ],
+ "files": {
+  "bydgoszcz_balkon_dj/chometowo_club_mix_2003_cd1.ogg": "8bcfd5f8e5aba47e251582a6743102256a87bd865e0351d3110ffc42a76ab81d",
+  "bydgoszcz_balkon_dj/uderzenia.json": "0a958a607e41bdab80c93cfbcc5404003f21dbfc32d6e41418328696510688ad",
+  "oryginal/spec.json": "ceb0436857a6e73dc0f91798c705da4bd3c2d5facebb535621fab9a0eeaf5103",
+  "oryginal/zrodlo.txt": "6536902c4304f58c02c041cd8eb306f925b0f86588621dc73146329fb705d999"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

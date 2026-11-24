@@ -12,6 +12,7 @@ public class BraxLaseryBalkonu : MonoBehaviour
 {
     public Transform[] lasery = new Transform[0];
     public float bpm = 138f, faza = .18f, zasieg = 260f, slonceNoc = 6f;
+    public float[] mapa;                                   // mapa uderzeń utworu (BraxRytm) — długi set ze zmiennym tempem
     public Color[] barwy = { new Color(.15f, 1f, .25f), new Color(.1f, .9f, 1f), new Color(1f, .15f, .7f), new Color(1f, .12f, .1f), new Color(.6f, .2f, 1f) };
     static readonly int Barwa = Shader.PropertyToID("_Tint");
     Renderer[][] promienie; Quaternion[] start; Material[] kopie; AudioSource src; Light slonce;
@@ -63,8 +64,8 @@ public class BraxLaseryBalkonu : MonoBehaviour
         }
         if (!noc || !widac) { for (int i = 0; i < promienie.Length; i++) Pokaz(i, false); return; }
         if (!src) src = GetComponent<AudioSource>();
-        float czas = src && src.isPlaying ? src.time - faza : Time.time;
-        float u = czas * bpm / 60f; int ud = Mathf.FloorToInt(u); float f = u - ud;
+        bool gra = src && src.isPlaying;
+        float u = gra ? BraxRytm.Uderzenie(src.time - faza, bpm, mapa) : Time.time * bpm / 60f; int ud = Mathf.FloorToInt(u); float f = u - ud;
         int takt = Mathf.FloorToInt(ud / 8f), uklad = ((takt * 7 + 3) % 5 + 5) % 5;
         bool przerwa = ((takt % 6) + 6) % 6 == 5;
         float tempo = takt % 2 == 0 ? .55f : 1.15f;
