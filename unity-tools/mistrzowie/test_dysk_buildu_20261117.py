@@ -42,7 +42,8 @@ class DyskBuildu(unittest.TestCase):
         self.assertNotIn("/usr/lib/jvm", WF[WF.index("sudo rm -rf /usr/share/dotnet"):WF.index("sudo apt-get clean")])
 
     def test_the_swap_goes_to_the_temporary_disk_when_it_has_room(self):
-        self.assertIn('if mountpoint -q /mnt && [ "$(df --output=avail -BG /mnt | tail -1 | tr -dc 0-9)" -ge 20 ]; then swap=/mnt/swapfile-mistrzowie; fi', WF)
+        self.assertIn('if mountpoint -q /mnt && [ "$(df --output=avail -BG /mnt | tail -1 | tr -dc 0-9)" -ge 32 ]; then swap=/mnt/swapfile-mistrzowie; fi', WF)
+        self.assertIn('sudo fallocate -l 24G "$swap"', WF)                     # 24.11: #54 killed for memory with the 12 GiB one
         self.assertIn('sudo swapon "$swap"', WF)
 
     def test_a_tight_disk_drops_the_restored_library(self):

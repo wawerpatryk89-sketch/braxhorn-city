@@ -33,8 +33,10 @@ public static class BraxChampionsTeksturyGlb
     [Serializable] sealed class GView { public int buffer; public int byteOffset; public int byteLength; }
     [Serializable] sealed class GRoot { public GImage[] images; public GView[] bufferViews; }
 
-    sealed class Obraz { public int index; public int offset, length; public string ext; }
-    sealed class Plik { public byte[] bytes; public Dictionary<string, Obraz> poNazwie; }
+    sealed class Obraz { public int index; public long offset; public int length; public string ext; }
+    // 24.11 (#54 killed for memory in this step): a file is no longer held whole - only its JSON is read, each image is
+    // copied straight from the file (the boats' .glb alone is 824 MB, and every file used to stay in memory to the end)
+    sealed class Plik { public string path; public Dictionary<string, Obraz> poNazwie; }
 
     static bool Nieskompresowana(TextureFormat f) =>
         f == TextureFormat.RGBA32 || f == TextureFormat.ARGB32 || f == TextureFormat.RGB24 || f == TextureFormat.BGRA32;
@@ -43,16 +45,27 @@ public static class BraxChampionsTeksturyGlb
 
     // the images of one .glb by the name glTFast gives the texture (GltfImport.GetTextureName: image name or "image_<i>");
     // a name used twice maps to null (ambiguous -> the texture stays as it is)
+    static byte[] Bajty(FileStream f, long offset, int n)
+    {
+        var b = new byte[n]; f.Seek(offset, SeekOrigin.Begin);
+        int got = 0; while (got < n) { int r = f.Read(b, got, n - got); if (r <= 0) return null; got += r; }
+        return b;
+    }
+
     static Plik Czytaj(string path)
     {
-        var b = File.ReadAllBytes(path);
-        if (b.Length < 20 || BitConverter.ToUInt32(b, 0) != 0x46546C67u) return null;              // "glTF"
-        int jsonLen = BitConverter.ToInt32(b, 12);
-        if (BitConverter.ToUInt32(b, 16) != 0x4E4F534Au || 20 + jsonLen > b.Length) return null;   // "JSON"
-        int p = 20 + jsonLen, bin = -1, binLen = 0;
-        if (p + 8 <= b.Length && BitConverter.ToUInt32(b, p + 4) == 0x004E4942u) { binLen = BitConverter.ToInt32(b, p); bin = p + 8; }  // "BIN\0"
-        var root = JsonUtility.FromJson<GRoot>(Encoding.UTF8.GetString(b, 20, jsonLen));
-        var plik = new Plik { bytes = b, poNazwie = new Dictionary<string, Obraz>() };
+        using var f = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+        long size = f.Length;
+        var h = size >= 20 ? Bajty(f, 0, 20) : null;
+        if (h == null || BitConverter.ToUInt32(h, 0) != 0x46546C67u) return null;                  // "glTF"
+        int jsonLen = BitConverter.ToInt32(h, 12);
+        if (BitConverter.ToUInt32(h, 16) != 0x4E4F534Au || jsonLen <= 0 || 20L + jsonLen > size) return null;   // "JSON"
+        var js = Bajty(f, 20, jsonLen); if (js == null) return null;
+        long p = 20L + jsonLen, bin = -1, binLen = 0;
+        var bh = p + 8 <= size ? Bajty(f, p, 8) : null;
+        if (bh != null && BitConverter.ToUInt32(bh, 4) == 0x004E4942u) { binLen = BitConverter.ToUInt32(bh, 0); bin = p + 8; }  // "BIN\0"
+        var root = JsonUtility.FromJson<GRoot>(Encoding.UTF8.GetString(js));
+        var plik = new Plik { path = path, poNazwie = new Dictionary<string, Obraz>() };
         if (root?.images == null) return plik;
         for (int i = 0; i < root.images.Length; i++)
         {
@@ -62,18 +75,38 @@ public static class BraxChampionsTeksturyGlb
             if (string.IsNullOrEmpty(img.uri) && bin >= 0 && root.bufferViews != null && img.bufferView >= 0 && img.bufferView < root.bufferViews.Length)
             {
                 var v = root.bufferViews[img.bufferView];
-                int start = bin + v.byteOffset;
-                if (v.buffer == 0 && v.byteLength > 8 && v.byteOffset >= 0 && v.byteOffset + v.byteLength <= binLen && start + v.byteLength <= b.Length)
+                long start = bin + v.byteOffset;
+                if (v.buffer == 0 && v.byteLength > 8 && v.byteOffset >= 0 && (long)v.byteOffset + v.byteLength <= binLen && start + v.byteLength <= size)
                 {
                     // the bytes must really be the image the JSON says: PNG or JPEG signature
-                    bool png = b[start] == 0x89 && b[start + 1] == 0x50 && b[start + 2] == 0x4E && b[start + 3] == 0x47;
-                    bool jpg = b[start] == 0xFF && b[start + 1] == 0xD8 && b[start + 2] == 0xFF;
+                    var b = Bajty(f, start, 4);
+                    bool png = b != null && b[0] == 0x89 && b[1] == 0x50 && b[2] == 0x4E && b[3] == 0x47;
+                    bool jpg = b != null && b[0] == 0xFF && b[1] == 0xD8 && b[2] == 0xFF;
                     if (png || jpg) o = new Obraz { index = i, offset = start, length = v.byteLength, ext = png ? "png" : "jpg" };
                 }
             }
             if (plik.poNazwie.ContainsKey(nazwa)) plik.poNazwie[nazwa] = null; else plik.poNazwie[nazwa] = o;
         }
         return plik;
+    }
+
+    public const long MinPamiecMB = 6144;
+    // MemAvailable + SwapFree (/proc/meminfo, Linux CI), -1 where it cannot be read (the step then runs)
+    static long WolnaPamiecMB()
+    {
+        try
+        {
+            if (!File.Exists("/proc/meminfo")) return -1;
+            long kb = 0; int n = 0;
+            foreach (var l in File.ReadAllLines("/proc/meminfo"))
+                if (l.StartsWith("MemAvailable:") || l.StartsWith("SwapFree:"))
+                {
+                    var num = new string(l.Where(char.IsDigit).ToArray());
+                    if (long.TryParse(num, out long v)) { kb += v; n++; }
+                }
+            return n == 2 ? kb / 1024 : -1;
+        }
+        catch (Exception) { return -1; }
     }
 
     static string StalyGuid(string klucz)
@@ -113,7 +146,10 @@ public static class BraxChampionsTeksturyGlb
                 if (!File.Exists(plikObrazu))
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(plikObrazu));
-                    using (var f = new FileStream(plikObrazu, FileMode.Create, FileAccess.Write)) f.Write(plik.bytes, o.offset, o.length);
+                    byte[] obraz;
+                    using (var src = new FileStream(plik.path, FileMode.Open, FileAccess.Read, FileShare.Read)) obraz = Bajty(src, o.offset, o.length);
+                    if (obraz == null) { pominiete++; plan[tex] = null; continue; }
+                    File.WriteAllBytes(plikObrazu, obraz);
                     File.WriteAllText(plikObrazu + ".meta", "fileFormatVersion: 2\nguid: " + StalyGuid(plikObrazu.Substring(Folder.Length + 1)) + "\n");
                 }
             }
@@ -126,7 +162,15 @@ public static class BraxChampionsTeksturyGlb
             return 0;
         }
 
-        // 2. the images are imported compressed (BraxChampionsTeksturyGlbImport)
+        // 2. the images are imported compressed (BraxChampionsTeksturyGlbImport) - unless the machine is short of memory:
+        // #54 was killed (exit 137) right here with 2.2 GB of RAM and 1 GB of swap left; without the swap the scene stays
+        // as it was (as in #52, where none of the 250 images loaded) and the build goes on
+        long wolne = WolnaPamiecMB();
+        if (wolne >= 0 && wolne < MinPamiecMB)
+        {
+            BraxBuildQuality.Warn("DO POPRAWKI BRAX_GLB_TEXTURES skipped: " + wolne + " MB of memory + swap free < " + MinPamiecMB + " MB (" + doZamiany + " images left uncompressed)");
+            return 0;
+        }
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         var nowe = new Dictionary<Texture2D, Texture2D>();
         foreach (var kv in plan)

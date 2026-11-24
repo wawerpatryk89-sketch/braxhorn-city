@@ -35,8 +35,9 @@ class GlbTextureCompressionTests(unittest.TestCase):
         self.assertIn("TextureFormat.RGBA32", self.src)
         self.assertIn("TextureFormat.RGB24", self.src)
         self.assertIn('EndsWith(".glb"', self.src)
-        self.assertIn("0x89 && b[start + 1] == 0x50", self.src)   # PNG signature checked
-        self.assertIn("b[start] == 0xFF && b[start + 1] == 0xD8", self.src)  # JPEG signature checked
+        # 24.11 read from the file at the image's start (no whole .glb in memory): the same signatures
+        self.assertIn("b[0] == 0x89 && b[1] == 0x50", self.src)   # PNG signature checked
+        self.assertIn("b[0] == 0xFF && b[1] == 0xD8", self.src)   # JPEG signature checked
         self.assertIn('"image_" + i', self.src)                      # glTFast texture naming
         self.assertIn("plik.poNazwie[nazwa] = null", self.src)        # ambiguous names stay original
 
