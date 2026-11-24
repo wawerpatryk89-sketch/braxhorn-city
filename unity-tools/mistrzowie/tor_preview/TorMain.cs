@@ -20,6 +20,16 @@ public static class TorMain
             Console.WriteLine("TOR length=" + F(o.dlugosc) + " samples=" + o.N);
             Console.WriteLine("FREESTYLE y=" + F(BraxChampionsTorKladow.FreestyleY));
             foreach (var r in BraxChampionsTorKladow.Rampy) Console.WriteLine("RAMPA z=" + r.z + " h=" + r.h + " kat=" + r.kat + " luka=" + r.luka + " dl=" + F(BraxChampionsTorKladow.RampaDl(r)) + " vmin=" + F(BraxChampionsTorKladow.VMin(r) * 3.6f) + "km/h");
+            // the race's line: the riding speed every 2 m from the gate (the AI's), the doubles jumped or rolled
+            var pw = BraxChampionsTorKladow.ProfilWyscigu();
+            using (var wr = new System.IO.StreamWriter("wyscig_profil.csv"))
+            {
+                wr.WriteLine("k,x,z,y,v_kmh,skok");
+                for (int k = 0; k < pw.p.Length; k++) wr.WriteLine(k + "," + F(pw.p[k].x) + "," + F(pw.p[k].z) + "," + F(pw.p[k].y) + "," + F(pw.v[k] * 3.6f) + "," + (pw.skok[k] ? 1 : 0));
+            }
+            float vmin = float.MaxValue, vmax = 0f, czas = 0f; foreach (var v in pw.v) { vmin = Math.Min(vmin, v); vmax = Math.Max(vmax, v); czas += BraxChampionsTorKladow.KrokWyscigu / v; }
+            Console.WriteLine("WYSCIG punkty=" + pw.p.Length + " meta=" + F(pw.sMety) + "m v=" + F(vmin * 3.6f) + ".." + F(vmax * 3.6f) + "km/h okrazenie_AI=" + F(czas) + "s");
+            foreach (var d in pw.doubles) Console.WriteLine("WYSCIG " + d);
             return;
         }
         var root = new GameObject("preview tor").transform;

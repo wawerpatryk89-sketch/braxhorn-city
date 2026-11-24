@@ -383,6 +383,8 @@ public static class BraxChampionsTorKladow
         Plot(b);
         Freestyle(g, b);
         var czas = Paddock(g, b);
+        Rywali = Belek = 0;
+        var wyscig = Wyscig(g, b);
         b.Build(g, "TOR DO KŁADÓW | detale", Folder, true, K);
         Trojkaty += b.Triangles;
         W.Zapisz("mistrzowie_tor_kladow");
@@ -392,7 +394,8 @@ public static class BraxChampionsTorKladow
         BraxChampionsHorizon.Docisk = (x, z) => Mathf.Min(poprzedni != null ? poprzedni(x, z) : float.PositiveInfinity, Docisk(x, z));
         Przeszkod = Przeszkody.Length;
         Debug.Log("MISTRZOWIE_TOR_KLADOW length=" + o.dlugosc.ToString("F0") + "m width=" + Szer + "m obstacles=" + Przeszkod + " quads=" + Klady +
-                  " triangles=" + Trojkaty + " colliders=" + Kolizje + " paddockY=" + PaddockY.ToString("F2") + " timer=" + (czas ? czas.punkty.Length : 0));
+                  " triangles=" + Trojkaty + " colliders=" + Kolizje + " paddockY=" + PaddockY.ToString("F2") + " timer=" + (czas ? czas.punkty.Length : 0) +
+                  " race=" + (wyscig ? wyscig.punkty.Length : 0) + " rivals=" + Rywali);
         return g;
     }
 
@@ -801,7 +804,7 @@ public static class BraxChampionsTorKladow
         b.BoxMinMax(stal, gx0, gx1, y + 2.7f, y + 3.6f, gz + 5.1f, gz + 5.2f);   // the back rail panel
         BraxChampionsLetters3D.Text(b, zloto, czern, "BRAXHORN QUAD CROSS", new Vector3((gx0 + gx1) * .5f, y + 2.85f, gz + 5.08f), 180f, .55f, .06f, .12f, gx1 - gx0 - 4f);
         // the START / META arch over the finish line: two black towers, a beam with BRAXHORN and the chequered band
-        int im = 0; float bd2 = float.MaxValue; for (int i = 0; i < o.N; i++) { float d = Mathf.Abs(o.x[i] - MetaX) + (o.z[i] > 905f ? 0f : 1000f); if (d < bd2) { bd2 = d; im = i; } }
+        int im = IndeksMety();
         float my = Tor(im, 0f), half = Szer * .5f + Pobocze + .8f, mz = o.z[im];
         foreach (float sz in new[] { -1f, 1f }) { b.BoxMinMax(czern, MetaX - .45f, MetaX + .45f, my - .4f, my + 6.2f, mz + sz * half - .45f, mz + sz * half + .45f); W.Kolizja(new Vector3(MetaX, my + 2.9f, mz + sz * half) * K, new Vector3(.9f, 6.6f, .9f) * K, Quaternion.identity); }
         b.BoxMinMax(czern, MetaX - .35f, MetaX + .35f, my + 5f, my + 6.2f, mz - half - .45f, mz + half + .45f);
@@ -815,12 +818,12 @@ public static class BraxChampionsTorKladow
         BraxChampionsLetters3D.Text(b, zloto, czern, "BRAXHORN", new Vector3(MetaX + .36f, my + 5.62f, mz), 90f, .42f, .04f, .14f, 2f * half - 1f);
         // the finish line itself: a white band across the track
         b.BoxMinMax(biel, MetaX - .25f, MetaX + .25f, my + .04f, my + .07f, mz - Szer * .5f, mz + Szer * .5f);
-        // the start gate: a concrete pad, a steel frame, five drop bars (FIM: 50-52 cm high, a 1 m+ position each)
-        int ig = 0; bd2 = float.MaxValue; for (int i = 0; i < o.N; i++) { float d = Mathf.Abs(o.x[i] - BramkaX) + (o.z[i] > 905f ? 0f : 1000f); if (d < bd2) { bd2 = d; ig = i; } }
+        // the start gate: a concrete pad (the five places behind the bars, the bars lying on it in front when no race is on)
+        // and the steel hinge beam across the track; the five drop bars move (the race: Wyscig)
+        int ig = IndeksBramki();
         float gy = Tor(ig, 0f), gzc = o.z[ig];
-        b.BoxMinMax(beton, BramkaX - .3f, BramkaX + .9f, gy - .2f, gy + .08f, gzc - Szer * .5f, gzc + Szer * .5f);
-        for (int k = 0; k <= 5; k++) b.BoxMinMax(stal, BramkaX - .05f, BramkaX + .05f, gy, gy + .55f, gzc - Szer * .5f + k * Szer / 5f - .05f, gzc - Szer * .5f + k * Szer / 5f + .05f);
-        for (int k = 0; k < 5; k++) b.BoxMinMax(k % 2 == 0 ? czerwien : biel, BramkaX - .12f, BramkaX - .06f, gy + .05f, gy + .5f, gzc - Szer * .5f + k * Szer / 5f + .08f, gzc - Szer * .5f + (k + 1) * Szer / 5f - .08f);
+        b.BoxMinMax(beton, BramkaX - .7f, BramkaX + 2.6f, gy - .2f, gy + .08f, gzc - Szer * .5f, gzc + Szer * .5f);
+        b.BoxMinMax(stal, BramkaX - .14f, BramkaX - .04f, gy + .08f, gy + .12f, gzc - Szer * .5f + .02f, gzc + Szer * .5f - .02f);
         // light masts (4) round the paddock
         foreach (var (lx, lz) in new[] { (-157f, 952f), (-33f, 952f), (-157f, 1005f), (-33f, 1005f) })
         {
@@ -847,5 +850,166 @@ public static class BraxChampionsTorKladow
         }
         czas.punkty = pkt.ToArray(); czas.polSzerokosci = (Szer * .5f + Pobocze) * K;
         return czas;
+    }
+
+    // ---------------------------------------------------------------- the race (owner 24.11 12:57: "wyścig z rywalami")
+    static int NaProstejStartu(float x) { var o = Linia(); int best = 0; float bd = float.MaxValue; for (int i = 0; i < o.N; i++) { float d = Mathf.Abs(o.x[i] - x) + (o.z[i] > 905f ? 0f : 1000f); if (d < bd) { bd = d; best = i; } } return best; }
+    public static int IndeksBramki() => NaProstejStartu(BramkaX);
+    public static int IndeksMety() => NaProstejStartu(MetaX);
+
+    // the riding speed along the line (real m/s): a corner from its radius and its berm (the friction of the dirt 0.7 with the
+    // 13 deg bank: v^2 = g R (mu + tan b) / (1 - mu tan b)), the obstacles' own speeds, the braking (5 m/s2) for what comes
+    public const float KrokWyscigu = 2f, MuWyscigu = .7f, VProsta = 23f, HamowanieAI = 5f, RozpedAI = 2f, VToczenie = 7f;
+    public const int Okrazen = 3;
+    /// <summary>A double's jump speed (real m/s): the take-off's lip angle (its face: Rampa, 6 m), the flight from the lip over
+    /// the gap and the second one's top to 4 m down its landing (the middle of the safe range).</summary>
+    public static float VSkoku(Przeszkoda p)
+    {
+        float kat = (float)Math.Atan(p.h / 6f / (1f - .15f));
+        float dl = .4f + 5f + 4f + 5f + .4f + 4f;
+        return Mathf.Sqrt(9.81f * dl / Mathf.Sin(2f * kat));
+    }
+    public sealed class ProfilW { public Vector3[] p, lewo; public float[] v; public bool[] skok; public float sMety; public List<string> doubles = new List<string>(); }
+    static ProfilW profilW;
+    public static ProfilW ProfilWyscigu()
+    {
+        if (profilW != null) return profilW;
+        var o = Linia(); float L = o.dlugosc; int ig = IndeksBramki(), im = IndeksMety();
+        float sG = o.s[ig]; int n = Mathf.FloorToInt(L / KrokWyscigu);
+        var w = new ProfilW { p = new Vector3[n], lewo = new Vector3[n], v = new float[n], skok = new bool[n] };
+        w.sMety = ((o.s[im] - sG) % L + L) % L;
+        var sl = new float[n];
+        float T(float s, Przeszkoda q) { float t = s - q.s0; if (t > L * .5f) t -= L; if (t < -L * .5f) t += L; return t; }
+        for (int k = 0; k < n; k++)
+        {
+            float s = (sG + k * KrokWyscigu) % L; sl[k] = s; int i = Indeks(s);
+            w.p[k] = new Vector3(o.x[i], Tor(i, 0f), o.z[i]); w.lewo[k] = new Vector3(-o.tz[i], 0f, o.tx[i]);
+            float kr = Mathf.Abs(o.kr[i]), tb = Mathf.Abs(Przechyl(i)), v = VProsta;
+            if (kr > 1e-4f) v = Mathf.Min(v, Mathf.Sqrt(9.81f * (MuWyscigu + tb) / Mathf.Max(.2f, 1f - MuWyscigu * tb) / kr));
+            foreach (var q in ulozone)
+            {
+                float t = T(s, q);
+                switch (q.typ)
+                {
+                    case Typ.Stol: if (t > -20f && t < q.dl) v = Mathf.Min(v, q.h >= 1.8f ? 17f : 12.5f); break;     // the big one cleared, the small one cased
+                    case Typ.Podwojna: if (t > -35f && t < q.dl) { w.skok[k] = true; v = Mathf.Min(v, VSkoku(q)); } break;
+                    case Typ.Schodek: if (t > -15f && t < q.dl) v = Mathf.Min(v, 11f); break;
+                    case Typ.Fale: if (t > -10f && t < q.dl) v = Mathf.Min(v, 12f); break;
+                    case Typ.Muldy: if (t > -8f && t < q.dl) v = Mathf.Min(v, 9f); break;
+                    case Typ.Gorka: if (t > 30f && t < q.dl) v = Mathf.Min(v, 16f); break;
+                    case Typ.Brod: if (t > -10f && t < q.dl + 5f) v = Mathf.Min(v, 8f); break;
+                }
+            }
+            w.v[k] = v;
+        }
+        Hamuj(w.v);
+        // a double the slower quad cannot get up to its speed for (out of a turn): rolled over (up, down, up, down) instead
+        var r = new float[n]; float prev = w.v[n - 1];
+        for (int pass = 0; pass < 2; pass++) for (int k = 0; k < n; k++) { r[k] = Mathf.Min(w.v[k], Mathf.Sqrt(prev * prev + 2f * RozpedAI * KrokWyscigu)); prev = r[k]; }
+        foreach (var q in ulozone)
+        {
+            if (q.typ != Typ.Podwojna) continue;
+            int kf = -1; for (int k = 0; k < n; k++) { float t = T(sl[k], q); if (t >= 0f && t < KrokWyscigu) { kf = k; break; } }
+            if (kf < 0) continue;
+            bool skacze = r[kf] >= VSkoku(q) - .5f;
+            w.doubles.Add("PODWOJNA h=" + q.h + " s0=" + q.s0.ToString("F0") + " v_skoku=" + (VSkoku(q) * 3.6f).ToString("F0") + "km/h rozped=" + (r[kf] * 3.6f).ToString("F0") + "km/h " + (skacze ? "SKACZE" : "TOCZY"));
+            if (skacze) continue;
+            for (int k = 0; k < n; k++) { float t = T(sl[k], q); if (t > -35f && t < q.dl) w.v[k] = Mathf.Min(w.v[k], VToczenie); }
+        }
+        Hamuj(w.v);
+        return profilW = w;
+    }
+    static void Hamuj(float[] v)
+    {
+        int n = v.Length;
+        for (int pass = 0; pass < 2; pass++) for (int k = n - 1; k >= 0; k--) v[k] = Mathf.Min(v[k], Mathf.Sqrt(v[(k + 1) % n] * v[(k + 1) % n] + 2f * HamowanieAI * KrokWyscigu));
+    }
+
+    // the four rivals (BraxChampionsKladRywal): two sport Raptors, two utility Ranchers, each rider in his quad's colours; in
+    // the gate's places 1, 2, 4, 5 (the player in the middle), each keeping to his side of the track (its lane, metres left)
+    public static readonly (string model, string kolor, string imie, int numer, Color stroj, Color akcent, float umiejetnosc, float pas)[] Rywale =
+    {
+        ("raptor", "pomaranczowy", "SZYMON", 11, new Color(1f, .42f, .02f), new Color(.05f, .05f, .05f), .95f, 2.2f),
+        ("raptor", "fioletowy", "KAMIL", 27, new Color(.38f, .16f, .66f), new Color(.92f, .92f, .9f), .91f, 1.0f),
+        ("rancher", "niebieski", "WOJTEK", 5, new Color(.08f, .2f, .65f), new Color(.92f, .92f, .9f), .97f, -1.0f),
+        ("rancher", "bialy", "DAMIAN", 63, new Color(.92f, .92f, .9f), new Color(.75f, .06f, .05f), .9f, -2.2f),
+    };
+    public const float ParkX = -100f, ParkZ = 962f, ParkKrok = 4.5f;            // the riders' park in the paddock, by the start
+    public const float TablicaX = -118f, TablicaZ = 898f, TablicaW = 10f, TablicaH = 5f, TablicaNad = 3f;   // the LED board in the infield
+    public static int Rywali, Belek;
+
+    // a part that moves (a gate bar): its own mesh about its hinge, nothing of it static
+    static Transform Ruchomy(Transform g, string nazwa, Vector3 piwot, Action<BraxChampionsMeshBatch> rysuj)
+    {
+        var p = new GameObject(nazwa).transform; p.SetParent(g, false); p.localPosition = piwot * K;
+        var bb = new BraxChampionsMeshBatch(); rysuj(bb);
+        bb.Build(p, nazwa + " | siatka", Folder, true, K);
+        foreach (var tr in p.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(tr.gameObject, (StaticEditorFlags)0);
+        Trojkaty += bb.Triangles;
+        return p;
+    }
+
+    static BraxChampionsWyscig Wyscig(Transform g, BraxChampionsMeshBatch b)
+    {
+        var o = Linia(); var pr = ProfilWyscigu(); float y = PaddockY;
+        var w = new GameObject("TOR DO KŁADÓW | wyścig z rywalami (3 okrążenia)").AddComponent<BraxChampionsWyscig>();
+        w.transform.SetParent(g, false);
+        int n = pr.p.Length;
+        w.punkty = new Vector3[n]; w.lewo = new Vector3[n]; w.vCel = new float[n]; w.skok = new bool[n];
+        for (int k = 0; k < n; k++) { w.punkty[k] = pr.p[k] * K; w.lewo[k] = pr.lewo[k]; w.vCel[k] = pr.v[k]; w.skok[k] = pr.skok[k]; }
+        w.krok = KrokWyscigu; w.dlugosc = o.dlugosc; w.sMety = pr.sMety; w.polSzerokosci = Szer * .5f + Pobocze; w.K = K; w.okrazen = Okrazen;
+        // the gate: five places behind the bars, facing west down the start straight; the bars on their hinges (down: lying
+        // forward on the pad, up: 0.42 m over the hinge, FIM's 50 cm over the ground)
+        int ig = IndeksBramki(); float gy = Tor(ig, 0f), gzc = o.z[ig], bw = Szer / 5f;
+        w.sloty = new Vector3[5]; w.belki = new Transform[5];
+        w.kierunekStartu = Quaternion.LookRotation(Vector3.left, Vector3.up);
+        w.belkaGora = Quaternion.identity; w.belkaDol = Quaternion.Euler(0f, 0f, 90f);
+        for (int k = 0; k < 5; k++)
+        {
+            float zc = gzc - Szer * .5f + (k + .5f) * bw;
+            w.sloty[k] = new Vector3(BramkaX + 1.25f, gy + .08f, zc) * K;
+            var mat = k % 2 == 0 ? czerwien : biel; float hz = bw * .5f - .08f;
+            var t = Ruchomy(g, "TOR DO KŁADÓW | maszyna startowa: belka " + (k + 1), new Vector3(BramkaX - .09f, gy + .12f, zc), bb => bb.BoxMinMax(mat, -.03f, .03f, .005f, .425f, -hz, hz));
+            t.localRotation = w.belkaDol; w.belki[k] = t; Belek++;
+        }
+        w.strefaStartu = new Vector3(BramkaX + 12f, gy, gzc) * K; w.strefaPromien = 24f;
+        // the riders' park: the four rivals on their quads, a black board with PARK ZAWODNIKÓW behind them
+        var wolne = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Source/Mistrzowie/Audio/Klad/klad_silnik_wolne.ogg");
+        var jazda = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Source/Mistrzowie/Audio/Klad/klad_silnik_jazda.ogg");
+        var lista = new List<BraxChampionsKladRywal>();
+        for (int i = 0; i < Rywale.Length; i++)
+        {
+            var r = Rywale[i];
+            try
+            {
+                var rv = BraxChampionsKlady.PostawRywala(g, r.model, r.kolor, r.imie, r.numer, new Vector3(ParkX + i * ParkKrok, y, ParkZ) * K, 180f, r.stroj, r.akcent, r.umiejetnosc, r.pas, wolne, jazda);
+                if (rv) { lista.Add(rv); Rywali++; }
+            }
+            catch (Exception e) { BraxBuildQuality.Warn("DO POPRAWKI TOR_KLADOW_RYWAL " + r.imie + ": " + e.Message); }
+        }
+        w.rywale = lista.ToArray();
+        float px0 = ParkX - 2f, px1 = ParkX + 3f * ParkKrok + 2f, pz = ParkZ + 4.5f;
+        foreach (float sx in new[] { px0 + .3f, px1 - .3f }) { b.Cylinder(stal, new Vector3(sx, y, pz + .1f), .06f, 2.45f, 10); W.Kolizja(new Vector3(sx, y + 1.2f, pz + .1f) * K, new Vector3(.15f, 2.4f, .15f) * K, Quaternion.identity); }
+        b.BoxMinMax(czern, px0, px1, y + 1.55f, y + 2.35f, pz, pz + .08f);
+        BraxChampionsLetters3D.Text(b, zloto, czern, "PARK ZAWODNIKÓW", new Vector3((px0 + px1) * .5f, y + 1.75f, pz - .02f), 180f, .42f, .03f, .12f, px1 - px0 - 1.2f);
+        // the LED board in the infield across the start straight, facing the grandstand and the paddock: a black frame on two
+        // steel legs, the screen (192 x 96 LEDs, ~5 cm each) 3 cm in front of it
+        float gb = Grunt(TablicaX, TablicaZ), x0 = TablicaX - TablicaW * .5f, x1 = TablicaX + TablicaW * .5f, yb = gb + TablicaNad, yt = yb + TablicaH;
+        b.BoxMinMax(czern, x0 - .3f, x1 + .3f, yb - .3f, yt + .3f, TablicaZ - .25f, TablicaZ + .15f);
+        foreach (float lx in new[] { TablicaX - 3f, TablicaX + 3f })
+        {
+            b.Cylinder(stal, new Vector3(lx, gb - .4f, TablicaZ - .05f), .18f, TablicaNad + .2f, 12);
+            W.Kolizja(new Vector3(lx, gb + TablicaNad * .5f, TablicaZ - .05f) * K, new Vector3(.4f, TablicaNad + .4f, .4f) * K, Quaternion.identity);
+        }
+        W.Kolizja(new Vector3(TablicaX, (yb + yt) * .5f, TablicaZ - .05f) * K, new Vector3(TablicaW + .6f, TablicaH + .6f, .4f) * K, Quaternion.identity);
+        var ekran = BraxChampionsHarbour.Surface("tor_kladow_tablica_led", Color.white, .35f, 0f, new Color(1.6f, 1.6f, 1.6f));
+        var be = new BraxChampionsMeshBatch(); float zs = TablicaZ + .18f;
+        // seen from the north (looking south) its left is east: u 0 at x1
+        be.QuadUV(ekran, new Vector3(x1, yb, zs), new Vector3(x1, yt, zs), new Vector3(x0, yt, zs), new Vector3(x0, yb, zs), new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(1f, 0f));
+        var te = be.Build(g, "TOR DO KŁADÓW | tablica wyników LED", Folder, false, K);
+        var ekrany = te.GetComponentsInChildren<MeshRenderer>(true); w.tablica = ekrany.Length > 0 ? ekrany[0] : null;
+        Trojkaty += be.Triangles;
+        Debug.Log("MISTRZOWIE_TOR_KLADOW_WYSCIG punkty=" + n + " meta=" + pr.sMety.ToString("F0") + "m rywale=" + Rywali + " belki=" + Belek + " " + string.Join(" | ", pr.doubles));
+        return w;
     }
 }

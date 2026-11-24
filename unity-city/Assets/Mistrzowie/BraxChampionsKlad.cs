@@ -15,6 +15,8 @@ using UnityEngine;
 // driven, the front steered; in the air it flies on gravity x K (the world is K times the real one, so a jump keeps the
 // real machine's flight), the throttle lifts the nose and the brake drops it. The wheels roll at the ground's speed, the
 // front ones turn with the bars, the hubs rise and fall with the suspension.
+// The race's rivals (BraxChampionsKladRywal) ride the same machines through the same physics: their inputs come from the AI
+// (Wejscie) instead of the fingers; a rival's quad is never offered to the player.
 [DisallowMultipleComponent]
 [DefaultExecutionOrder(5100)]                                   // the camera after the player's own and the casino seat's
 public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
@@ -40,10 +42,14 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
     public float przyczepnosc = 1.05f;           // tyre friction on packed dirt (arcade, the way the racing games tune it)
     public AudioClip silnikWolne, silnikJazda;   // real recordings (CC0 BigSoundBank #711 / #713, Audio/Klad)
     public BraxChampionsTorCzas tor;             // the lap timer of the track (optional)
+    public bool tylkoRywal;                      // a race rival's machine (its rider sits on it), never the player's
 
     // ---------------------------------------------------------------- state
     public static BraxChampionsKlad Jedzie { get; private set; }      // the quad the player rides (one at a time)
     public bool Zajety => gracz;
+    public bool Rywal { get; private set; }                          // ridden by the AI now
+    public bool NaZiemi { get; private set; }                        // a wheel on the ground at the last physics step
+    public bool ZGraczem => gracz;
     public float PredkoscKmh => rb ? Vector3.Dot(Vel, transform.forward) * 3.6f / Mathf.Max(.01f, K) : 0f;
 
     Rigidbody rb;
@@ -118,7 +124,7 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
     // ---------------------------------------------------------------- AKCJA
     public string Kontekst(Vector3 p)
     {
-        if (gracz || Jedzie) return "";
+        if (gracz || Jedzie || tylkoRywal) return "";
         var d = p - transform.position; d.y = 0f;
         if (d.sqrMagnitude > (2.6f * K) * (2.6f * K) || Mathf.Abs(p.y - transform.position.y) > 2.2f * K) return "";
         return "WSIĄDŹ · " + nazwa;
@@ -200,7 +206,8 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
         if (g.body) { g.body.enabled = false; g.body.enabled = true; }
         if (tc) { tc.enabled = true; } tc = null;
         Input.simulateMouseWithTouches = symulacja;
-        Vel = Vector3.zero; rb.angularVelocity = Vector3.zero; rb.isKinematic = true;
+        if (!rb.isKinematic) { Vel = Vector3.zero; rb.angularVelocity = Vector3.zero; }
+        rb.isKinematic = true;
         if (wolne) wolne.Stop(); if (jazda) jazda.Stop();
         gaz = hamulec = skretWej = 0f;
         trik = Trik.Brak; lot = 0f; Zeruj(); Punkty = 0;
@@ -212,7 +219,7 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
     public void Postaw()
     {
         var f = Flat(transform.forward); if (f.sqrMagnitude < .01f) f = Flat(transform.up);
-        Vel = Vector3.zero; rb.angularVelocity = Vector3.zero;
+        if (!rb.isKinematic) { Vel = Vector3.zero; rb.angularVelocity = Vector3.zero; }
         rb.position = transform.position + Vector3.up * .8f * K;
         rb.rotation = Quaternion.LookRotation(f, Vector3.up);
         doGory = stoi = 0f;
@@ -294,20 +301,53 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
     // ---------------------------------------------------------------- the ride
     void Update()
     {
-        if (!gracz) return;
+        if (!gracz) { if (Rywal) { Kierownica(); Silnik(); } return; }
         // the player was taken off some other way (the game reset him): the quad lets go of him
         if (!gracz.transform.IsChildOf(transform) || gracz.seat != miejsce) { var g = gracz; gracz = null; if (Jedzie == this) Jedzie = null; rb.isKinematic = true; if (tc) tc.enabled = true; tc = null; return; }
         if (gracz.clips && gracz.clips["Idle"] != null) gracz.clips["Idle"].speed = 0f;
         Sterowanie();
-        // the bars follow the thumb (full lock in ~.3 s, back in ~.2 s)
-        float v = Mathf.Abs(PredkoscKmh) / Mathf.Max(1f, vMaxKmh);
-        float lockDeg = maxSkret * Mathf.Lerp(1f, .3f, Mathf.Clamp01(v));
-        skret = Mathf.MoveTowards(skret, skretWej * lockDeg, (skretWej == 0f ? 160f : 110f) * Time.deltaTime);
+        Kierownica();
         // over / stuck
         doGory = Przewrocony ? doGory + Time.deltaTime : 0f;
         if (doGory > 2.5f) Postaw();
         if (transform.position.y < -60f * K) { Postaw(); rb.position = tor ? tor.PunktStartu : transform.position + Vector3.up * 80f * K; }
         Silnik();
+    }
+
+    // the bars follow the thumb (full lock in ~.3 s, back in ~.2 s); the lock closes with the speed
+    public float Skret(float v01) => maxSkret * Mathf.Lerp(1f, .3f, Mathf.Clamp01(v01));
+    void Kierownica()
+    {
+        float lockDeg = Skret(Mathf.Abs(PredkoscKmh) / Mathf.Max(1f, vMaxKmh));
+        skret = Mathf.MoveTowards(skret, skretWej * lockDeg, (skretWej == 0f ? 160f : 110f) * Time.deltaTime);
+    }
+
+    // ---------------------------------------------------------------- the race (BraxChampionsWyscig, BraxChampionsKladRywal)
+    /// <summary>The AI rides it (true: a dynamic body, the engine on, heard in 3D) or it is parked (false).</summary>
+    public void Sam(bool jedzie)
+    {
+        if (gracz) return;
+        Rywal = jedzie; gaz = hamulec = skretWej = 0f;
+        if (wolne) { wolne.spatialBlend = 1f; if (jedzie && silnikWolne) wolne.Play(); else wolne.Stop(); }
+        if (jazda) { jazda.spatialBlend = 1f; if (jedzie && silnikJazda) jazda.Play(); else jazda.Stop(); }
+        if (!jedzie && !rb.isKinematic) { Vel = Vector3.zero; rb.angularVelocity = Vector3.zero; }   // (a kinematic body takes no velocity)
+        rb.isKinematic = !jedzie;
+    }
+    /// <summary>The AI's hands: throttle, brake (and reverse), the bars (-1 .. 1 of the lock).</summary>
+    public void Wejscie(float g, float b, float s) { if (gracz) return; gaz = Mathf.Clamp01(g); hamulec = Mathf.Clamp01(b); skretWej = Mathf.Clamp(s, -1f, 1f); }
+    /// <summary>Held still (the start gate's countdown) or let go.</summary>
+    public void Trzymaj(bool stoj)
+    {
+        if (stoj) { if (!rb.isKinematic) { Vel = Vector3.zero; rb.angularVelocity = Vector3.zero; } rb.isKinematic = true; gaz = hamulec = 0f; }
+        else if (gracz || Rywal) rb.isKinematic = false;
+    }
+    /// <summary>Put at p facing r (a start place, a rival back on the line), moving at v (world).</summary>
+    public void Ustaw(Vector3 p, Quaternion r, Vector3 v)
+    {
+        transform.SetPositionAndRotation(p, r); rb.position = p; rb.rotation = r;
+        if (!rb.isKinematic) { Vel = v; rb.angularVelocity = Vector3.zero; }
+        for (int i = 0; i < 4; i++) kompresja[i] = 0f;
+        doGory = stoi = lot = 0f; trik = Trik.Brak; kamOk = false; vKol = Vector3.Dot(v, r * Vector3.forward);
     }
 
     void FixedUpdate()
@@ -395,6 +435,7 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
             float roll = Vector3.SignedAngle(Vector3.ProjectOnPlane(up, fwd), Vector3.ProjectOnPlane(Vector3.up, fwd), fwd);
             rb.AddTorque(fwd * roll * .02f, ForceMode.Acceleration);
         }
+        NaZiemi = ileNaZiemi > 0;
         Freestyle(dt, ileNaZiemi);
         // stuck on its belly (a mound between the wheels): it slides on, as a real quad rocks off
         stoi = ileNaZiemi == 0 && trik == Trik.Brak && Vel.sqrMagnitude < .3f * K * K && gaz > 0f ? stoi + dt : 0f;
@@ -407,6 +448,7 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
     // ---------------------------------------------------------------- freestyle: the time in the air, the tricks, the landing
     void Freestyle(float dt, int ileNaZiemi)
     {
+        if (!gracz) { lot = ileNaZiemi == 0 ? lot + dt : 0f; trik = Trik.Brak; return; }    // a rival: no tricks, no score
         if (ileNaZiemi == 0)
         {
             lot += dt;

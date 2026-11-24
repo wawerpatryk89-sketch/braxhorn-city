@@ -179,4 +179,21 @@ public static class BraxChampionsKlady
         Debug.Log("MISTRZOWIE_KLAD " + napis + " " + m.wzor + " tri=" + tri + " wheelbase=" + m.rozstaw_osi.ToString("F2") + "m R=" + klad.promien.ToString("F3") + "m at " + p);
         return root;
     }
+
+    /// <summary>A rival of the race (owner 24.11 12:57: "wyścig z rywalami"): one of the owner's quads in its paint with its
+    /// rider on it (BraxChampionsKladZawodnik) and the AI's hands (BraxChampionsKladRywal), parked at p; never the player's.</summary>
+    public static BraxChampionsKladRywal PostawRywala(Transform parent, string model, string kolor, string imie, int numer, Vector3 p, float yaw,
+                                                     Color stroj, Color akcent, float umiejetnosc, float pas, AudioClip wolne = null, AudioClip jazda = null)
+    {
+        var root = Postaw(parent, model, kolor, "RYWAL · " + imie + " #" + numer, p, yaw, null, wolne, jazda);
+        if (!root) return null;
+        root.GetComponent<BraxChampionsKlad>().tylkoRywal = true;
+        BraxChampionsKladZawodnik.Zbuduj(root.transform, model, stroj, akcent, Folder);
+        var r = root.AddComponent<BraxChampionsKladRywal>();
+        r.imie = imie; r.numer = numer; r.umiejetnosc = umiejetnosc; r.pas = pas;
+        r.parking = p; r.parkingObrot = Quaternion.Euler(0f, yaw, 0f);
+        var m = Kat()?.modele?.FirstOrDefault(x => x.model == model);
+        if (m != null && m.rozstaw_osi > .5f) r.rozstawOsi = m.rozstaw_osi;
+        return r;
+    }
 }

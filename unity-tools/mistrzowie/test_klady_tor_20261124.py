@@ -25,6 +25,9 @@ KLADY = (ED / "BraxChampionsKlady.cs").read_text(encoding="utf-8")
 TOR = (ED / "BraxChampionsTorKladow.cs").read_text(encoding="utf-8")
 BUILD = (ED / "BraxChampionsBuildings.cs").read_text(encoding="utf-8")
 PREP = (TOOLS / "klady/przygotuj_klady.py").read_text(encoding="utf-8")
+WYSCIG = (RT / "BraxChampionsWyscig.cs").read_text(encoding="utf-8")
+RYWAL = (RT / "BraxChampionsKladRywal.cs").read_text(encoding="utf-8")
+ZAWODNIK = (ED / "BraxChampionsKladZawodnik.cs").read_text(encoding="utf-8")
 PACK = ROOT / "unity-city/Prywatne/braxhorn-sklep-klady-01"
 K = 2.33 / 1.80
 
@@ -130,7 +133,7 @@ class Kierowanie(unittest.TestCase):
         self.assertIn("obrot += vNaprzod / R * Mathf.Rad2Deg * dt;", KLAD)
         self.assertIn("if (i < 2) piasta.localRotation = Quaternion.Euler(0f, skret, 0f);", KLAD)
         self.assertIn("kierownica.localRotation = Quaternion.AngleAxis(skret * .9f, osKierownicy) * kierownicaSpoczynek;", KLAD)
-        self.assertIn("float lockDeg = maxSkret * Mathf.Lerp(1f, .3f, Mathf.Clamp01(v));", KLAD)
+        self.assertIn("public float Skret(float v01) => maxSkret * Mathf.Lerp(1f, .3f, Mathf.Clamp01(v01));", KLAD)
         self.assertIn("[DefaultExecutionOrder(5100)]", KLAD)
         for f in ("klad_silnik_wolne.ogg", "klad_silnik_jazda.ogg"):
             p = ROOT / "unity-city/Assets/Source/Mistrzowie/Audio/Klad" / f
@@ -331,6 +334,112 @@ class Freestyle(unittest.TestCase):
         for nr in (1, 2, 3):
             self.assertIn("tor_kladow_rampa_", TOR); self.assertIn("tor_kladow_ladowisko_", TOR)
         self.assertIn('"BRAXHORN FREESTYLE"', TOR)
+
+
+class Wyscig(unittest.TestCase):
+    """owner 24.11 12:57: "wyścig z rywalami" - 4 AI quads, the gate, 3 laps, positions, the LED board"""
+
+    def test_scripts_and_metas(self):
+        for f in (RT / "BraxChampionsWyscig.cs", RT / "BraxChampionsKladRywal.cs", ED / "BraxChampionsKladZawodnik.cs"):
+            meta = Path(str(f) + ".meta").read_text(encoding="utf-8")
+            self.assertIn("MonoImporter:", meta)
+            self.assertRegex(meta, r"guid: [0-9a-f]{32}\n")
+        self.assertIn("public sealed class BraxChampionsWyscig : MonoBehaviour", WYSCIG)
+        self.assertIn("public sealed class BraxChampionsKladRywal : MonoBehaviour", RYWAL)
+        # the AI's hands before the quad's physics step, the race before both
+        self.assertIn("[DefaultExecutionOrder(5090)]", RYWAL); self.assertIn("[DefaultExecutionOrder(5100)]", KLAD)
+        self.assertIn("[DefaultExecutionOrder(5080)]", WYSCIG)
+
+    def test_rivals_ride_the_same_physics(self):
+        # the rival's quad: the same BraxChampionsKlad, its inputs from the AI, never offered to the player
+        self.assertIn("if (gracz || Jedzie || tylkoRywal) return \"\";", KLAD)
+        self.assertIn("public void Wejscie(float g, float b, float s)", KLAD)
+        self.assertIn("if (!gracz) { if (Rywal) { Kierownica(); Silnik(); } return; }", KLAD)
+        self.assertIn("if (!gracz) { lot = ileNaZiemi == 0 ? lot + dt : 0f; trik = Trik.Brak; return; }", KLAD)   # no tricks, no record
+        self.assertIn("root.GetComponent<BraxChampionsKlad>().tylkoRywal = true;", KLADY)
+        # pure pursuit of its lane's point ahead, the speed of the line ahead times its skill (a double's own speed kept)
+        self.assertIn("float delta = Mathf.Atan(2f * rozstawOsi * Mathf.Sin(alfa) / dl) * Mathf.Rad2Deg;", RYWAL)
+        self.assertIn("float vT = w.vCel[jv] * (w.skok[jv] ? 1f : umiejetnosc);", RYWAL)
+        self.assertIn("if (!k.NaZiemi) g = b = 0f;", RYWAL)
+        self.assertIn("if (przewrot > 1.5f || stoi > 3f || zgubiony > 3f) { Wroc(); return; }", RYWAL)
+
+    def test_the_four_rivals(self):
+        blok = TOR.split("public static readonly (string model, string kolor, string imie, int numer, Color stroj, Color akcent, float umiejetnosc, float pas)[] Rywale =")[1].split("};")[0]
+        r = re.findall(r'\("(\w+)", "(\w+)", "(\w+)", (\d+), new Color\([^)]*\), new Color\([^)]*\), ([\d.]+)f, (-?[\d.]+)f\)', blok)
+        self.assertEqual(len(r), 4)
+        self.assertEqual(sorted(x[0] for x in r), ["rancher", "rancher", "raptor", "raptor"])
+        for model, kolor, imie, numer, umiej, pas in r:
+            self.assertIn('("%s", "%s",' % (model, kolor), KLADY)                                 # a paint of the owner's pack
+            self.assertTrue(.85 <= float(umiej) <= .97)
+            self.assertLessEqual(abs(float(pas)) + 1.28 / 2, const("Szer") / 2 - .5)             # its lane inside the track
+        # each on his own side, as his place in the gate: places 1, 2, 4, 5 (u = 3.2, 1.6, -1.6, -3.2 m left)
+        sloty = [3.2, 1.6, -1.6, -3.2]
+        for (model, kolor, imie, numer, umiej, pas), u in zip(r, sloty):
+            self.assertEqual(math.copysign(1, float(pas)), math.copysign(1, u))
+        self.assertIn("public const int SlotGracza = 2;", WYSCIG)
+
+    def test_the_gate_and_the_race(self):
+        # five bars on hinges: lying forward on the pad without a race (the track is ridden through), up for the start
+        self.assertIn("w.belkaGora = Quaternion.identity; w.belkaDol = Quaternion.Euler(0f, 0f, 90f);", TOR)
+        self.assertIn("t.localRotation = w.belkaDol; w.belki[k] = t; Belek++;", TOR)
+        self.assertIn("bb => bb.BoxMinMax(mat, -.03f, .03f, .005f, .425f, -hz, hz)", TOR)          # 0.12 + 0.425: FIM's ~50 cm
+        self.assertIn("GameObjectUtility.SetStaticEditorFlags(tr.gameObject, (StaticEditorFlags)0);", TOR)
+        # 3 - 2 - 1 and the drop; three laps from the gate; the order by the distance ridden along the line, followed from
+        # where each rider was (a cut gains nothing)
+        self.assertIn("if (t >= 3.6f) Puszczaj();", WYSCIG)
+        self.assertIn("public const int Okrazen = 3;", TOR)
+        self.assertIn("public float Dystans => sMety + okrazen * dlugosc;", WYSCIG)
+        self.assertIn("for (int k = -4; k <= 12; k++)", WYSCIG)
+        self.assertIn("static bool Przed(Uczestnik a, Uczestnik b) => a.meta ? (!b.meta || a.czas < b.czas) : (!b.meta && a.dystans > b.dystans);", WYSCIG)
+        self.assertIn("if (!ja.klad || BraxChampionsKlad.Jedzie != ja.klad) { Przerwij(); break; }", WYSCIG)
+        self.assertIn('const string KluczRekordu = "BRAX_TOR_WYSCIG_REKORD";', WYSCIG)
+        # the gate's places behind the bars: the quad's front tyre (axle 0.67 m + tyre 0.30 m ahead of its root) clear of them
+        self.assertIn("w.sloty[k] = new Vector3(BramkaX + 1.25f, gy + .08f, zc) * K;", TOR)
+        self.assertGreater(1.25 - .09, .67 + .31)
+
+    def test_speed_profile_and_doubles(self):
+        # a corner: v^2 = g R (mu + tan b) / (1 - mu tan b) with the dirt's 0.7 and the berm's 13 deg; the straights 83 km/h
+        self.assertEqual(const("MuWyscigu"), .7); self.assertEqual(const("VProsta"), 23.0)
+        self.assertLess(const("VProsta") * 3.6, 105 * .97)
+        self.assertIn("v = Mathf.Min(v, Mathf.Sqrt(9.81f * (MuWyscigu + tb) / Mathf.Max(.2f, 1f - MuWyscigu * tb) / kr));", TOR)
+        # a double's speed from its take-off's lip angle, landing 4 m down the far side (the gap and the top cleared)
+        for h in (2.0, 1.5):
+            kat = math.atan(h / 6 / (1 - .15))
+            v = math.sqrt(9.81 * 18.8 / math.sin(2 * kat))
+            self.assertGreater(v * v * math.sin(2 * kat) / 9.81, 14.4); self.assertLess(v * v * math.sin(2 * kat) / 9.81, 22.8)
+            self.assertLess(v, 75 / 3.6 * .97)                                                   # the Rancher gets there too
+        self.assertIn("bool skacze = r[kf] >= VSkoku(q) - .5f;", TOR)                              # else rolled over
+        self.assertEqual(const("VToczenie"), 7.0)
+
+    def test_rider_reaches_the_bars_and_the_footrests(self):
+        L = {n: const(n, ZAWODNIK) for n in ("Udo", "Golen", "Ramie", "Przedramie", "Pochylenie")}
+        self.assertIn("? (new Vector3(0f, .808f, -.019f), new Vector3(.44f, .99f, .366f), new Vector3(.34f, .30f, .03f))", ZAWODNIK)
+        self.assertIn(": (new Vector3(0f, .901f, -.135f), new Vector3(.44f, 1.135f, .216f), new Vector3(.36f, .40f, -.02f));", ZAWODNIK)
+        wym = {"raptor": ((0, .808, -.019), (.44, .99, .366), (.34, .30, .03)), "rancher": ((0, .901, -.135), (.44, 1.135, .216), (.36, .40, -.02))}
+        for model, (siodlo, chwyt, podnozek) in wym.items():
+            pelvis = (siodlo[0], siodlo[1] + .09, siodlo[2] - .03)
+            a = math.radians(L["Pochylenie"]); neck = (0, pelvis[1] + .52 * math.cos(a), pelvis[2] + .52 * math.sin(a))
+            bark = (.2, neck[1] - .075 * math.cos(a) + .02 * math.sin(a), neck[2] - .075 * math.sin(a) - .02 * math.cos(a))
+            dlon = (chwyt[0], chwyt[1] + .02, chwyt[2])
+            reka = math.dist(bark, dlon)
+            self.assertLess(reka, (L["Ramie"] + L["Przedramie"]) * .95, model)                    # bent at the elbow, not stretched
+            self.assertGreater(reka, abs(L["Ramie"] - L["Przedramie"]) + .05, model)
+            biodro = (.1, pelvis[1], pelvis[2]); kostka = (podnozek[0], podnozek[1] + .07, podnozek[2])
+            noga = math.dist(biodro, kostka)
+            self.assertLess(noga, (L["Udo"] + L["Golen"]) * .95, model); self.assertGreater(noga, .3, model)
+        self.assertIn("foreach (var tr in t.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(tr.gameObject, (StaticEditorFlags)0);", ZAWODNIK)
+
+    def test_led_board(self):
+        self.assertIn("public const int TW = 192, TH = 96;", WYSCIG)
+        self.assertAlmostEqual(const("TablicaW") / const("TablicaH"), 192 / 96)                  # square LEDs
+        # the board's font has the marks it prints (BraxChampionsPiksele): no '~'
+        znaki = re.search(r'const string Znaki = "([^"]*)";', (RT / "BraxChampionsPiksele.cs").read_text(encoding="utf-8")).group(1)
+        for t in ("WYŚCIG BRAXHORN", "3 OKRĄŻENIA · 4 RYWALI", "PODJEDŹ KŁADEM", "POD MASZYNĘ STARTOWĄ", "REKORD 6:15.0", "1. SZYMON   6:12.4*", "OKR 2/3", "META"):
+            for c in t:
+                self.assertIn(c, znaki, t)
+        self.assertIn('BraxChampionsTorCzas.Czas(kolejnosc[i].czas) + (kolejnosc[i].szac ? "*" : "")', WYSCIG)
+        # the screen faces the grandstand (north), its picture the right way round from there
+        self.assertIn("be.QuadUV(ekran, new Vector3(x1, yb, zs), new Vector3(x1, yt, zs), new Vector3(x0, yt, zs), new Vector3(x0, yb, zs),", TOR)
 
 
 if __name__ == "__main__":

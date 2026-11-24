@@ -3,6 +3,12 @@ using UnityEngine;
 // the quad track preview: the quads (an encrypted owner pack) and the runtime lap timer stand in
 public class AudioClip : Object { }
 public sealed class BraxChampionsTorCzas : MonoBehaviour { public Vector3[] punkty = new Vector3[0]; public float polSzerokosci; }
+public sealed class BraxChampionsKladRywal : MonoBehaviour { public string imie; public int numer; public float umiejetnosc, pas, rozstawOsi; public Vector3 parking; public Quaternion parkingObrot; }
+public sealed class BraxChampionsWyscig : MonoBehaviour
+{
+    public Vector3[] punkty, lewo, sloty; public float[] vCel; public bool[] skok; public float krok, dlugosc, sMety, polSzerokosci, K, strefaPromien; public int okrazen;
+    public Quaternion kierunekStartu, belkaGora, belkaDol; public Transform[] belki; public BraxChampionsKladRywal[] rywale; public Renderer tablica; public Vector3 strefaStartu;
+}
 public static class BraxChampionsKlady
 {
     public static readonly (string model, string kolor, string napis)[] Flota =
@@ -13,6 +19,16 @@ public static class BraxChampionsKlady
     public static System.Collections.Generic.List<(string napis, Vector3 p, float yaw)> Miejsca = new System.Collections.Generic.List<(string, Vector3, float)>();
     // with a decrypted copy of the pack beside the run (Assets/Source/Prywatne/Miasto/pojazdy_klady_01): each part's .glb at its
     // pivot, the paint's colour map swapped in (a .png copy of it, PREVIEW_PICTURES = the run's folder)
+    // a rival: the quad as above, its rider (the real builder, BraxChampionsKladZawodnik) on it
+    public static BraxChampionsKladRywal PostawRywala(Transform parent, string model, string kolor, string imie, int numer, Vector3 p, float yaw,
+                                                     Color stroj, Color akcent, float umiejetnosc, float pas, AudioClip wolne = null, AudioClip jazda = null)
+    {
+        var root = Postaw(parent, model, kolor, "RYWAL · " + imie, p, yaw);
+        if (!root) { root = new GameObject("RYWAL · " + imie); root.transform.SetParent(parent, false); root.transform.position = p; root.transform.rotation = Quaternion.Euler(0f, yaw, 0f); }
+        BraxChampionsKladZawodnik.Zbuduj(root.transform, model, stroj, akcent, "preview");
+        var r = root.AddComponent<BraxChampionsKladRywal>(); r.imie = imie; r.numer = numer; r.parking = p;
+        return r;
+    }
     public static GameObject Postaw(Transform parent, string model, string kolor, string napis, Vector3 p, float yaw, BraxChampionsTorCzas tor = null, AudioClip wolne = null, AudioClip jazda = null)
     {
         Miejsca.Add((napis, p, yaw));
