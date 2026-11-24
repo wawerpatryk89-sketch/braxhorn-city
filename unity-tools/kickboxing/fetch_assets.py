@@ -20,8 +20,16 @@ HEADERS = {'User-Agent': 'Braxhorn-asset-review/1.0'}
 
 
 def fetch(url):
-    with urllib.request.urlopen(urllib.request.Request(url, headers=HEADERS), timeout=60) as response:
-        return response.read()
+    # 24.11.2026 (build 45461640064 padł na „Connection reset by peer” z Poly Haven): do 6 prób z narastającą przerwą,
+    # jak w fetch_region.py / fetch_osiedle.py; pliki i tak sprawdza dalej SHA-256 z recenzji, więc wynik bez zmian
+    import time
+    for proba in range(6):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=HEADERS), timeout=120) as response:
+                return response.read()
+        except Exception as exc:  # noqa: BLE001 — sieć: reset, przerwany odczyt, 5xx, 429
+            if proba == 5: raise
+            print('retry', proba + 1, url, exc, flush=True); time.sleep(5 * (proba + 1))
 
 
 def save_source(spec, destination, source, author, license_url):

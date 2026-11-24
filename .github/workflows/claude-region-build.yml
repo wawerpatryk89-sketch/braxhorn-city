@@ -204,7 +204,7 @@ jobs:
       env:
         BRAXHORN_RESTORE_REVIEWED_BAG: '1'
     - name: Reproduce the reviewed CC0-derived bags with pinned Blender
-      run: 'curl --fail --location --retry 3 --output /tmp/blender-4.2.3-linux-x64.tar.xz https://download.blender.org/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz
+      run: 'for u in https://download.blender.org/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz https://mirrors.ocf.berkeley.edu/blender/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz https://mirrors.iu13.net/blender/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz; do curl --fail --location --retry 4 --retry-all-errors --retry-delay 10 --output /tmp/blender-4.2.3-linux-x64.tar.xz "$u" && break; echo "Blender: $u niedostepny, nastepne zrodlo"; done
 
         echo ''3a64efd1982465395abab4259b4091d5c8c56054c7267e9633e4f702a71ea3f4  /tmp/blender-4.2.3-linux-x64.tar.xz'' | sha256sum
         --check --strict
@@ -575,7 +575,7 @@ jobs:
       env:
         BRAXHORN_RESTORE_REVIEWED_BAG: '1'
     - name: Reproduce the reviewed CC0-derived bags with pinned Blender
-      run: 'curl --fail --location --retry 3 --output /tmp/blender-4.2.3-linux-x64.tar.xz https://download.blender.org/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz
+      run: 'for u in https://download.blender.org/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz https://mirrors.ocf.berkeley.edu/blender/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz https://mirrors.iu13.net/blender/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz; do curl --fail --location --retry 4 --retry-all-errors --retry-delay 10 --output /tmp/blender-4.2.3-linux-x64.tar.xz "$u" && break; echo "Blender: $u niedostepny, nastepne zrodlo"; done
 
         echo ''3a64efd1982465395abab4259b4091d5c8c56054c7267e9633e4f702a71ea3f4  /tmp/blender-4.2.3-linux-x64.tar.xz'' | sha256sum
         --check --strict
@@ -1237,7 +1237,7 @@ jobs:
       env:
         BRAXHORN_RESTORE_REVIEWED_BAG: '1'
     - name: Reproduce the reviewed CC0-derived bags with pinned Blender
-      run: 'curl --fail --location --retry 3 --output /tmp/blender-4.2.3-linux-x64.tar.xz https://download.blender.org/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz
+      run: 'for u in https://download.blender.org/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz https://mirrors.ocf.berkeley.edu/blender/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz https://mirrors.iu13.net/blender/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz; do curl --fail --location --retry 4 --retry-all-errors --retry-delay 10 --output /tmp/blender-4.2.3-linux-x64.tar.xz "$u" && break; echo "Blender: $u niedostepny, nastepne zrodlo"; done
 
         echo ''3a64efd1982465395abab4259b4091d5c8c56054c7267e9633e4f702a71ea3f4  /tmp/blender-4.2.3-linux-x64.tar.xz'' | sha256sum
         --check --strict
