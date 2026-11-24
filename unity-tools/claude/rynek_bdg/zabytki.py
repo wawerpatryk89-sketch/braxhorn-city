@@ -33,7 +33,10 @@ OSM_KOSCIOL = "w89654070"
 OSM_BARKA = "w375204687"               # Barka Lemara — barka-muzeum zacumowana przy Starym Porcie (houseboat, na wodzie)
 OSM_SPICHRZ_LUK = "w1332613698"        # spichlerz z łukowym (ostrołukowym) szczytem, Grodzka 7 (IMG_2010–2012)
 OSM_SPICHRZ_CEGLA = "w681311761"       # spichlerz ceglany ze schodkowym szczytem, Grodzka 9 (IMG_2011–2012)
-WLASNE = (OSM_SAVOY, OSM_ZWEININGER, OSM_KOSCIOL, OSM_BARKA, OSM_SPICHRZ_LUK, OSM_SPICHRZ_CEGLA)
+OSM_OPERA = "w46236313"                # Opera Nova (Focha 5): trzy kręgi z pionowymi żebrami, wieża sceniczna (m44–m45)
+OSM_OPERA_IV = "w1370661565"           # IV krąg Opery Nova: oddanie XII 2026, szklana fasada (kujawsko-pomorskie.pl, 24.11)
+OSM_AMFITEATR = "teatr_letni"          # schody-widownia Opery nad Brdą: obszar OSM „theatre” (x −342…−315, y −45…−30)
+WLASNE = (OSM_SAVOY, OSM_ZWEININGER, OSM_KOSCIOL, OSM_BARKA, OSM_SPICHRZ_LUK, OSM_SPICHRZ_CEGLA, OSM_OPERA, OSM_OPERA_IV)
 
 
 # ---------------------------------------------------------------- narzędzia: ściana z dowolnymi otworami
@@ -602,6 +605,199 @@ ZWEININGER = dict(kond=4, p0=5.0, hk=3.8, krok=4.2, tynk="k_piaskowy", kamien="k
                   wykusze=True, miedz_attyka=True, dach_mat="dachowka", spadek=50, kal_max=3.5, lukarny=False, szyld="szyld_klub")
 
 
+def _plaski(S, g, mat, poly, y, gora=True):
+    """Płaski wielokąt (z dziurami) na wysokości y, przodem w górę (gora) albo w dół."""
+    n = np.array([0., 1. if gora else -1., 0.])
+    for part in getattr(poly, "geoms", [poly]):
+        if part.is_empty or part.geom_type != "Polygon": continue
+        for tri in shapely.constrained_delaunay_triangles(part).geoms:
+            c = [np.array([x, y, z]) for x, z in list(tri.exterior.coords)[:3]]
+            if np.dot(np.cross(c[1] - c[0], c[2] - c[0]), n) < 0: c[1], c[2] = c[2], c[1]
+            S.tri_list(g, mat, c, n, (1., 0., 0.), [(p_[0], p_[2]) for p_ in c], None, [0, 1, 2])
+
+
+def _obwod(Q):
+    """Odcinki obwodu (a, b, t, n_zewn, L) wielokąta Q — n na zewnątrz."""
+    out = []
+    for part in getattr(Q, "geoms", [Q]):
+        if part.is_empty or part.geom_type != "Polygon": continue
+        pts = list(shapely.geometry.polygon.orient(part, 1.0).exterior.coords)
+        for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
+            a = np.array([x0, 0., z0]); b_ = np.array([x1, 0., z1]); L = float(np.linalg.norm(b_ - a))
+            if L < .02: continue
+            t = (b_ - a) / L; n = nrm(np.cross(t, UP))
+            if part.contains(Point(*((a + b_) / 2 + n * .05)[[0, 2]])): n = -n
+            out.append((a, b_, t, n, L))
+    return out
+
+
+def opera_nova(S, g, P):
+    """Opera Nova (zdjęcia m44–m45; właściciel 24.11, 11:49: „ta opera nawet nie wiem jak wygląda” — wcześniej kręgi szły
+    przez ogólny kod kamienic: tynk, okna, dachy kopertowe). Obrys z OSM = trzy zachodzące kręgi. Parter przeszklony,
+    cofnięty 0,8 m (0–3,5 m); ściana kręgów z białego betonu 3,5–18,8 m z pionowymi żebrami co ok. 3 m i wąskimi ciemnymi
+    szczelinami okien w co trzecim przęśle; gzyms; pierścień górny cofnięty o 4 m z pasem okien (do 22,4 m); płaskie dachy
+    z papy; wieża sceniczna — biały prostopadłościan do 36 m nad środkiem, z pionowym pasem małych okien."""
+    P = P.buffer(0).simplify(.12)
+    H0, H1, H2, HW = 3.5, 18.8, 22.4, 38.0
+    Pi = P.buffer(-.8, join_style=1)
+    P2 = P.buffer(-4.0, join_style=1)
+    # parter: szyba cofnięta, podsufitka nad nim
+    for a, b_, t, n, L in _obwod(Pi):
+        S.quad(g, "szyba_drzwi", a, b_, b_ + UP * H0, a + UP * H0, kier=n)
+    _plaski(S, g, "beton_opera", P.difference(Pi), H0, gora=False)
+    # ściana kręgów + żebra + szczeliny
+    los = 0
+    for a, b_, t, n, L in _obwod(P):
+        S.quad(g, "beton_opera", a + UP * H0, b_ + UP * H0, b_ + UP * H1, a + UP * H1, kier=n)
+    obw = P.exterior if P.geom_type == "Polygon" else max(P.geoms, key=lambda q: q.area).exterior
+    obw = shapely.geometry.polygon.orient(Polygon(obw), 1.0).exterior
+    Lc = obw.length; k_ = max(8, int(Lc / 3.0))
+    for k in range(k_):
+        s0 = Lc * k / k_
+        p0 = obw.interpolate(s0); p1 = obw.interpolate((s0 + .35) % Lc); pm = obw.interpolate((s0 - .35) % Lc)
+        t = nrm(np.array([p1.x - pm.x, 0., p1.y - pm.y])); n = nrm(np.cross(t, UP))
+        if P.contains(Point(p0.x + n[0] * .05, p0.y + n[2] * .05)): n = -n
+        c = np.array([p0.x, 0., p0.y])
+        S.box(g, "beton_opera", c - t * .35 + UP * H0, t, UP, n, .7, H1 - H0 - .02, .45, bez=("-z",))
+        # ciemna fuga przy każdym żebrze (m45: rytm jasnych płyt i ciemnych pionowych szczelin)
+        e_ = c + t * .35 + n * .02
+        S.quad(g, "szyba_drzwi", e_ + UP * (H0 + .3), e_ + t * .2 + UP * (H0 + .3), e_ + t * .2 + UP * (H1 - .3), e_ + UP * (H1 - .3), kier=n)
+        if (k * 7) % 3 == 0:                                                   # ciemna szczelina w środku przęsła
+            q = obw.interpolate((s0 + Lc / k_ / 2) % Lc); q1 = obw.interpolate((s0 + Lc / k_ / 2 + .3) % Lc)
+            tq = nrm(np.array([q1.x - q.x, 0., q1.y - q.y])); nq = nrm(np.cross(tq, UP))
+            if P.contains(Point(q.x + nq[0] * .05, q.y + nq[2] * .05)): nq = -nq
+            cq = np.array([q.x, 0., q.y]) + nq * .03
+            S.quad(g, "szyba_drzwi", cq - tq * .28 + UP * (H0 + 1.6), cq + tq * .28 + UP * (H0 + 1.6), cq + tq * .28 + UP * (H1 - 1.8), cq - tq * .28 + UP * (H1 - 1.8), kier=nq)
+    # gzyms nad ścianą (wysunięty 0,15 m) i dach pierścienia zewnętrznego
+    Pg = P.buffer(.15, join_style=1)
+    for a, b_, t, n, L in _obwod(Pg):
+        S.quad(g, "beton_opera", a + UP * (H1 - .02), b_ + UP * (H1 - .02), b_ + UP * (H1 + .45), a + UP * (H1 + .45), kier=n)
+    _plaski(S, g, "beton_opera", Pg.difference(P.buffer(-.45, join_style=1)), H1 + .45)
+    _plaski(S, g, "beton_opera", Pg.difference(P), H1 - .02, gora=False)
+    _plaski(S, g, "papa", P.buffer(-.45, join_style=1).difference(P2), H1 + .2)
+    for a, b_, t, n, L in _obwod(P.buffer(-.45, join_style=1)):            # attyka od środka
+        S.quad(g, "beton_opera", a + UP * (H1 + .2), b_ + UP * (H1 + .2), b_ + UP * (H1 + .45), a + UP * (H1 + .45), kier=-n)
+    # pierścień górny: beton – pas okien – beton, słupki co 2 m
+    for a, b_, t, n, L in _obwod(P2):
+        S.quad(g, "beton_opera", a + UP * (H1 + .2), b_ + UP * (H1 + .2), b_ + UP * (H1 + .7), a + UP * (H1 + .7), kier=n)
+        S.quad(g, "szyba_drzwi", a + UP * (H1 + .7), b_ + UP * (H1 + .7), b_ + UP * (H2 - .7), a + UP * (H2 - .7), kier=n)
+        S.quad(g, "beton_opera", a + UP * (H2 - .7), b_ + UP * (H2 - .7), b_ + UP * H2, a + UP * H2, kier=n)
+        for k in np.arange(0, L, 2.0):
+            S.box(g, "beton_opera", a + t * k - t * .07 + UP * (H1 + .7), t, UP, n, .14, H2 - H1 - 1.4, .12, bez=("-z",))
+    # cienka płyta dachu pierścienia wysunięta 0,6 m (m44–m45: biała „pokrywka” nad pasem okien)
+    Po = P2.buffer(.6, join_style=1)
+    for a, b_, t, n, L in _obwod(Po):
+        S.quad(g, "beton_opera", a + UP * (H2 - .05), b_ + UP * (H2 - .05), b_ + UP * (H2 + .35), a + UP * (H2 + .35), kier=n)
+    _plaski(S, g, "beton_opera", Po.difference(P2), H2 - .05, gora=False)
+    _plaski(S, g, "beton_opera", Po.difference(P2.buffer(-.35, join_style=1)), H2 + .35)
+    # trzeci, mniejszy pierścień na zachodnim kręgu (m44): okrąg dopasowany do zachodniego łuku obrysu
+    pts = np.array(P.exterior.coords if P.geom_type == "Polygon" else max(P.geoms, key=lambda q: q.area).exterior.coords)
+    zach = pts[pts[:, 0] < pts[:, 0].min() + 18.0]
+    if len(zach) >= 6:
+        A_ = np.c_[2 * zach[:, 0], 2 * zach[:, 1], np.ones(len(zach))]; b_ls = (zach ** 2).sum(1)
+        cx_, cz_, c0 = np.linalg.lstsq(A_, b_ls, rcond=None)[0]; Rz = math.sqrt(max(c0 + cx_ ** 2 + cz_ ** 2, 1.0))
+        if 12.0 < Rz < 35.0:
+            Rr = Rz - 9.0; C3 = Point(cx_, cz_).buffer(Rr, 96).intersection(P2.buffer(-1.0))
+            if C3.area > 60:
+                H3 = H2 + 3.4
+                for a, b_, t, n, L in _obwod(C3):
+                    S.quad(g, "beton_opera", a + UP * (H2 + .2), b_ + UP * (H2 + .2), b_ + UP * (H2 + .7), a + UP * (H2 + .7), kier=n)
+                    S.quad(g, "szyba_drzwi", a + UP * (H2 + .7), b_ + UP * (H2 + .7), b_ + UP * (H3 - .6), a + UP * (H3 - .6), kier=n)
+                    S.quad(g, "beton_opera", a + UP * (H3 - .6), b_ + UP * (H3 - .6), b_ + UP * H3, a + UP * H3, kier=n)
+                C3o = C3.buffer(.5, join_style=1)
+                for a, b_, t, n, L in _obwod(C3o):
+                    S.quad(g, "beton_opera", a + UP * (H3 - .05), b_ + UP * (H3 - .05), b_ + UP * (H3 + .3), a + UP * (H3 + .3), kier=n)
+                _plaski(S, g, "beton_opera", C3o.difference(C3), H3 - .05, gora=False)
+                _plaski(S, g, "papa", C3o, H3 + .3)
+    # wieża sceniczna nad środkiem (oś wzdłuż najdłuższej osi obrysu)
+    mrr = list(P.minimum_rotated_rectangle.exterior.coords)
+    e1 = np.array(mrr[1]) - np.array(mrr[0]); e2 = np.array(mrr[2]) - np.array(mrr[1])
+    os_ = e1 if np.linalg.norm(e1) >= np.linalg.norm(e2) else e2
+    ta = nrm(np.array([os_[0], 0., os_[1]])); na = nrm(np.cross(ta, UP))
+    cw = np.array([P.centroid.x, 0., P.centroid.y])
+    Wt, Dt = 26.0, 21.0
+    o = cw - ta * Wt / 2 - na * Dt / 2 + UP * H1
+    wieza = Polygon([(p_[0], p_[2]) for p_ in (o, o + ta * Wt, o + ta * Wt + na * Dt, o + na * Dt)])
+    _plaski(S, g, "papa", P2.buffer(-.35, join_style=1).difference(wieza), H2 + .2)
+    S.box(g, "beton_opera", o, ta, UP, na, Wt, HW - H1 - .6, Dt, bez=("-y", "+y"))
+    S.box(g, "beton_opera", o - ta * .2 - na * .2 + UP * (HW - H1 - .6), ta, UP, na, Wt + .4, .6, Dt + .4)   # gzyms wieńczący
+    _plaski(S, g, "papa", wieza.buffer(-.4, join_style=2), HW + .02)
+    # pionowa ciemna szczelina na całą wysokość (m45: prawy skraj wieży) — na obu dłuższych bokach i na czołach
+    for e_, tt, nn, L_ in ((o + na * Dt, ta, na, Wt), (o, ta, -na, Wt), (o + ta * Wt, na, ta, Dt), (o, na, -ta, Dt)):
+        x0 = L_ * .82
+        q0 = e_ + tt * x0 + nn * .02
+        S.quad(g, "szyba_drzwi", q0 + UP * (H2 + .6 - H1), q0 + tt * .7 + UP * (H2 + .6 - H1), q0 + tt * .7 + UP * (HW - H1 - 1.4), q0 + UP * (HW - H1 - 1.4), kier=nn)
+        for j in range(6):                                                     # rząd małych okien nad pierścieniem
+            q1 = e_ + tt * (L_ * .2 + j * 1.6) + nn * .02 + UP * (H2 + 1.4 - H1)
+            S.quad(g, "szyba_drzwi", q1, q1 + tt * .9, q1 + tt * .9 + UP * .7, q1 + UP * .7, kier=nn)
+    return P
+
+
+def opera_iv(S, g, Q):
+    """IV krąg Opery Nova (oddanie XII 2026, cztery kondygnacje, „szklana fasada” — kujawsko-pomorskie.pl): walec ze szkła
+    w pionowych podziałach co 1,6 m, poziome pasy stropów z białego betonu co 4,2 m, płaski dach z attyką."""
+    Q = Q.buffer(0).simplify(.1)
+    Hk, n_k = 4.2, 4
+    for a, b_, t, n, L in _obwod(Q):
+        for k in range(n_k):
+            y0 = k * Hk
+            S.quad(g, "beton_opera", a + UP * y0, b_ + UP * y0, b_ + UP * (y0 + .5), a + UP * (y0 + .5), kier=n)
+            S.quad(g, "szyba_wiata", a + UP * (y0 + .5), b_ + UP * (y0 + .5), b_ + UP * (y0 + Hk), a + UP * (y0 + Hk), kier=n)
+        S.quad(g, "beton_opera", a + UP * n_k * Hk, b_ + UP * n_k * Hk, b_ + UP * (n_k * Hk + .9), a + UP * (n_k * Hk + .9), kier=n)
+        for k in np.arange(0, L, 1.6):        # aluminiowe elementy fasady (raport budowy IV 2026: „aluminum façade elements”)
+            S.box(g, "alu_fasada", a + t * k - t * .05 + UP * .5, t, UP, n, .1, n_k * Hk - .5, .22, bez=("-z",))
+    _plaski(S, g, "papa", Q.buffer(-.3), n_k * Hk + .6)
+    for a, b_, t, n, L in _obwod(Q.buffer(-.3)):
+        S.quad(g, "beton_opera", a + UP * (n_k * Hk + .6), b_ + UP * (n_k * Hk + .6), b_ + UP * (n_k * Hk + .9), a + UP * (n_k * Hk + .9), kier=-n)
+    _plaski(S, g, "beton_opera", Q.difference(Q.buffer(-.3)), n_k * Hk + .9)
+
+
+def pomost_opery(S, g, Q, woda_y=-2.4):
+    """Pomost przy schodach-widowni Opery (obszar OSM „pier”, m44–m45): pokład 0,8 m nad lustrem wody, balustrada po obwodzie
+    (bez boku przy nabrzeżu), biała wieża schodów na wschodnim końcu przy nabrzeżu."""
+    y = woda_y + .8
+    _plaski(S, g, "deska_ciemna", Q, y)
+    _plaski(S, g, "beton_most", Q, y - .35, gora=False)
+    for a, b_, t, n, L in _obwod(Q):
+        S.quad(g, "beton_most", a + UP * (y - .35), b_ + UP * (y - .35), b_ + UP * y, a + UP * y, kier=n)
+        if L < 1.0: continue
+        e = a - n * .1 + UP * y
+        S.box(g, "latarnia_czarna", e + UP * 1.0 - n * .03, t, UP, n, L, .05, .06)
+        for k in np.arange(0, L, 2.0): S.box(g, "latarnia_czarna", e + t * k - n * .03, t, UP, n, .06, 1.0, .06)
+    mrr = list(Q.minimum_rotated_rectangle.exterior.coords)
+    e1 = np.array(mrr[1]) - np.array(mrr[0]); e2 = np.array(mrr[2]) - np.array(mrr[1])
+    os_ = e1 if np.linalg.norm(e1) >= np.linalg.norm(e2) else e2; ta = nrm(np.array([os_[0], 0., os_[1]]))
+    if ta[0] < 0: ta = -ta
+    koniec = max((np.array(p_) for p_ in Q.exterior.coords), key=lambda p_: p_[0])
+    na = nrm(np.cross(ta, UP))
+    o = np.array([koniec[0], y, koniec[1]]) - ta * 3.4 - na * 1.6
+    S.box(g, "beton_opera", o, ta, UP, na, 3.2, 0 - y + 4.6, 3.2, bez=("-y",))
+
+
+def amfiteatr(S, g, Q, srodek, h_rzad=.22, gl_rzad=1.0):
+    """Schody-widownia Opery nad Brdą (obszar OSM „theatre”, zdjęcia m44–m45): rzędy z betonu po łukach wokół środka nad
+    pomostem, coraz wyżej od rzeki (pierwszy rząd 0,22 m, co rząd +0,22 m, głębokość 1 m); ściany tylko tam, gdzie widać
+    (podstopnie, boki, tył) — bez nakładających się płaszczyzn."""
+    c = Point(srodek); r0 = min(c.distance(Point(p)) for p in Q.exterior.coords); r1 = max(c.distance(Point(p)) for p in Q.exterior.coords)
+    n_r = max(1, int((r1 - r0) / gl_rzad))
+    pasy = []
+    for i in range(n_r):
+        a_ = c.buffer(r0 + i * gl_rzad if i else 0.0, 128); b_ = c.buffer(r0 + (i + 1) * gl_rzad if i < n_r - 1 else r1 + 1.0, 128)
+        pas = Q.intersection(b_.difference(a_)) if i else Q.intersection(b_)
+        if not pas.is_empty: pasy.append((pas, h_rzad * (i + 1)))
+    def wys(x, z):
+        for pas, h in pasy:
+            if pas.buffer(.01).contains(Point(x, z)): return h
+        return 0.0
+    for pas, h in pasy:
+        _plaski(S, g, "beton_most", pas, h)
+        for a, b_, t, n, L in _obwod(pas):
+            m = (a + b_) / 2 + n * .08; ho = wys(m[0], m[2])
+            if ho < h - 1e-3:
+                S.quad(g, "beton_most", a + UP * ho, b_ + UP * ho, b_ + UP * h, a + UP * h, kier=n)
+    return len(pasy)
+
+
 def zbuduj(budynki_osm, publ, woda_y=-2.4):
     """Siatka trzech budynków skrzyżowania. budynki_osm: słownik osm → shapely (metry od kotwicy)."""
     from kit import Siatka
@@ -618,6 +814,10 @@ def zbuduj(budynki_osm, publ, woda_y=-2.4):
         if OSM_BARKA in budynki_osm: barka(S, "barka", budynki_osm[OSM_BARKA], woda_y)
         if OSM_SPICHRZ_LUK in budynki_osm: spichrz_lukowy(S, "spichrz7", budynki_osm[OSM_SPICHRZ_LUK])
         if OSM_SPICHRZ_CEGLA in budynki_osm: spichrz_ceglany(S, "spichrz9", budynki_osm[OSM_SPICHRZ_CEGLA])
+        if OSM_OPERA in budynki_osm: opera_nova(S, "opera", budynki_osm[OSM_OPERA])
+        if OSM_OPERA_IV in budynki_osm: opera_iv(S, "opera4", budynki_osm[OSM_OPERA_IV])
+        if OSM_AMFITEATR in budynki_osm: amfiteatr(S, "amfiteatr", *budynki_osm[OSM_AMFITEATR])
+        if "pomost_opery" in budynki_osm: pomost_opery(S, "pomost", budynki_osm["pomost_opery"], woda_y)
     finally:
         B.S = stare
     return S

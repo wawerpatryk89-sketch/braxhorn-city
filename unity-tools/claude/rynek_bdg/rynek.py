@@ -220,6 +220,7 @@ def teren(d, bud, W):
         (piesze if u["klasa"] in ("pedestrian", "footway", "path", "cycleway", "steps") else jezd).append(g)
     for t in d["tereny"]:
         if t["rodzaj"] in ("square",) and len(t["linia"]) > 3: place.append(Polygon(t["linia"]).buffer(0))
+    piesze += d.get("fartuchy", [])                       # utwardzenia wokół zabytków (Opera Nova: płyty dookoła kręgów, m44)
     JEZ = unary_union(jezd).intersection(OKNO).difference(W)
     PLAC = unary_union(place).intersection(OKNO).difference(W).difference(bud)
     CHOD = unary_union(piesze + [bud.buffer(2.2, join_style=2), JEZ.buffer(2.6, join_style=2)]).intersection(OKNO).difference(JEZ).difference(W).difference(bud).difference(PLAC)
@@ -645,6 +646,23 @@ def main(out):
                and not b["poly"].intersects(zajete)]
     import zabytki
     wlasne = {b["osm"]: b["poly"] for b in budynki if b["osm"] in zabytki.WLASNE}
+    # Opera Nova (24.11): płyty dookoła kręgów (m44) i schody-widownia nad Brdą (obszar OSM „theatre” przy Operze)
+    d["fartuchy"] = [wlasne[k].buffer(12.0 if k == zabytki.OSM_OPERA else 7.0, join_style=1) for k in (zabytki.OSM_OPERA, zabytki.OSM_OPERA_IV) if k in wlasne]
+    for t in d["tereny"]:
+        if t["rodzaj"] == "theatre" and len(t["linia"]) > 3 and zabytki.OSM_OPERA in wlasne:
+            A = Polygon(t["linia"]).buffer(0)
+            if A.distance(wlasne[zabytki.OSM_OPERA]) < 40:
+                # środek łuków: punkt, od którego oba łuki obrysu są w stałej odległości (nad pomostem, od strony rzeki)
+                xs = np.linspace(A.bounds[0], A.bounds[2], 41); zs = np.linspace(A.bounds[1] - 30, A.bounds[1], 61)
+                pts = [np.array(p) for p in A.exterior.coords]
+                def rozrzut(x, z):
+                    dd = sorted(math.hypot(p[0] - x, p[1] - z) for p in pts)
+                    k = len(dd) // 2; return np.std(dd[:k]) + np.std(dd[k:])
+                sx, sz = min(((x, z) for x in xs for z in zs), key=lambda q: rozrzut(*q))
+                wlasne[zabytki.OSM_AMFITEATR] = (A, (sx, sz))
+        if t["rodzaj"] == "pier" and len(t["linia"]) > 3 and zabytki.OSM_OPERA in wlasne:
+            A = Polygon(t["linia"]).buffer(0)
+            if A.distance(wlasne[zabytki.OSM_OPERA]) < 50: wlasne["pomost_opery"] = A
     budynki = [b for b in budynki if b["osm"] not in zabytki.WLASNE]
     PUBL0 = przestrzen_publiczna(d, W)
     budynki = dzialki(budynki, PUBL0, R_)
@@ -668,9 +686,19 @@ def main(out):
         dd = D._c(g, m); b0 = len(dd["v"])
         for f in ("v", "n", "t", "uv", "uv1"): dd[f] += c[f]
         dd["i"] += [b0 + q for q in c["i"]]
-    bud = unary_union([b["poly"] for b in budynki] + [q for k, q in wlasne.items() if k != zabytki.OSM_BARKA] + [Q.buffer(.3) for Q in OBCE])
+    bud = unary_union([b["poly"] for b in budynki] + [q for k, q in wlasne.items() if k not in (zabytki.OSM_BARKA, zabytki.OSM_AMFITEATR, "pomost_opery")] + [Q.buffer(.3) for Q in OBCE])
     T, pola, mosty, (PLAC_, CHOD_, NABRZ_) = teren(d, bud, W)
     Dt, pola_d, punkty = detale(d, budynki, PLAC_, CHOD_, NABRZ_, W, random.Random(5))
+    # drzewa na skarpie między Operą a Brdą (m44–m45: kilkanaście drzew na trawniku przed kręgami)
+    if zabytki.OSM_OPERA in wlasne and TRAWNIK[0] is not None:
+        op = wlasne[zabytki.OSM_OPERA]; Rd = random.Random(44)
+        pas = TRAWNIK[0].intersection(op.buffer(40).difference(op.buffer(13))).intersection(box(op.bounds[0] - 10, -80, op.bounds[2] + 5, op.centroid.y))
+        stare = [Point(x, z) for x, z, _ in punkty["drzewa"]]
+        for x in np.arange(pas.bounds[0], pas.bounds[2], 7.5):
+            for z in np.arange(pas.bounds[1], pas.bounds[3], 7.5):
+                q = Point(x + Rd.uniform(-2, 2), z + Rd.uniform(-2, 2))
+                if pas.buffer(-2.5).contains(q) and all(q.distance(o) > 6 for o in stare):
+                    punkty["drzewa"].append([round(q.x, 2), round(q.y, 2), "duze" if Rd.random() < .35 else "srednie"]); stare.append(q)
     pola.update(pola_d)
     for (g, m), c in Dt.dane().items():
         dd = D._c(g, m); b0 = len(dd["v"])
