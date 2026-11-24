@@ -138,6 +138,9 @@ public static class BraxChampionsBuildings
         // Owner 17.11 ("Na wzgórzu jedna, druga mała wyspa z willą. Trzecia gdzieś tam"): the three villas for sale on their own
         // land - the hill north of A1, the island in the bay, the seafront east of the promenade (BraxChampionsWilleDzialki)
         BraxChampionsFoundation.Optional("wille na sprzedaż: wzgórze, wyspa, nabrzeże",()=>BraxChampionsWilleDzialki.Zbuduj(null));
+        // Owner 24.11 11:31-11:45 ("tor do kładów ... zachód", "górki, pagórki, wyskoki", "budkę ... wypożyczanie ... minimum 4
+        // kłady"): the BRAXHORN quad track west of the city - after the villas (its press joins theirs), before the far land
+        BraxChampionsFoundation.Optional("tor do kładów BRAXHORN (zachód) + wypożyczalnia 6 kładów",()=>BraxChampionsTorKladow.Zbuduj(null));
         // 9.11 owner: "Ten basen usuń całkowicie" - P1 removed from the game.
         // 9.11 owner: apartment buildings on the rental plots, one at a time,
         // each finished A-Z inside and out (empty, no furniture).

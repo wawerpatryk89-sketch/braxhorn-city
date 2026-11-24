@@ -55,7 +55,10 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  'painted_concrete_02',
                  # 24.11 00:00 owner (the seafront villa: "Zrób starą cegłę elewację i w ten sposób luksusową", "zrób taki stare,
                  # te mury, ale taki luksus"): the old red brick facade and the old stone walls, from his list
-                 'medieval_red_brick','castle_wall_varriation')
+                 'medieval_red_brick','castle_wall_varriation',
+                 # 24.11 owner (the quad track: "tor do kładów ... górki, pagórki, wyskoki"): the riding surface with its tyre ruts,
+                 # the shoulders' packed soil, the paddock's and the road's gravel - no dirt on his list (ZASADY 5.8)
+                 'muddy_tracks','brown_mud_02','gravel_ground_01')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
 # Owner 10.11 19:12 ("Nieba też brak", "I panorama realistyczną HDR 360"): the region's sky is a real 360 HDR panorama
 # (Poly Haven CC0), the original 4K Radiance .hdr checked against the provider's size and MD5 (BraxChampionsSky imports it
