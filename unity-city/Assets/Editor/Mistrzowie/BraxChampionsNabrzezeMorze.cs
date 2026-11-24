@@ -75,5 +75,7 @@ public static class BraxChampionsNabrzezeMorze
         Debug.Log("MISTRZOWIE_NABRZEZE_MORZE field=" + BraxChampionsWyspaMorze.PoleN + "x" + BraxChampionsWyspaMorze.PoleN + " window=(" + d.x0 + "," + d.z0 + ")-(" + d.x1 + "," + Gora +
                   ") waterline=" + pole.Odcinki + " landTexels=" + pole.komorekLadu + " triangles=" + Trojkaty + " dryCells=" + dry + " (owner 24.11: the private beach's real waves)");
         if (pole.Odcinki == 0) BraxBuildQuality.Warn("DO POPRAWKI NABRZEZE_MORZE_NO_WATERLINE the seafront's ground never crosses the sea level");
+        // 24.11 the beach's sounds; the surf softer in the window's side fade, as the shader's _Boki
+        BraxChampionsPlaza.SzumMorza(g, pole, 0f, w => Mathf.SmoothStep(0f, 1f, Mathf.Min(w.x - d.x0 * K, d.x1 * K - w.x) / (Boki * K)), "WILLA 3 | szum morza, fale i mewy");
     }
 }

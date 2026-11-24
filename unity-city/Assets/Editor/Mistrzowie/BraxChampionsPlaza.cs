@@ -102,9 +102,11 @@ public static class BraxChampionsPlaza
         return pole;
     }
 
+    // 24.11 the city beach's field, kept for its sounds (BraxChampionsFoundation adds them once the scene's root is there)
+    public static BraxChampionsMorzeBrzeg PoleMiasta;
     public static Material Morze(IEnumerable<BraxChampionsFoundation.MeshData> meshes, float sea)
     {
-        var pole = Pole(meshes, sea);
+        var pole = Pole(meshes, sea); PoleMiasta = pole;
         var m = MorzeZPola(pole, Output + "/Textures/morze_brzeg.asset", Output + "/Materials/morze.mat", "Mistrzowie morze", 0f);
         Debug.Log("A1_PLAZA_MORZE field=" + pole.w + "x" + pole.h + " rect=(" + pole.x0.ToString("F0") + "," + pole.z0.ToString("F0") + ")-(" +
                   pole.x1.ToString("F0") + "," + pole.z1.ToString("F0") + ") sea=" + sea.ToString("F3") + " sandTriangles=" + pole.trojkaty +
@@ -145,6 +147,23 @@ public static class BraxChampionsPlaza
         m.SetFloat("_WzdluzZ", wzdluzZ);
         AssetDatabase.DeleteAsset(matPath); AssetDatabase.CreateAsset(m, matPath);
         return m;
+    }
+
+    /// <summary>24.11 (owner 01:31 "Wykonałeś mi te dźwięki z plaży?") the sounds of a real sea's beach under parent: its
+    /// waterline every 8 units (BraxChampionsMorzeBrzeg.Brzeg), the sea's wave numbers and _WzdluzZ (the waves heard in
+    /// time with the picture), sila the surf's strength at a point (null = 1; the seafront's side fade).</summary>
+    public static BraxChampionsSzumMorza SzumMorza(Transform parent, BraxChampionsMorzeBrzeg pole, float wzdluzZ, Func<Vector3, float> sila, string nazwa)
+    {
+        if (pole == null || pole.Odcinki == 0) { BraxBuildQuality.Warn("DO POPRAWKI SZUM_MORZA_NO_WATERLINE " + nazwa); return null; }
+        var punkty = pole.Brzeg(8f);
+        var go = new GameObject(nazwa); go.transform.SetParent(parent, false); go.transform.position = Vector3.zero;
+        var c = go.AddComponent<BraxChampionsSzumMorza>();
+        c.brzeg = punkty.ToArray();
+        c.sila = new float[c.brzeg.Length];
+        for (int i = 0; i < c.brzeg.Length; i++) c.sila[i] = sila == null ? 1f : Mathf.Clamp01(sila(c.brzeg[i]));
+        c.wzdluzZ = wzdluzZ; c.dlugosc = Dlugosc; c.okres = Okres;
+        Debug.Log("MISTRZOWIE_SZUM_MORZA " + nazwa + " points=" + c.brzeg.Length + " waterline=" + pole.Odcinki + " (owner 24.11: the beach's sounds, the waves in time with the picture)");
+        return c;
     }
 
     // the water the run-up climbs with: the wet sand's mesh at the sea level (the sea's own meshes stop at the sand's edge)

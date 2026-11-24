@@ -298,6 +298,7 @@ public static class BraxChampionsFoundation
         try
         {
             var root=new GameObject("BRAXHORN | MIASTO MISTRZOW | EXTERIOR FOUNDATION").transform;
+            BraxChampionsPlaza.SzumMorza(root,BraxChampionsPlaza.PoleMiasta,0f,null,"PLAŻA | szum morza, fale i mewy");   // 24.11 the beach's sounds
             // Geometry is already in game units. Root transform MUST stay at identity.
             foreach(var m in d.meshes)
             {

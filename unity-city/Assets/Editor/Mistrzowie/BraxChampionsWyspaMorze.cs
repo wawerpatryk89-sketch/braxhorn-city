@@ -71,5 +71,6 @@ public static class BraxChampionsWyspaMorze
         Debug.Log("MISTRZOWIE_WYSPA_MORZE field=" + PoleN + "x" + PoleN + " patch=(" + d.x0 + "," + d.z0 + ")-(" + d.x1 + "," + d.z1 + ") waterline=" + pole.Odcinki +
                   " landTexels=" + pole.komorekLadu + " triangles=" + Trojkaty + " dryCells=" + dry + " (owner 23.11: the island alone in the open sea, real waves to its beach)");
         if (pole.Odcinki == 0) BraxBuildQuality.Warn("DO POPRAWKI WYSPA_MORZE_NO_WATERLINE the island's ground never crosses the sea level");
+        BraxChampionsPlaza.SzumMorza(g, pole, 1f, null, "WILLA 2 | szum morza, fale i mewy");                       // 24.11 the beach's sounds
     }
 }

@@ -70,6 +70,13 @@ public static class WilleProgram
         if (bedFall > 8) fails += Fail(bedFall + " texels where the bed falls toward the beach");
         Console.WriteLine("NABRZEZE_MORZE field " + pole.w + "x" + pole.h + " waterline=" + pole.Odcinki + " on the beach at z " + zw0.ToString("F1") + ".." + zw1.ToString("F1") + " (loungers at " + (-98f - 45f) + ")");
         if (zw1 > -98f - 45f - 4f) fails += Fail("the waterline within 4 m of the loungers");
+        // the beach's sounds play from the waterline chained along the shore (BraxChampionsMorzeBrzeg.Brzeg)
+        var brzeg = pole.Brzeg(8f); float skok = 0f; int naPlazy = 0;
+        for (int i = 1; i < brzeg.Count; i++) skok = Math.Max(skok, Vector3.Distance(brzeg[i], brzeg[i - 1]));
+        foreach (var q in brzeg) if (q.x > bx0 && q.x < bx1) naPlazy++;
+        if (naPlazy < 92 / 8 - 1) fails += Fail("only " + naPlazy + " sound points along the private beach");
+        if (skok > 20f) fails += Fail("the waterline chain jumps " + skok.ToString("F1") + " m");
+        Console.WriteLine("NABRZEZE_MORZE sounds: " + brzeg.Count + " waterline points (" + naPlazy + " on the private beach), longest step " + skok.ToString("F1") + " m");
         var v = new System.Collections.Generic.List<Vector3>(); var t = new System.Collections.Generic.List<int>();
         int dry = BraxChampionsWyspaWoda.Siatka(x0, z0, x1, z1, BraxChampionsWyspaMorze.Krok, BraxChampionsWyspaMorze.Pas, 1f, sea, (x, z) => grunt(x, z) > sea + BraxChampionsWyspaMorze.Suchy, v, t);
         int down = 0, degenerate = 0, outer = 0, inner = 0, innerWet = 0; var uses = new System.Collections.Generic.Dictionary<long, int>();

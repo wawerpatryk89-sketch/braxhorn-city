@@ -71,6 +71,39 @@ public sealed class BraxChampionsMorzeBrzeg
             }
     }
 
+    /// <summary>24.11 the waterline thinned to one point per krok x krok cell (world, at the sea level), chained along the
+    /// shore (from its westmost point, each to the nearest one left): the beach's sounds play from it
+    /// (BraxChampionsSzumMorza), a point's neighbours in the list are its neighbours on the shore.</summary>
+    public List<Vector3> Brzeg(float krok)
+    {
+        var punkty = new List<Vector3>(); var zajete = new HashSet<long>();
+        foreach (var o in odcinki)
+        {
+            float x = (o.x + o.z) * .5f, z = (o.y + o.w) * .5f;
+            long key = ((long)Mathf.FloorToInt(x / krok) << 32) ^ (uint)Mathf.FloorToInt(z / krok);
+            if (zajete.Add(key)) punkty.Add(new Vector3(x, sea, z));
+        }
+        var wynik = new List<Vector3>(punkty.Count);
+        if (punkty.Count == 0) return wynik;
+        int start = 0;
+        for (int i = 1; i < punkty.Count; i++) if (punkty[i].x < punkty[start].x) start = i;
+        var uzyty = new bool[punkty.Count]; int c = start;
+        for (int n = 0; n < punkty.Count; n++)
+        {
+            uzyty[c] = true; wynik.Add(punkty[c]);
+            int nast = -1; float best = float.MaxValue;
+            for (int i = 0; i < punkty.Count; i++)
+            {
+                if (uzyty[i]) continue;
+                float dx = punkty[i].x - punkty[c].x, dz = punkty[i].z - punkty[c].z, q = dx * dx + dz * dz;
+                if (q < best) { best = q; nast = i; }
+            }
+            if (nast < 0) break;
+            c = nast;
+        }
+        return wynik;
+    }
+
     public void Licz()
     {
         int n = odcinki.Count;

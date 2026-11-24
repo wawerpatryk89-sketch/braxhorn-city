@@ -67,6 +67,13 @@ static class Program
             for (int iz = 0; iz < b.h; iz++) { int i = iz * b.w + ix; if (b.d[i] < 0f && b.dno[i] < sea + A) reach = Math.Max(reach, -b.d[i]); }
             Console.WriteLine($"MORZE_SIM runUp A={A} reaches {reach:F1} units ({reach / 1.2944f:F1} m) over the sand at x=420");
         }
+        // 24.11 the beach's sounds play from the waterline chained along the shore (BraxChampionsMorzeBrzeg.Brzeg, 8 units)
+        {
+            var brzeg = b.Brzeg(8f); int skoki = 0; float naj = 0f;
+            for (int i = 1; i < brzeg.Count; i++) { float s = MathF.Sqrt((brzeg[i].x - brzeg[i - 1].x) * (brzeg[i].x - brzeg[i - 1].x) + (brzeg[i].z - brzeg[i - 1].z) * (brzeg[i].z - brzeg[i - 1].z)); if (s > 20f) skoki++; else naj = Math.Max(naj, s); }
+            Console.WriteLine($"MORZE_SIM sounds: {brzeg.Count} waterline points, {skoki} jumps between pieces of shore, longest step within a piece {naj:F1} units");
+            if (brzeg.Count < 50) fails += Fail("too few sound points: " + brzeg.Count);
+        }
         if (args.Length > 1)
         {
             using var f = new BinaryWriter(File.Create(args[1]));
