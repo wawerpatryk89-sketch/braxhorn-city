@@ -535,7 +535,7 @@
  "drzew": 803,
  "latarni": 262,
  "wyposazenie": {
-  "przystanki": 6,
+  "przystanki": 3,
   "sygnalizacje": 10,
   "hydranty": 26,
   "lawki": 14,
@@ -548,5 +548,5 @@
   "latarnie": 262,
   "paliki": 56
  },
- "trojkatow": 858294
+ "trojkatow": 857994
 }

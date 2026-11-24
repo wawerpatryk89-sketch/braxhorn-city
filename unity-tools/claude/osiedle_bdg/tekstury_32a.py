@@ -178,6 +178,33 @@ def menu_bosna(out):
     img.save(out / "menu_bosna.png")
 
 
+def przystanki(out):
+    """Przystanki (24.11): tablice z nazwą (granat, biały napis), znak D-15 (niebieski kwadrat, białe pole, autobus),
+    rozkład jazdy (biała kartka z nagłówkiem i tabelą godzin)."""
+    import paleta
+    for k, nazwa in enumerate(paleta.PRZYSTANKI):
+        W, H = 1600, 130
+        img = Image.new("RGBA", (W, H), (24, 44, 96, 255)); d = ImageDraw.Draw(img)
+        f = ImageFont.truetype(FONT_B, 76 if len(nazwa) < 30 else 58); w = d.textlength(nazwa.upper(), font=f)
+        d.text(((W - w) / 2, (H - (76 if len(nazwa) < 30 else 58)) / 2 - 6), nazwa.upper(), font=f, fill=(255, 255, 255, 255))
+        img.save(out / ("tabl_przyst_%d.png" % k))
+    S_ = 512; img = Image.new("RGBA", (S_, S_), (0, 88, 168, 255)); d = ImageDraw.Draw(img)
+    d.rectangle([12, 12, S_ - 12, S_ - 12], outline=(255, 255, 255, 255), width=10)
+    d.rectangle([90, 90, S_ - 90, S_ - 90], fill=(255, 255, 255, 255))
+    d.rounded_rectangle([130, 170, S_ - 130, 340], radius=26, fill=(20, 20, 22, 255))         # autobus z boku
+    for x in range(150, S_ - 160, 52): d.rectangle([x, 190, x + 38, 250], fill=(255, 255, 255, 255))
+    for x in (185, S_ - 185): d.ellipse([x - 30, 315, x + 30, 375], fill=(20, 20, 22, 255)); d.ellipse([x - 12, 333, x + 12, 357], fill=(255, 255, 255, 255))
+    img.save(out / "znak_d15.png")
+    img = Image.new("RGBA", (512, 700), (246, 244, 238, 255)); d = ImageDraw.Draw(img)
+    f1 = ImageFont.truetype(FONT_B, 40); f2 = ImageFont.truetype(FONT_B, 22)
+    d.rectangle([0, 0, 512, 70], fill=(24, 44, 96, 255)); d.text((22, 14), "ROZKŁAD JAZDY", font=f1, fill=(255, 255, 255, 255))
+    for i in range(18):
+        y = 90 + i * 33; d.line([20, y + 28, 492, y + 28], fill=(200, 200, 196, 255), width=2)
+        d.text((24, y), "%02d" % (5 + i), font=f2, fill=(20, 20, 22, 255))
+        d.text((80, y), "  ".join("%02d" % m for m in (2, 14, 26, 38, 50)[: 3 + (i % 3)]), font=f2, fill=(60, 60, 64, 255))
+    img.save(out / "rozklad.png")
+
+
 def banery(out):
     """Banery nad podcieniem marketu: reklamy BRAXHORN MARKET (bez prawdziwych marek, ZASADY 7.4)."""
     teksty = [("ŚWIEŻE CODZIENNIE", "pieczywo · warzywa · mięso"), ("NISKIE CENY", "każdego dnia"),
@@ -325,6 +352,7 @@ if __name__ == "__main__":
     zywoplot_galazki(out / "zywoplot_galazki.png")
     szyldy(out)
     menu_bosna(out)
+    przystanki(out)
     banery(out)
     for nr in ("28", "30", "32", "34", "36", "38"):
         napis_blok(out / ("napis_blok_%s.png" % nr), nr)

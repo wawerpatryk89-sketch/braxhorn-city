@@ -176,6 +176,12 @@ for _k, _c in (("kiosk_bialy", [232, 230, 224]), ("kiosk_dach", [70, 72, 76]), (
 P["szyld_bosna"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [236, 196, 40], "szorst": .6, "nakl": "szyld_bosna.png"}
 P["szyld_burger"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [28, 28, 30], "szorst": .6, "nakl": "szyld_burger.png"}
 P["szyld_zapiekanki"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [196, 40, 34], "szorst": .6, "nakl": "szyld_zapiekanki.png"}
+# przystanki (24.11 00:50): nazwy z OSM (publiczne nazwy przystanków, nie marki), ostatnia = ogólna
+PRZYSTANKI = ["Skłodowskiej-Curie / Jurasza", "Rondo Skrzetuskie", "Rondo Fordońskie", "Wyszyńskiego / Powstańców Wielkopolskich", "PRZYSTANEK"]
+for _k in range(len(PRZYSTANKI)):
+    P["tabl_przyst_%d" % _k] = {"tex": "lakier_blacha", "m": 2.5, "kol": [24, 44, 96], "szorst": .6, "nakl": "tabl_przyst_%d.png" % _k}
+P["znak_d15"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [0, 88, 168], "szorst": .5, "nakl": "znak_d15.png"}
+P["rozklad"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [244, 242, 236], "szorst": .6, "nakl": "rozklad.png"}
 P["menu_bosna"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [26, 28, 28], "szorst": .7, "nakl": "menu_bosna.png"}   # tablica busa z bosną
 P["szyld_lody"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [44, 44, 46], "szorst": .6, "nakl": "szyld_lody.png"}
 P["deska"] = {"tex": "weathered_brown_planks", "m": 2.0, "kol": [120, 96, 72], "szorst": 1.0}

@@ -77,10 +77,15 @@ def zebry(pkt, ulice, szer):
     return out
 
 
+WIATY = []
+
+
 def zbuduj(d, G, szer, okno, drzewa, latarnie):
     """Siatka wyposażenia + lista nazw (opis). G = geometria terenu z teren.zbuduj (jezdnie, chodniki, budynki)."""
     S = Siatka(); R = random.Random(23); opis = {}
     pkt, linie = osm()
+    WIATY.clear()
+    pkt = sorted(pkt, key=lambda pt: 0 if pt[1].get("highway") == "bus_stop" else 1)    # perony przed punktami zatrzymania
     W = lambda p: okno.buffer(-1).contains(Point(*p))
     ulice = d["ulice"]
 
@@ -111,8 +116,13 @@ def zbuduj(d, G, szer, okno, drzewa, latarnie):
             if not dr: continue
             _, q, tt, kl, _ = dr
             n = nrm(np.array([p[0] - q[0], 0, p[1] - q[1]]))
+            if np.linalg.norm([p[0] - q[0], p[1] - q[1]]) < .5: continue      # punkt na osi jezdni (stop_position) — strona niepewna
             o = X3(q[0], .12, q[1]) + n * (szer.get(kl, 7) / 2 + 2.4)
-            wiata(S, o, tt, n); ile("przystanki")
+            # 24.11 00:50 właściciel: przystanek po jednej i po drugiej stronie — jedna wiata na stronę (OSM ma peron
+            # i punkt zatrzymania dla tej samej strony; peron ma pierwszeństwo, bo pętla bierze go wcześniej)
+            if any(np.linalg.norm(o - e) < 35 and float(np.dot(n, en)) > .5 for (e, en) in WIATY): continue
+            WIATY.append((o, n))
+            wiata(S, o, tt, n, t.get("name") or ""); ile("przystanki")
         elif ba == "lift_gate":
             dr = droga_przy(p, ulice, 8)
             if not dr: continue
@@ -169,9 +179,26 @@ def sygnalizator(S, o, t, n):
         B(S, g, m, h + UP * (.72 - k * .28) + n * .12, t, n, .2, .2, .03)
 
 
-def wiata(S, o, t, n):
-    """Wiata przystankowa 4,6 x 1,5 x 2,5 m: granatowa rama, szkło z tyłu i z boków, dach, ławka (IMG_1670, IMG_1672)."""
+def wiata(S, o, t, n, nazwa=""):
+    """Wiata przystankowa 4,6 x 1,5 x 2,5 m: granatowa rama, szkło z tyłu i z boków, dach, ławka (IMG_1670, IMG_1672).
+    24.11: tablica z nazwą przystanku na czole dachu, rozkład jazdy na bocznej szybie, słupek ze znakiem D-15 przy krawężniku
+    (znak przodem do nadjeżdżających — ruch prawostronny)."""
+    import paleta
     g = "wyposazenie"; L, G, H = 4.6, 1.5, 2.5
+    t = nrm(t); n = nrm(n)
+    # utwardzenie pod wiatą (zdjęcia: wiata stoi na kostce, nie na trawie) — płyta 4 cm nad chodnikiem, krawędź z granitu
+    S.box(g, "kostka", o - t * (L / 2 + .5) - n * .3 + UP * -.12, t, UP, n, L + 1.0, .16, G + .7)
+    k = paleta.PRZYSTANKI.index(nazwa) if nazwa in paleta.PRZYSTANKI else len(paleta.PRZYSTANKI) - 1
+    a0 = o + UP * (H - .05) - n * .17                                     # tablica z nazwą: czoło dachu od jezdni
+    S.quad(g, "tabl_przyst_%d" % k, a0 - t * 1.6, a0 + t * 1.6, a0 + t * 1.6 + UP * .26, a0 - t * 1.6 + UP * .26, uv1=[(0, 0), (1, 0), (1, 1), (0, 1)], kier=-n)
+    r0 = o + t * (L / 2 - .02) + n * .25 + UP * .9                         # rozkład jazdy na bocznej szybie (od środka)
+    S.quad(g, "rozklad", r0, r0 + n * .55, r0 + n * .55 + UP * .75, r0 + UP * .75, uv1=[(0, 0), (1, 0), (1, 1), (0, 1)], kier=-t)
+    d_ = np.array([-n[2], 0., n[0]])                                     # kierunek jazdy pasa przy wiacie (prawostronny)
+    sp = o - n * 1.7 + d_ * (L / 2 + 1.2)
+    S.rura(g, "stal_ocynk", sp, sp + UP * 2.75, .03, seg=6)
+    z0 = sp + UP * 2.15 - d_ * .04
+    S.quad(g, "znak_d15", z0 - n * .3, z0 + n * .3, z0 + n * .3 + UP * .6, z0 - n * .3 + UP * .6, uv1=[(0, 0), (1, 0), (1, 1), (0, 1)], kier=-d_)
+    S.quad(g, "stal_ocynk", z0 - n * .3 + d_ * .01, z0 + n * .3 + d_ * .01, z0 + n * .3 + d_ * .01 + UP * .6, z0 - n * .3 + d_ * .01 + UP * .6, kier=d_)
     back = o + n * G
     for a in (-L / 2, L / 2):
         for b in (0, G):
