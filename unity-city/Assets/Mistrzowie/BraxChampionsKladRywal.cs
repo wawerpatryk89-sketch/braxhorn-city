@@ -9,7 +9,7 @@ using UnityEngine;
 //     their radius and the berm's bank, the obstacles' caps, the braking for what comes), times the rider's skill - except
 //     on a double's run-up, where the speed is the jump's own;
 //   - in the air nothing (the rider's body brings the nose, BraxChampionsKlad), no tricks;
-//   - a slower rider ahead on its lane: it moves over to pass; a split stretch of the track ahead: its right line;
+//   - a slower rider ahead on its lane: it moves over to pass;
 //   - on its back, stuck or off the track for a while: back on its lane where it was (as a marshal would set it up).
 [DisallowMultipleComponent]
 [DefaultExecutionOrder(5090)]                                    // the hands before the quad's own physics step
@@ -74,10 +74,9 @@ public sealed class BraxChampionsKladRywal : MonoBehaviour
             if (lp.z > 0f && lp.z < 9f && Mathf.Abs(lp.x) < 1.6f && inny.PredkoscKmh < k.PredkoscKmh + 3f)
             { cel = pas + (lp.x > 0f ? -1.8f : 1.8f); break; }
         }
-        // a split stretch ahead (the track's side lines): the right line, its rollers (the left one's gap jump is the player's)
-        int jp = (Idx + Mathf.Max(2, Mathf.RoundToInt((4.5f + v * .5f) / w.krok))) % n;
-        if (w.prawa.Length == n && (w.prawa[Idx] || w.prawa[jp])) cel = Mathf.Clamp(cel, -2.6f, -1.1f);
-        pasTeraz = Mathf.MoveTowards(pasTeraz, Mathf.Clamp(cel, -2.6f, 2.6f), 1.4f * dt);
+        // the lane drawn in on the narrow trail (its lane is for the 8 m start: the woods' 5 m take ~half of it)
+        float hw = w.szer.Length == n ? w.szer[(Idx + 4) % n] * .5f : 4f, skala = Mathf.Clamp01((hw - .8f) / 3.2f), granica = Mathf.Max(.3f, hw - .9f);
+        pasTeraz = Mathf.MoveTowards(pasTeraz, Mathf.Clamp(cel * skala, -granica, granica), 1.4f * dt);
 
         // ---- the bars: pure pursuit of the lane's point ahead
         float ld = 4.5f + v * .5f;                                            // real metres
@@ -108,9 +107,10 @@ public sealed class BraxChampionsKladRywal : MonoBehaviour
         var w = wyscig; var k = Klad; int n = w.punkty.Length;
         int i = Idx, i2 = (Idx + 1) % n;
         var f = w.punkty[i2] - w.punkty[i]; f.y = 0f; if (f.sqrMagnitude < 1e-4f) f = k.transform.forward; f.Normalize();
-        var p = w.punkty[i] + w.lewo[i] * (pas * w.K) + Vector3.up * (.6f * w.K);
+        float sk = w.szer.Length == n ? Mathf.Clamp01((w.szer[i] * .5f - .8f) / 3.2f) : 1f;
+        var p = w.punkty[i] + w.lewo[i] * (pas * sk * w.K) + Vector3.up * (.6f * w.K);
         k.Ustaw(p, Quaternion.LookRotation(f, Vector3.up), f * Mathf.Min(w.vCel[i] * .5f, 6f) * w.K);
-        przewrot = stoi = zgubiony = 0f; pasTeraz = pas;
+        przewrot = stoi = zgubiony = 0f; pasTeraz = pas * sk;
         Debug.Log("BRAX_WYSCIG rywal " + imie + " wraca na tor idx=" + i);
     }
 }

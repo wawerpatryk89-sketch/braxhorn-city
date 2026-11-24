@@ -7,21 +7,24 @@ using UnityEngine.Rendering;
 using W = BraxWnetrzaKit;
 
 /// <summary>THE BRAXHORN QUAD TRACK (owner 24.11.2026 11:31-11:45: "tor do kładów gdzieś z boku ... jakiś zajebisty", "Zrób tam,
-/// gdzie poleciłeś, zachód", "dobry zrobić ... jakieś górki, pagórki, wyskoki, coś fajnego", "budkę trzeba zrobić ładną.
-/// Wypożyczanie z tych kładów ... minimum 4 kłady").
-/// West of the city, north of the D2 railway hill (its ellipse ends at z ~587): a 1.7 km loop, 8 m wide (FIM motocross:
-/// 1.5-2 km, at least 6 m of riding width, a start straight of 80-120 m with no jump, rolling waves 8-10 m apart and at most
-/// 0.8 m high - FIM 65.200.03 Circuits), on the land's own lie (the far land's height under it, smoothed along the track).
-/// Along it, in the riding order: the start straight from the gate past the paddock and the grandstand, the first right
-/// hander, a short straight north, a left hander into the big TABLE-TOP and a DOUBLE, the long west straight down the HILL
-/// (a 10 % climb, a steep drop) and through the WAVES, a small table, the south straight's WHOOPS, the STEP-UP / step-down,
-/// another double, rollers, the FORD (a muddy dip with water), a small table, the east straight's waves and the last big
-/// table before the paddock. Every turn a BERM (the outer edge raised, up to 13 degrees). The surface: Poly Haven Muddy
-/// Tracks (tyre ruts along the riding line), its shoulders Brown Mud 02, the paddock and the road Gravel Ground 01 (none of
-/// the owner's list is dirt - ZASADY 5.8: off the list only when nothing on it fits).
+/// gdzie poleciłeś, zachód", "górki, pagórki, wyskoki", "budkę trzeba zrobić ładną ... minimum 4 kłady"; 14:00-14:04, with his
+/// two photos of real tracks: "jakieś zakręty ... weź zobacz jak na internecie jak to wygląda", "w jakichś błotach albo po jakichś
+/// lasach", "Coś takiego lasy, górki"; the plan's map accepted 14:20 with "więcej lasu").
+/// West of the city, north of the D2 railway hill: a 2.5 km loop the way the owner's photos show them - a narrow track snaking
+/// back and forth in hairpins with grass and trees between its loops, on a wooded hill. In the riding order: the start
+/// straight (8 m, from the gate past the paddock and the grandstand, no jump - FIM), turn 1, then the WOODS (5 m wide: the
+/// GNCC-style cross-country ATV trails): switchbacks up the north face of an 18 m hill (logs, a mud hole), over its top,
+/// switchbacks down its south face (a creek), out along its foot through the big MUD PIT; then the MOTOCROSS field (7 m): five
+/// bands with an S-bend each and banked hairpins between them - a rhythm double and the big table, whoops and a small table,
+/// the step-up and rollers, rollers and a small table, the last big table and a double - and the last corner onto the start
+/// straight. Every turn a BERM (the outer edge raised, up to 13 degrees). Trees everywhere off the track: the hill's forest,
+/// rows and clumps between the field's loops, a forest wall round the site (BraxChampionsLasKladow). The surface: Poly Haven
+/// Muddy Tracks (tyre ruts), its shoulders Brown Mud 02, the mud Aerial Mud 1, the paddock and the road Gravel Ground 01 (no
+/// dirt on the owner's list - ZASADY 5.8).
 /// The paddock: the rental booth (WYPOŻYCZALNIA KŁADÓW BRAXHORN) with the six quads in their bays (BraxChampionsKlady), the
-/// grandstand over the start straight, the start gate, the START / META arch, light masts; the road from the city's
-/// north-west corner (the street mouth at x 60, z 935). The lap timer: BraxChampionsTorCzas. All in nominal metres x K.</summary>
+/// grandstand over the start straight, the start gate, the START / META arch, light masts, the riders' park; the freestyle
+/// zone north of the start straight; the road from the city's north-west corner (the street mouth at x 60, z 935). The lap
+/// timer: BraxChampionsTorCzas; the race: BraxChampionsWyscig. All in nominal metres x K.</summary>
 public static class BraxChampionsTorKladow
 {
     static float K => BraxClaudeOsiedle.K;
@@ -34,52 +37,97 @@ public static class BraxChampionsTorKladow
     public const float PX0 = -160f, PX1 = -30f, PZ0 = 936f, PZ1 = 1008f;              // the paddock (inside the fence: z 1024)
     public const float DrogaZ = 942f, DrogaX0 = -30f, DrogaX1 = 50f, DrogaPol = 3.5f, DrogaMiasto = .33f;   // the road east to the city's sidewalk (x 53)
     public const float MetaX = -130f, BramkaX = -72f;                                    // the finish line, the start gate
-    // the loop's corners in the riding order (x, z, fillet radius): the start straight runs west along z 915 into corner 0
-    public static readonly Vector3[] Rogi =
+    // the riding widths: the start straight, the motocross field, the woods' trail
+    public const float Start = 8f, MX = 7f, Las = 5f;
+    // the loop's corners in the riding order (x, z, fillet radius, the width from this corner on): the start straight runs west
+    // along z 915 into corner 0; the woods from corner 1 to corner 32, the field from 32 on (the plan of 24.11, v9)
+    public static readonly Vector4[] Rogi =
     {
-        new Vector3(-280f, 915f, 18f), new Vector3(-280f, 1010f, 18f), new Vector3(-490f, 1010f, 22f), new Vector3(-490f, 690f, 24f),
-        new Vector3(-360f, 690f, 18f), new Vector3(-360f, 840f, 16f), new Vector3(-260f, 860f, 16f), new Vector3(-250f, 760f, 16f),
-        new Vector3(-170f, 700f, 20f), new Vector3(-60f, 700f, 20f), new Vector3(-40f, 915f, 20f),
+        new Vector4(-266f, 915f, 16f, MX), new Vector4(-266f, 889f, 9f, Las), new Vector4(-318f, 889f, 14f, Las), new Vector4(-334f, 899f, 14f, Las),
+        new Vector4(-374f, 899f, 14f, Las), new Vector4(-390f, 889f, 14f, Las), new Vector4(-482f, 889f, 9f, Las), new Vector4(-482f, 871f, 9f, Las),
+        new Vector4(-446f, 871f, 14f, Las), new Vector4(-432f, 865f, 14f, Las), new Vector4(-404f, 865f, 14f, Las), new Vector4(-390f, 871f, 14f, Las),
+        new Vector4(-326f, 871f, 9f, Las), new Vector4(-326f, 853f, 9f, Las), new Vector4(-452f, 853f, 9f, Las), new Vector4(-452f, 831f, 12f, Las),
+        new Vector4(-432f, 814f, 12f, Las), new Vector4(-432f, 790f, 12f, Las), new Vector4(-452f, 770f, 12f, Las), new Vector4(-452f, 750f, 9f, Las),
+        new Vector4(-412f, 750f, 12f, Las), new Vector4(-397f, 759f, 12f, Las), new Vector4(-372f, 759f, 12f, Las), new Vector4(-357f, 750f, 12f, Las),
+        new Vector4(-334f, 750f, 9f, Las), new Vector4(-334f, 732f, 9f, Las), new Vector4(-396f, 732f, 12f, Las), new Vector4(-406f, 727f, 12f, Las),
+        new Vector4(-428f, 727f, 12f, Las), new Vector4(-438f, 732f, 12f, Las), new Vector4(-452f, 732f, 9f, Las), new Vector4(-452f, 714f, 9f, Las),
+        new Vector4(-300f, 714f, 25f, MX), new Vector4(-280f, 700f, 25f, MX), new Vector4(-235f, 700f, 16f, MX), new Vector4(-222f, 712f, 16f, MX),
+        new Vector4(-200f, 712f, 16f, MX), new Vector4(-187f, 700f, 16f, MX), new Vector4(-50f, 700f, 21f, MX), new Vector4(-50f, 742f, 21f, MX),
+        new Vector4(-170f, 742f, 16f, MX), new Vector4(-183f, 754f, 16f, MX), new Vector4(-205f, 754f, 16f, MX), new Vector4(-218f, 742f, 16f, MX),
+        new Vector4(-250f, 742f, 21f, MX), new Vector4(-250f, 784f, 21f, MX), new Vector4(-220f, 784f, 16f, MX), new Vector4(-207f, 772f, 16f, MX),
+        new Vector4(-185f, 772f, 16f, MX), new Vector4(-172f, 784f, 16f, MX), new Vector4(-70f, 784f, 21f, MX), new Vector4(-70f, 826f, 21f, MX),
+        new Vector4(-172f, 826f, 16f, MX), new Vector4(-185f, 838f, 16f, MX), new Vector4(-207f, 838f, 16f, MX), new Vector4(-220f, 826f, 16f, MX),
+        new Vector4(-250f, 826f, 21f, MX), new Vector4(-250f, 868f, 21f, MX), new Vector4(-222f, 868f, 16f, MX), new Vector4(-209f, 858f, 16f, MX),
+        new Vector4(-187f, 858f, 16f, MX), new Vector4(-174f, 868f, 16f, MX), new Vector4(-19f, 868f, 16f, MX), new Vector4(-19f, 915f, 16f, Start),
     };
 
+    // ---------------------------------------------------------------- the hill (owner 14:04: "lasy, górki")
+    // An 18 m wooded hill in the site's west (its slope a raised cosine, 150 m round), on the land's own lie; it fades out
+    // before the site's rim band (the far land meets the site's ground there as before).
+    public const float GoraX = -410f, GoraZ = 820f, GoraH = 18f, GoraR = 150f;
+    public static float Gora(float x, float z)
+    {
+        float d = Mathf.Sqrt((x - GoraX) * (x - GoraX) + (z - GoraZ) * (z - GoraZ));
+        if (d >= GoraR) return 0f;
+        return GoraH * .5f * (1f + Mathf.Cos(Mathf.PI * d / GoraR)) * Smooth(0f, RimBand + 12f, DoKrawedzi(x, z));
+    }
+    /// <summary>The land's own lie inside the site: the far land and the hill.</summary>
+    public static float Naturalna(float x, float z) => BraxChampionsHorizon.FarHeight(x, z) + Gora(x, z);
+
     // ---------------------------------------------------------------- the obstacles
-    public enum Typ { Stol, Podwojna, Schodek, Fale, Muldy, Gorka, Brod, Bloto }
+    public enum Typ { Stol, Podwojna, Schodek, Fale, Muldy, Gorka, Brod, Bloto, Klody }
     public struct Przeszkoda
     {
         public int prosta; public float od; public Typ typ; public float h; public int n;
         public float s0, dl;                                       // set from the centre line: its start along the loop, its length
         public Przeszkoda(int prosta, float od, Typ typ, float h, int n = 0) { this.prosta = prosta; this.od = od; this.typ = typ; this.h = h; this.n = n; s0 = 0f; dl = 0f; }
     }
+    public const float KlodaOdstep = 2.4f, KlodaR = .2f;           // logs 0.4 m thick, 2.4 m apart, each on its dirt ramps
     // the straight i runs from corner i to corner i+1; od = metres from the straight's start
     public static readonly Przeszkoda[] Przeszkody =
     {
-        new Przeszkoda(1, 28f, Typ.Stol, 2.4f),          // the big table-top: 8 m face (~19 deg to the lip), 16 m top, 11 m landing
-        new Przeszkoda(1, 100f, Typ.Podwojna, 2.0f),     // a double: 15 m between the faces
-        new Przeszkoda(2, 18f, Typ.Gorka, 4.5f),         // the hill: 40 m at 11 %, 8 m crest, an 18 m drop (25 %)
-        new Przeszkoda(2, 118f, Typ.Fale, .7f, 7),       // the waves: 7 x 9 m, 0.7 m (FIM: 8-10 m apart, <= 0.8 m)
-        new Przeszkoda(2, 205f, Typ.Stol, 1.3f),         // a small table
-        new Przeszkoda(3, 18f, Typ.Muldy, .45f, 12),     // the whoops: 12 x 4.5 m, 0.45 m
-        new Przeszkoda(4, 22f, Typ.Schodek, 1.5f),       // step up 1.5 m, 22 m plateau, step down onto a 9 m landing
-        new Przeszkoda(5, 14f, Typ.Podwojna, 1.5f),      // another double
-        new Przeszkoda(6, 18f, Typ.Fale, .6f, 4),        // rollers
-        new Przeszkoda(7, 30f, Typ.Brod, .8f),           // the ford: an 18 m dip, 0.8 m, water 0.42 m deep
-        new Przeszkoda(8, 26f, Typ.Stol, 1.3f),          // a small table
-        new Przeszkoda(9, 18f, Typ.Fale, .7f, 4),        // waves
-        new Przeszkoda(9, 95f, Typ.Stol, 2.4f),          // the last big table before the paddock
-        new Przeszkoda(4, 72f, Typ.Bloto, .3f),          // the mud pit (owner 24.11 12:57): 26 m of wet mud, 0.3 m down (BraxChampionsBloto)
+        // the woods
+        new Przeszkoda(1, 12f, Typ.Klody, .38f, 2),       // into the woods: two logs across the trail
+        new Przeszkoda(5, 30f, Typ.Bloto, .35f, 18),      // a mud hole on the north face (18 m, 0.35 m deep)
+        new Przeszkoda(11, 20f, Typ.Klody, .38f, 1),      // a log
+        new Przeszkoda(13, 70f, Typ.Klody, .38f, 3),      // three logs on the climb to the top
+        new Przeszkoda(25, 15f, Typ.Brod, .8f),           // the creek on the south face: an 18 m dip, 0.8 m, water 0.42 m deep
+        new Przeszkoda(31, 40f, Typ.Bloto, .3f, 26),      // the big mud pit along the hill's foot (owner 24.11 12:57)
+        new Przeszkoda(31, 85f, Typ.Fale, .6f, 3),        // rollers out of the woods
+        // the motocross field
+        new Przeszkoda(37, 10f, Typ.Podwojna, 1.5f),      // band 1: the rhythm double
+        new Przeszkoda(37, 55f, Typ.Stol, 2.4f),          //         the big table-top: 8 m face (~19 deg to the lip), 16 m top, 11 m landing
+        new Przeszkoda(39, 8f, Typ.Muldy, .45f, 10),      // band 2: the whoops, 10 x 4.5 m, 0.45 m
+        new Przeszkoda(39, 62f, Typ.Stol, 1.3f),          //         a small table
+        new Przeszkoda(49, 10f, Typ.Schodek, 1.5f),       // band 3: step up 1.5 m, 22 m plateau, step down onto a 9 m landing
+        new Przeszkoda(49, 50f, Typ.Fale, .7f, 2),        //         two rollers (FIM: 8-10 m apart, <= 0.8 m)
+        new Przeszkoda(51, 6f, Typ.Fale, .7f, 4),         // band 4: rollers
+        new Przeszkoda(51, 45f, Typ.Stol, 1.3f),          //         a small table
+        new Przeszkoda(61, 15f, Typ.Stol, 2.4f),          // band 5: the last big table
+        new Przeszkoda(61, 70f, Typ.Podwojna, 2.0f),      //         and a double before the last corner
     };
     public const float WodaGlebokosc = .42f;
 
-    // ---------------------------------------------------------------- the freestyle zone (owner 24.11 12:57: "rampy po bokach")
-    // In the infield north-west (clear of every section by 25 m+): three lanes running east, each a steel kicker (a circular
-    // transition to its lip, the way FMX ramps are built) and an earth landing (a 1:1 face, a 4 m knuckle deck, a 26 deg
-    // landing slope). The gaps from the ballistics (v at the lip, the lip's angle, gravity): the small one is cleared from
-    // ~39 km/h at the lip, the medium from ~47, the big (the steepest, the longest flight: 1.6 s) from ~47 - both quads get
-    // there on the 70 m run-up with the climb up the kicker taken off (the utility Rancher with ~20 % to spare).
-    public const float FX0 = -460f, FX1 = -315f, FZ0 = 878f, FZ1 = 985f, FLip = -382f, FBieg = 70f;
+    // ---------------------------------------------------------------- the freestyle zone (owner 24.11 12:57: "rampy po bokach";
+    // 14:00 "jak to takie dziwne przeskoczyć?" - redone as a real FMX set-up and moved north of the start straight)
+    // On bare earth, 25 m+ from the track: three lanes running east, each an FMX kicker - a steel deck on a circular
+    // transition to its lip, on an open steel frame (posts, diagonal braces, the lip's legs), its lip painted - and a big dirt
+    // landing: a steep 1:1 face towards the kicker, a 2 m knuckle 0.5 m over the lip, then a long landing (a smooth curve,
+    // steepest ~32 deg) into the run-out. The gap and the window of speeds from the ballistics (VMin to the knuckle, VMax to
+    // the landing's foot); a board at each run-up's start gives it; both quads reach the slowest on the 70 m run-up after the
+    // climb (the utility Rancher with 18 % to spare on the big one).
+    public const float FX0 = -300f, FX1 = -170f, FZ0 = 945f, FZ1 = 1018f, FLip = -220f, FBieg = 70f;
     public struct Wyrzutnia { public float z, h, kat, luka, ladowanie; public Wyrzutnia(float z, float h, float kat, float luka, float ladowanie) { this.z = z; this.h = h; this.kat = kat; this.luka = luka; this.ladowanie = ladowanie; } }
-    public static readonly Wyrzutnia[] Rampy = { new Wyrzutnia(905f, 1.6f, 30f, 10f, 1.8f), new Wyrzutnia(935f, 2.2f, 35f, 15f, 3.0f), new Wyrzutnia(965f, 2.6f, 40f, 16f, 3.2f) };
-    public const float RampaSzer = 4.5f, LadowanieSzer = 9f, LadowanieDeck = 4f, LadowanieKat = 26f;
+    public static readonly Wyrzutnia[] Rampy = { new Wyrzutnia(958f, 2.2f, 35f, 12f, 2.7f), new Wyrzutnia(980f, 2.6f, 38f, 14f, 3.1f), new Wyrzutnia(1002f, 3.0f, 40f, 16f, 3.5f) };
+    public const float RampaSzer = 4.5f, LadowanieSzer = 10f, LadowanieDeck = 2f, LadowanieKat = 28f, Wybieg = 15f;
+    /// <summary>The landing's slope length (a smooth curve from the knuckle to the ground, steepest ~32 deg).</summary>
+    public static float LadowanieDl(Wyrzutnia r) => r.ladowanie / Mathf.Tan(LadowanieKat * Mathf.Deg2Rad) * 1.6f;
+    /// <summary>The fastest speed at the lip (real m/s) that still lands on the landing (at its foot).</summary>
+    public static float VMax(Wyrzutnia r)
+    {
+        float a = r.kat * Mathf.Deg2Rad, l = r.luka + LadowanieDeck + LadowanieDl(r), dh = r.h + l * Mathf.Tan(a);
+        return Mathf.Sqrt(9.81f * l * l / (2f * Mathf.Cos(a) * Mathf.Cos(a) * Mathf.Max(.01f, dh)));
+    }
     /// <summary>The kicker's length (the circular transition: radius h / (1 - cos a), length R sin a).</summary>
     public static float RampaDl(Wyrzutnia r) { float a = r.kat * Mathf.Deg2Rad, R = r.h / (1f - Mathf.Cos(a)); return R * Mathf.Sin(a); }
     /// <summary>The slowest speed at the lip (real m/s) that reaches the landing's knuckle.</summary>
@@ -89,13 +137,13 @@ public static class BraxChampionsTorKladow
         return Mathf.Sqrt(9.81f * r.luka * r.luka / (2f * Mathf.Cos(a) * Mathf.Cos(a) * Mathf.Max(.01f, dh)));
     }
     static float freestyleY = float.NaN;
-    public static float FreestyleY { get { if (float.IsNaN(freestyleY)) freestyleY = BraxChampionsHorizon.FarHeight((FX0 + FX1) * .5f, (FZ0 + FZ1) * .5f); return freestyleY; } }
-    static float DoFreestyle(float x, float z) { float dx = Mathf.Max(Mathf.Max(FX0 - x, x - FX1), 0f), dz = Mathf.Max(Mathf.Max(FZ0 - z, z - FZ1), 0f); return Mathf.Sqrt(dx * dx + dz * dz); }
+    public static float FreestyleY { get { if (float.IsNaN(freestyleY)) freestyleY = Naturalna((FX0 + FX1) * .5f, (FZ0 + FZ1) * .5f); return freestyleY; } }
+    public static float DoFreestyle(float x, float z) { float dx = Mathf.Max(Mathf.Max(FX0 - x, x - FX1), 0f), dz = Mathf.Max(Mathf.Max(FZ0 - z, z - FZ1), 0f); return Mathf.Sqrt(dx * dx + dz * dz); }
 
     // ---------------------------------------------------------------- the centre line: fillets, sampled every 0.5 m
     public sealed class Os
     {
-        public float[] x, z, tx, tz, kr, s; public float dlugosc;
+        public float[] x, z, tx, tz, kr, s, w; public float dlugosc;     // w: the riding width there (smoothed over 16 m)
         public float[] prostaOd, prostaDo;                           // each straight's s range
         public int N => x.Length;
     }
@@ -107,7 +155,7 @@ public static class BraxChampionsTorKladow
     {
         if (os != null) return os;
         int n = Rogi.Length;
-        var px = new List<float>(); var pz = new List<float>(); var pk = new List<float>();
+        var px = new List<float>(); var pz = new List<float>(); var pk = new List<float>(); var pw = new List<float>();
         var prostaOd = new float[n]; var prostaDo = new float[n];
         // tangent points of each corner's fillet
         var t1 = new Vector2[n]; var t2 = new Vector2[n]; var ctr = new Vector2[n]; var a0 = new float[n]; var da = new float[n];
@@ -126,11 +174,12 @@ public static class BraxChampionsTorKladow
             da[i] = Mathf.DeltaAngle(a0[i] * Mathf.Rad2Deg, a1 * Mathf.Rad2Deg) * Mathf.Deg2Rad;
         }
         float s = 0f; const float krok = .5f;
-        void Dodaj(Vector2 p, float k) { px.Add(p.x); pz.Add(p.y); pk.Add(k); }
+        float wr = 0f;
+        void Dodaj(Vector2 p, float k) { px.Add(p.x); pz.Add(p.y); pk.Add(k); pw.Add(wr); }
         for (int i = 0; i < n; i++)
         {
             // the arc of corner i (curvature + for a left turn: x east, z north, left = counter-clockwise)
-            float R = Rogi[i].z, len = Mathf.Abs(da[i]) * R; int m = Mathf.Max(2, Mathf.CeilToInt(len / krok));
+            float R = Rogi[i].z, len = Mathf.Abs(da[i]) * R; int m = Mathf.Max(2, Mathf.CeilToInt(len / krok)); wr = Rogi[i].w;
             for (int k = 0; k < m; k++) { float a = a0[i] + da[i] * k / m; Dodaj(ctr[i] + R * new Vector2(Mathf.Cos(a), Mathf.Sin(a)), Mathf.Sign(da[i]) / R); }
             s += len;
             // the straight to corner i+1
@@ -140,6 +189,8 @@ public static class BraxChampionsTorKladow
             s += L;
         }
         var o = new Os { x = px.ToArray(), z = pz.ToArray(), kr = pk.ToArray(), prostaOd = prostaOd, prostaDo = prostaDo };
+        // the width from its corners, changing over 16 m (the trail narrows into the woods, widens out of them)
+        { int N0 = pw.Count, ww = 16; o.w = new float[N0]; for (int i = 0; i < N0; i++) { float sum = 0f; for (int k = -ww; k <= ww; k++) sum += pw[(i + k + N0) % N0]; o.w[i] = sum / (2 * ww + 1); } }
         int N = o.x.Length; o.s = new float[N]; o.tx = new float[N]; o.tz = new float[N];
         for (int i = 1; i < N; i++) o.s[i] = o.s[i - 1] + Mathf.Sqrt((o.x[i] - o.x[i - 1]) * (o.x[i] - o.x[i - 1]) + (o.z[i] - o.z[i - 1]) * (o.z[i] - o.z[i - 1]));
         o.dlugosc = o.s[N - 1] + Mathf.Sqrt((o.x[0] - o.x[N - 1]) * (o.x[0] - o.x[N - 1]) + (o.z[0] - o.z[N - 1]) * (o.z[0] - o.z[N - 1]));
@@ -162,16 +213,9 @@ public static class BraxChampionsTorKladow
             if (p.s0 + p.dl > o.prostaDo[p.prosta] - 6f) throw new InvalidOperationException("quad track: obstacle " + i + " runs into a turn");
             ulozone[i] = p;
         }
-        rozwidlenia = new Rozwidlenie[Rozwidlenia.Length];
-        for (int i = 0; i < Rozwidlenia.Length; i++)
-        {
-            var r = Rozwidlenia[i]; r.s0 = o.prostaOd[r.prosta] + r.od;
-            if (r.s0 + r.dl > o.prostaDo[r.prosta] - 4f || r.Koniec > r.dl - 4f) throw new InvalidOperationException("quad track: split " + i + " runs into a turn");
-            rozwidlenia[i] = r;
-        }
         return os;
     }
-    static Vector2 P(Vector3 r) => new Vector2(r.x, r.y);
+    static Vector2 P(Vector4 r) => new Vector2(r.x, r.y);
 
     public static float Dlugosc(Przeszkoda p)
     {
@@ -184,7 +228,8 @@ public static class BraxChampionsTorKladow
             case Typ.Muldy: return p.n * 4.5f;
             case Typ.Gorka: return 40f + 8f + 18f;
             case Typ.Brod: return 18f;
-            case Typ.Bloto: return 26f;
+            case Typ.Bloto: return p.n > 0 ? p.n : 26f;
+            case Typ.Klody: return (Mathf.Max(1, p.n) - 1) * KlodaOdstep + 2f;
         }
         return 0f;
     }
@@ -228,62 +273,17 @@ public static class BraxChampionsTorKladow
                 return p.h * (1f - Esa((t - 48f) / 18f));
             case Typ.Brod: return -p.h * .5f * (1f - Mathf.Cos(2f * Mathf.PI * t / 18f));
             case Typ.Bloto: return -p.h * (t < 4f ? Esa(t / 4f) : t > p.dl - 4f ? 1f - Esa((t - p.dl + 4f) / 4f) : 1f);   // in 4 m, flat, out 4 m
+            case Typ.Klody:
+            {
+                // each log on its dirt ramps: a 2 m bump to the log's top (the ray-cast wheel rolls over it, the log lies on it)
+                float h = 0f;
+                for (int k = 0; k < Mathf.Max(1, p.n); k++) { float d = Mathf.Abs(t - 1f - k * KlodaOdstep); if (d < 1f) h = Mathf.Max(h, p.h * .5f * (1f + Mathf.Cos(Mathf.PI * d))); }
+                return h;
+            }
         }
         return 0f;
     }
     /// <summary>The obstacles' height over the track's base at s.</summary>
-    // ---------------------------------------------------------------- the side lines (owner 24.11 12:57: "boczne linie")
-    // On the two long straights the track splits along its middle for a stretch (a row of stakes between): the right half keeps
-    // its rollers, the left one is the brave line - a gap jump over them (a steel-faced kicker, a gap, an earth landing: the way
-    // the MX tracks' alternate lines are), the halves meeting again after it. The ribbon's columns are 1 m apart, so the two
-    // halves are joined over the middle 2 m (u -1 .. 1).
-    public struct Rozwidlenie
-    {
-        public int prosta; public float od, dl;                    // the stretch: on straight `prosta`, from od, dl long
-        public float a, fa, h1, luka, fb, h2, deck, lad;           // the left line: the kicker from a (face fa to h1, a 0.4 m lip, a 3 m back),
-                                                                   // the gap, the landing (face fb to h2, its deck, the landing lad long)
-        public float s0;
-        public Rozwidlenie(int prosta, float od, float dl, float a, float fa, float h1, float luka, float fb, float h2, float deck, float lad)
-        { this.prosta = prosta; this.od = od; this.dl = dl; this.a = a; this.fa = fa; this.h1 = h1; this.luka = luka; this.fb = fb; this.h2 = h2; this.deck = deck; this.lad = lad; s0 = 0f; }
-        public float Warga => a + fa + .4f;                         // the lip's far edge from the stretch's start
-        public float Koniec => Warga + 3f + luka + fb + deck + lad;  // the landing's foot
-    }
-    public static readonly Rozwidlenie[] Rozwidlenia =
-    {
-        new Rozwidlenie(2, 112f, 75f, 4f, 7f, 2.2f, 8f, 3f, 2.0f, 2f, 12f),   // the west straight: over the seven waves
-        new Rozwidlenie(9, 12f, 48f, 2f, 6f, 1.8f, 6f, 3f, 1.6f, 2f, 10f),    // the east straight: over the four rollers
-    };
-    static Rozwidlenie[] rozwidlenia;
-    public static Rozwidlenie[] Rozwidlone { get { Linia(); return rozwidlenia; } }
-    /// <summary>The left line's own height at t from the stretch's start (its gap jump; flat elsewhere).</summary>
-    public static float LiniaB(Rozwidlenie r, float t)
-    {
-        float k1 = r.a + r.fa, k2 = k1 + .4f, k3 = k2 + 3f, g1 = k3 + r.luka, l1 = g1 + r.fb, l2 = l1 + r.deck, l3 = l2 + r.lad;
-        if (t < r.a) return 0f;
-        if (t < k1) return r.h1 * Rampa((t - r.a) / r.fa);
-        if (t < k2) return r.h1;
-        if (t < k3) return r.h1 * (1f - Esa((t - k2) / 3f));
-        if (t < g1) return 0f;
-        if (t < l1) return r.h2 * Esa((t - g1) / r.fb);
-        if (t < l2) return r.h2;
-        if (t < l3) return r.h2 * (1f - Esa((t - l2) / r.lad));
-        return 0f;
-    }
-    /// <summary>The obstacles' height over the base at s, u metres left of the centre (the split stretches' left line).</summary>
-    public static float Profil(float s, float u)
-    {
-        float h = Profil(s);
-        Linia();
-        foreach (var r in rozwidlenia)
-        {
-            float t = s - r.s0; if (t <= -2f || t >= r.dl + 2f) continue;
-            float w = Smooth(-2f, 2f, t) * (1f - Smooth(r.dl - 2f, r.dl + 2f, t)) * Smooth(-1f, 1f, u);
-            h = Mathf.Lerp(h, LiniaB(r, t), w);
-        }
-        return h;
-    }
-    public static bool WRozwidleniu(float s, float zapas) { Linia(); foreach (var r in rozwidlenia) { float t = s - r.s0; if (t > -zapas && t < r.dl + 2f) return true; } return false; }
-
     public static float Profil(float s)
     {
         Linia(); float h = 0f;
@@ -294,15 +294,15 @@ public static class BraxChampionsTorKladow
     // ---------------------------------------------------------------- heights
     static float[] baza;                                            // the base along the line: the land's lie, smoothed (80 m)
     static float paddockY = float.NaN;
-    public static float PaddockY { get { if (float.IsNaN(paddockY)) paddockY = BraxChampionsHorizon.FarHeight((PX0 + PX1) * .5f, (PZ0 + PZ1) * .5f) + .05f; return paddockY; } }
+    public static float PaddockY { get { if (float.IsNaN(paddockY)) paddockY = Naturalna((PX0 + PX1) * .5f, (PZ0 + PZ1) * .5f) + .05f; return paddockY; } }
     static float Baza(int i)
     {
         if (baza != null) return baza[i];
         var o = Linia(); int N = o.N; var raw = new float[N];
-        for (int k = 0; k < N; k++) raw[k] = BraxChampionsHorizon.FarHeight(o.x[k], o.z[k]);
+        for (int k = 0; k < N; k++) raw[k] = Naturalna(o.x[k], o.z[k]);
         // the start straight in front of the paddock at the paddock's own level
         for (int k = 0; k < N; k++) if (o.z[k] > 905f && o.x[k] > -260f && o.x[k] < -40f) raw[k] = PaddockY - .1f;
-        baza = new float[N]; int w = 160;                            // +-80 m (0.5 m samples), a cosine window
+        baza = new float[N]; int w = 50;                             // +-25 m (0.5 m samples), a cosine window: the track climbs the hill
         for (int k = 0; k < N; k++)
         {
             float sum = 0f, ws = 0f;
@@ -318,7 +318,7 @@ public static class BraxChampionsTorKladow
     public static float Tor(int i, float u)
     {
         var o = Linia(); float b = Przechyl(i);
-        return Baza(i) + Profil(o.s[i], u) + Mathf.Abs(b) * (Szer * .5f - Mathf.Sign(b) * u);
+        return Baza(i) + Profil(o.s[i]) + Mathf.Abs(b) * (o.w[i] * .5f - Mathf.Sign(b) * u);
     }
 
     // the nearest centre-line sample (a 6 m grid of the samples)
@@ -343,10 +343,10 @@ public static class BraxChampionsTorKladow
         u = (x - o.x[idx]) * -o.tz[idx] + (z - o.z[idx]) * o.tx[idx];           // the left normal (-tz, tx)
         return true;
     }
-    static float Smooth(float a, float b, float v) { float t = Mathf.Clamp01((v - a) / (b - a)); return t * t * (3f - 2f * t); }
-    static float DoKrawedzi(float x, float z) => Mathf.Min(Mathf.Min(x - X0, X1 - x), Mathf.Min(z - Z0, Z1 - z));
+    public static float Smooth(float a, float b, float v) { float t = Mathf.Clamp01((v - a) / (b - a)); return t * t * (3f - 2f * t); }
+    public static float DoKrawedzi(float x, float z) => Mathf.Min(Mathf.Min(x - X0, X1 - x), Mathf.Min(z - Z0, Z1 - z));
     public static bool WTorze(float x, float z) => x > X0 && x < X1 && z > Z0 && z < Z1;
-    static float DoPaddocku(float x, float z) { float dx = Mathf.Max(Mathf.Max(PX0 - x, x - PX1), 0f), dz = Mathf.Max(Mathf.Max(PZ0 - z, z - PZ1), 0f); return Mathf.Sqrt(dx * dx + dz * dz); }
+    public static float DoPaddocku(float x, float z) { float dx = Mathf.Max(Mathf.Max(PX0 - x, x - PX1), 0f), dz = Mathf.Max(Mathf.Max(PZ0 - z, z - PZ1), 0f); return Mathf.Sqrt(dx * dx + dz * dz); }
     /// <summary>The road: its height at x (the region's grass 0.21 + 6 cm at the city's end, the paddock at the other), and the
     /// distance across it.</summary>
     public static float Droga(float x, float z, out float od)
@@ -362,22 +362,21 @@ public static class BraxChampionsTorKladow
     /// <summary>The ground, and how far it is from the land's own lie there (the fill and the cut of the track: bare earth).</summary>
     public static float Grunt(float x, float z, out float ziemia)
     {
-        float h = BraxChampionsHorizon.FarHeight(x, z);
+        float h = Naturalna(x, z);
         ziemia = -1f;
         float dp = DoPaddocku(x, z);
         if (dp < 14f) h = Mathf.Lerp(PaddockY - .3f, h, Smooth(0f, 14f, dp));
         // the freestyle zone flat (its ramps' gaps are worked out on level ground), its run-up lanes bare earth
         float df = DoFreestyle(x, z);
         if (df < 15f) h = Mathf.Lerp(FreestyleY, h, Smooth(0f, 15f, df));
-        if (df <= 0f) foreach (var r in Rampy) if (x > FLip - RampaDl(r) - FBieg && x < FLip + r.luka + LadowanieDeck + r.ladowanie / Mathf.Tan(LadowanieKat * Mathf.Deg2Rad) + 18f)
-                    ziemia = Mathf.Max(ziemia, 3.5f - Mathf.Abs(z - r.z));
+        if (df < 6f) ziemia = Mathf.Max(ziemia, 1f - df / 6f);            // the whole zone bare earth (an FMX arena), a soft edge
         float y = Droga(x, z, out float dr);
         if (dr < DrogaPol + 1f + 8f) h = Mathf.Lerp(y - .3f, h, Smooth(0f, 8f, dr - DrogaPol - 1f));
         // at the city's edge (x 0) down to its grass, where the far land is pressed (along the road): no step, no gap
         if (dr <= 35f && x > -15f) h = Mathf.Lerp(.19f, h, Smooth(0f, 15f, -x));
         if (Najblizszy(x, z, 26f, out int i, out float u))
         {
-            float e = Mathf.Abs(u), brzeg = Szer * .5f + Pobocze, nat = h;
+            float e = Mathf.Abs(u), brzeg = Linia().w[i] * .5f + Pobocze, nat = h;
             if (e <= brzeg) h = Tor(i, u) - .35f;
             else
             {
@@ -401,7 +400,7 @@ public static class BraxChampionsTorKladow
     }
 
     // ---------------------------------------------------------------- materials
-    static Material nawierzchnia, pobocze, trawa, szuter, woda, beton, drewno, stal, czern, zloto, biel, pomarancz, czerwien, szyba, led, siedzisko, bloto;
+    static Material nawierzchnia, pobocze, trawa, szuter, woda, beton, drewno, stal, czern, zloto, biel, pomarancz, czerwien, szyba, led, siedzisko, bloto, kora, sciolka;
     static void Materialy()
     {
         nawierzchnia = BraxChampionsFoundation.SourceMaterial("tor_kladow_koleiny", "muddy_tracks", 2.25f, new Color(.96f, .9f, .86f));
@@ -422,6 +421,8 @@ public static class BraxChampionsTorKladow
         led = BraxChampionsHarbour.Surface("tor_kladow_led", new Color(1f, .96f, .88f), .4f, 0f, new Color(2.2f, 2.05f, 1.8f));
         siedzisko = BraxChampionsHarbour.Surface("tor_kladow_siedzisko", new Color(.10f, .12f, .14f), .5f, 0f);
         bloto = BraxChampionsFoundation.SourceMaterial("tor_kladow_bloto", "aerial_mud_1", 8f, new Color(1.06f, .86f, .68f));   // dark wet mud, its ruts (8 m), warmed to the track's brown
+        kora = BraxChampionsFoundation.SourceMaterial("tor_kladow_kora", "pine_bark", 2f, Color.white);   // the logs' pine bark (2 m)
+        sciolka = BraxChampionsFoundation.SourceMaterial("tor_kladow_sciolka", "forest_floor", 2.14f, new Color(.66f, .63f, .58f));   // the pine forest's needles and cones (2.14 m), its sunlit scan taken down to the shade of a pine wood
     }
 
     // ---------------------------------------------------------------- the build
@@ -451,6 +452,8 @@ public static class BraxChampionsTorKladow
         var wyscig = Wyscig(g, b);
         b.Build(g, "TOR DO KŁADÓW | detale", Folder, true, K);
         Trojkaty += b.Triangles;
+        BraxChampionsLasKladow.Zbuduj(g);                            // the forest (owner 14:20 "więcej lasu")
+        Trojkaty += BraxChampionsLasKladow.Trojkaty;
         W.Zapisz("mistrzowie_tor_kladow");
         Kolizje = W.Kolizje - k0;
         // the far land goes under the site too (with the villas' press)
@@ -459,7 +462,8 @@ public static class BraxChampionsTorKladow
         Przeszkod = Przeszkody.Length;
         Debug.Log("MISTRZOWIE_TOR_KLADOW length=" + o.dlugosc.ToString("F0") + "m width=" + Szer + "m obstacles=" + Przeszkod + " quads=" + Klady +
                   " triangles=" + Trojkaty + " colliders=" + Kolizje + " paddockY=" + PaddockY.ToString("F2") + " timer=" + (czas ? czas.punkty.Length : 0) +
-                  " race=" + (wyscig ? wyscig.punkty.Length : 0) + " rivals=" + Rywali + " mud=" + (pyl ? pyl.srodek.Length : 0) + " splits=" + Rozwidlenia.Length);
+                  " race=" + (wyscig ? wyscig.punkty.Length : 0) + " rivals=" + Rywali + " mud=" + (pyl ? pyl.srodek.Length : 0) +
+                  " trees=" + BraxChampionsLasKladow.Drzew + " young=" + BraxChampionsLasKladow.Mlodych);
         return g;
     }
 
@@ -474,12 +478,14 @@ public static class BraxChampionsTorKladow
             {
                 float x = Mathf.Min(X0 + i * krok, X1), z = Mathf.Min(Z0 + j * krok, Z1); int q = i * (nz + 1) + j;
                 float h = Grunt(x, z, out pole[q]); v[q] = new Vector3(x, h, z) * K; uv[q] = new Vector2(x, z);
-                pod[q] = (Najblizszy(x, z, 8f, out _, out float u) && Mathf.Abs(u) < Szer * .5f - .5f) || (x > PX0 + .5f && x < PX1 - .5f && z > PZ0 + .5f && z < PZ1 - .5f);
+                pod[q] = (Najblizszy(x, z, 8f, out int iu, out float u) && Mathf.Abs(u) < Linia().w[iu] * .5f - .5f) || (x > PX0 + .5f && x < PX1 - .5f && z > PZ0 + .5f && z < PZ1 - .5f);
             }
         // grass and bare earth (the track's fills, cuts and its edge) over the same vertices, the line between them cut exactly
-        // where the field crosses zero (as the villas' grass / sand), the cut points shared: one closed surface
-        var vl = new List<Vector3>(v); var uvl = new List<Vector2>(uv); var pl = new List<float>(pole);
-        var tg = new List<int>(); var tz = new List<int>(); var ciecia = new Dictionary<long, int>();
+        // where the field crosses zero (as the villas' grass / sand), the cut points shared: one closed surface; then the
+        // grass split the same way by the forest (BraxChampionsLasKladow.Las over 0.45): its floor of needles under the trees
+        var vl = new List<Vector3>(v); var uvl = new List<Vector2>(uv);
+        var tg = new List<int>(); var tz = new List<int>(); var tl = new List<int>();
+        List<float> pl = new List<float>(pole); var ciecia = new Dictionary<long, int>();
         int Ciecie(int p, int q)
         {
             long key = p < q ? (long)p * 4000000L + q : (long)q * 4000000L + p;
@@ -488,16 +494,16 @@ public static class BraxChampionsTorKladow
             vl.Add(Vector3.Lerp(vl[p], vl[q], t)); uvl.Add(Vector2.Lerp(uvl[p], uvl[q], t)); pl.Add(0f);
             return ciecia[key] = vl.Count - 1;
         }
-        void Trojkat(int p0, int p1, int p2)
+        void Trojkat(List<int> ujemne, List<int> dodatnie, int p0, int p1, int p2)
         {
             bool g0 = pl[p0] < 0f, g1 = pl[p1] < 0f, g2 = pl[p2] < 0f;
-            if (g0 == g1 && g1 == g2) { var l = g0 ? tg : tz; l.Add(p0); l.Add(p1); l.Add(p2); return; }
+            if (g0 == g1 && g1 == g2) { var l = g0 ? ujemne : dodatnie; l.Add(p0); l.Add(p1); l.Add(p2); return; }
             int A, B, C; bool gA;
             if (g0 != g1 && g0 != g2) { A = p0; B = p1; C = p2; gA = g0; }
             else if (g1 != g0 && g1 != g2) { A = p1; B = p2; C = p0; gA = g1; }
             else { A = p2; B = p0; C = p1; gA = g2; }
             int ab = Ciecie(A, B), ac = Ciecie(A, C);
-            var la = gA ? tg : tz; var lo = gA ? tz : tg;
+            var la = gA ? ujemne : dodatnie; var lo = gA ? dodatnie : ujemne;
             la.Add(A); la.Add(ab); la.Add(ac);
             lo.Add(ab); lo.Add(B); lo.Add(C); lo.Add(ab); lo.Add(C); lo.Add(ac);
         }
@@ -506,8 +512,13 @@ public static class BraxChampionsTorKladow
             {
                 int a = i * (nz + 1) + j, bq = (i + 1) * (nz + 1) + j, c = a + 1, e = bq + 1;
                 if (pod[a] && pod[bq] && pod[c] && pod[e]) continue;
-                Trojkat(a, c, bq); Trojkat(c, e, bq);
+                Trojkat(tg, tz, a, c, bq); Trojkat(tg, tz, c, e, bq);
             }
+        // the forest's floor: the grass's triangles cut again where the forest's field crosses its edge
+        pl = new List<float>(vl.Count); ciecia.Clear();
+        foreach (var q in vl) pl.Add(BraxChampionsLasKladow.Las(q.x / K, q.z / K) - .45f);   // under 0 the grass, over it the forest
+        var trawy = tg; tg = new List<int>();
+        for (int k = 0; k + 2 < trawy.Count; k += 3) Trojkat(tg, tl, trawy[k], trawy[k + 1], trawy[k + 2]);
         var nrm = new Vector3[vl.Count];
         for (int q = 0; q < vl.Count; q++)
         {
@@ -518,6 +529,7 @@ public static class BraxChampionsTorKladow
         var va = vl.ToArray(); var ua = uvl.ToArray();
         Zapisz(g, "TOR DO KŁADÓW | grunt: trawa | kolizja", "tor_kladow_grunt_trawa", va, nrm, ua, tg, trawa, true);
         Zapisz(g, "TOR DO KŁADÓW | grunt: ziemia (nasypy, przekopy) | kolizja", "tor_kladow_grunt_ziemia", va, nrm, ua, tz, pobocze, true);
+        Zapisz(g, "TOR DO KŁADÓW | grunt: ściółka lasu | kolizja", "tor_kladow_grunt_sciolka", va, nrm, ua, tl, sciolka, true);
     }
 
     // the riding surface and its shoulders: a ribbon along the line (0.5 m steps in the obstacles, 1 m in the turns, 2 m on
@@ -525,23 +537,25 @@ public static class BraxChampionsTorKladow
     static void Wstega(Transform g)
     {
         var o = Linia();
-        float[] us = { Szer * .5f + Pobocze, Szer * .5f, 3f, 2f, 1f, 0f, -1f, -2f, -3f, -Szer * .5f, -Szer * .5f - Pobocze };
+        // the columns: the shoulders' outer edges, the track's edges and quarters of its half width (each row its own width)
+        float[] fr = { 1f, 1f, .75f, .5f, .25f, 0f, -.25f, -.5f, -.75f, -1f, -1f };
+        float U(int c, int i) { float hw = o.w[i] * .5f; return c == 0 ? hw + Pobocze : c == fr.Length - 1 ? -hw - Pobocze : fr[c] * hw; }
         var rzedy = new List<int>(); float ostatni = -99f;
         for (int i = 0; i < o.N; i++)
         {
-            float s = o.s[i]; bool w = WRozwidleniu(s, 3f);
+            float s = o.s[i]; bool w = false;
             foreach (var p in ulozone) if (s > p.s0 - 2f && s < p.s0 + p.dl + 2f) { w = true; break; }
             float krok = w ? .5f : Mathf.Abs(o.kr[i]) > .004f ? 1f : 2f;
             if (s - ostatni >= krok - 1e-3f) { rzedy.Add(i); ostatni = s; }
         }
         rzedy.Add(0);                                                  // closed: the last row is the first
-        int nu = us.Length;
+        int nu = fr.Length; var rowI = new List<int>();
         var vT = new List<Vector3>(); var nT = new List<Vector3>(); var uvT = new List<Vector2>(); var tT = new List<int>(); var tP = new List<int>(); var tS = new List<int>(); var tB = new List<int>();
         var rowS = new List<float>();
         // the mud's edges: ragged across the track (as a real pit's are), 0.1 - 3.9 m in from its ends
         bool WBlocie(int r, int c)
         {
-            float sm = (rowS[r] + rowS[r + 1]) * .5f, um = (us[c] + us[c + 1]) * .5f;
+            float sm = (rowS[r] + rowS[r + 1]) * .5f, um = (U(c, rowI[r]) + U(c + 1, rowI[r])) * .5f;
             foreach (var p in ulozone)
                 if (p.typ == Typ.Bloto && sm > p.s0 + 2f + 1.3f * Mathf.Sin(um * 1.3f + .5f) + .6f * Mathf.Sin(um * 3.1f)
                                        && sm < p.s0 + p.dl - 2f - 1.2f * Mathf.Sin(um * 1.1f + 2f) - .5f * Mathf.Sin(um * 2.7f)) return true;
@@ -551,12 +565,12 @@ public static class BraxChampionsTorKladow
         {
             int i = rzedy[r]; float s = r == rzedy.Count - 1 ? o.dlugosc : o.s[i];
             float lx = -o.tz[i], lz = o.tx[i];
-            rowS.Add(s);
+            rowS.Add(s); rowI.Add(i);
             // each column's normal from the surface's own slope along and across there (the split's two lines differ)
             int ia = (i + o.N - 2) % o.N, ib = (i + 2) % o.N; float ds = 1f;
             for (int c = 0; c < nu; c++)
             {
-                float u = us[c];
+                float u = U(c, i);
                 float dAlong = (Tor(ib, u) - Tor(ia, u)) / (2f * ds), dAcross = Tor(i, u + .5f) - Tor(i, u - .5f);
                 var tan = new Vector3(o.tx[i], dAlong, o.tz[i]).normalized; var lew = new Vector3(lx, dAcross, lz).normalized;
                 var n = Vector3.Cross(tan, lew).normalized; if (n.y < 0f) n = -n;
@@ -567,7 +581,7 @@ public static class BraxChampionsTorKladow
             foreach (int c in new[] { 0, nu - 1 })
             {
                 // lit as the earth bank it stands for (out and up), not as a dark wall
-                var top = vT[r * (nu + 2) + c]; vT.Add(top - Vector3.up * .6f * K); nT.Add(new Vector3((c == 0 ? lx : -lx) * .6f, .8f, (c == 0 ? lz : -lz) * .6f)); uvT.Add(new Vector2(us[c] + (c == 0 ? .6f : -.6f), s));
+                var top = vT[r * (nu + 2) + c]; vT.Add(top - Vector3.up * .6f * K); nT.Add(new Vector3((c == 0 ? lx : -lx) * .6f, .8f, (c == 0 ? lz : -lz) * .6f)); uvT.Add(new Vector2(U(c, i) + (c == 0 ? .6f : -.6f), s));
             }
         }
         int st = nu + 2;
@@ -606,7 +620,7 @@ public static class BraxChampionsTorKladow
             if (p.typ != Typ.Bloto) continue;
             int i = Indeks(p.s0 + p.dl * .5f);
             sr.Add(new Vector3(o.x[i], Tor(i, 0f), o.z[i]) * K); wz.Add(new Vector3(o.tx[i], 0f, o.tz[i]));
-            dl.Add((p.dl * .5f - 2f) * K); sz.Add((Szer * .5f + Pobocze) * K);        // within its ragged ends
+            dl.Add((p.dl * .5f - 2f) * K); sz.Add((o.w[i] * .5f + Pobocze) * K);      // within its ragged ends
         }
         c.srodek = sr.ToArray(); c.wzdluz = wz.ToArray(); c.polDl = dl.ToArray(); c.polSzer = sz.ToArray();
         c.pyl = BraxChampionsHarbour.Surface("tor_kladow_pyl", Color.white, 1f, 0f, null, true);
@@ -625,7 +639,7 @@ public static class BraxChampionsTorKladow
             int i0 = Indeks(p.s0), i1 = Indeks(p.s0 + p.dl);
             float y = Baza(Indeks(p.s0 + p.dl * .5f)) - p.h + WodaGlebokosc;
             var b = new BraxChampionsMeshBatch();
-            float half = Szer * .5f + Pobocze + 1.4f;
+            float half = o.w[Indeks(p.s0 + p.dl * .5f)] * .5f + Pobocze + 1.4f;
             for (int i = i0; i < i1; i += 2)
             {
                 int j = Mathf.Min(i + 2, i1);
@@ -708,25 +722,32 @@ public static class BraxChampionsTorKladow
         {
             if (o.s[i] < nast) continue; nast = o.s[i] + 8f;
             if (Mathf.Abs(o.x[i] - MetaX) < 6f && o.z[i] > 905f) continue;
+            if (o.w[i] < 6f) continue;                                    // in the woods the trees mark the trail
             foreach (float bok in new[] { 1f, -1f })
             {
-                float u = bok * (Szer * .5f + Pobocze + .5f), x = o.x[i] - o.tz[i] * u, z = o.z[i] + o.tx[i] * u, y = Grunt(x, z);
+                float u = bok * (o.w[i] * .5f + Pobocze + .5f), x = o.x[i] - o.tz[i] * u, z = o.z[i] + o.tx[i] * u, y = Grunt(x, z);
                 if (DoPaddocku(x, z) < 1f) continue;
                 b.Box(n % 2 == 0 ? pomarancz : biel, new Vector3(x, y + .4f, z), new Vector3(.05f, .8f, .05f));
                 b.Box(n % 2 == 0 ? biel : pomarancz, new Vector3(x, y + .84f, z), new Vector3(.09f, .14f, .09f));                 // the cap 2 cm proud of the stake (no shared faces)
             }
             n++;
         }
-        // the split stretches: a row of stakes down the middle between the two lines (into the dirt 0.2 m)
-        foreach (var r in rozwidlenia)
-            for (float t = 3f; t < r.dl - 3f; t += 4.5f)
+        // the logs across the woods' trail (pine bark), each sunk in its dirt ramps, its top their crest
+        foreach (var p in ulozone)
+        {
+            if (p.typ != Typ.Klody) continue;
+            for (int k = 0; k < Mathf.Max(1, p.n); k++)
             {
-                int i = Indeks(r.s0 + t); float x = o.x[i], z = o.z[i], y = Tor(i, 0f);
-                b.Box(n % 2 == 0 ? pomarancz : biel, new Vector3(x, y + .3f, z), new Vector3(.05f, 1f, .05f));
-                b.Box(n % 2 == 0 ? biel : pomarancz, new Vector3(x, y + .84f, z), new Vector3(.09f, .14f, .09f));
-                n++;
+                int i = Indeks(p.s0 + 1f + k * KlodaOdstep);
+                float hw = o.w[i] * .5f + Pobocze + .6f, r = KlodaR * (1f + .08f * (k % 3));
+                var lew = new Vector3(-o.tz[i], 0f, o.tx[i]);
+                var c0 = new Vector3(o.x[i], Tor(i, 0f) - r, o.z[i]) - lew * hw;
+                b.Cylinder(kora, c0, r, 2f * hw, 10, Quaternion.FromToRotation(Vector3.up, lew), true, true, r * .92f);
+                Klod++;
             }
+        }
     }
+    public static int Klod;
 
     // the fence round the site (post and three rails, timber), 26 m in from its edges; the east side at x -8 with the road's
     // gate; colliders per span
@@ -758,8 +779,9 @@ public static class BraxChampionsTorKladow
         }
     }
 
-    // the freestyle zone: per lane the steel kicker (its deck a collider, side plates, a frame under it, the lip's back plate)
-    // and the earth landing (one mesh with its 1:1 sides sunk into the ground, its collider); a sign over the zone
+    // the freestyle zone: per lane the FMX kicker (its deck a collider, its underside, the painted lip, an open steel frame
+    // under it) and the dirt landing (one mesh with its 1:1 sides sunk into the ground, its collider); at each run-up's start
+    // a board with the lane's window of speeds; the sign over the zone
     static void Freestyle(Transform g, BraxChampionsMeshBatch b)
     {
         float y0 = FreestyleY; int nr = 0;
@@ -768,34 +790,61 @@ public static class BraxChampionsTorKladow
             nr++;
             float a = r.kat * Mathf.Deg2Rad, R = r.h / (1f - Mathf.Cos(a)), L = RampaDl(r), x0 = FLip - L, hw = RampaSzer * .5f;
             float Prof(float t) => R - Mathf.Sqrt(Mathf.Max(0f, R * R - t * t));     // t from the kicker's foot
-            // the deck: 0.25 m steps along, a mesh with its collider
+            // the deck: 0.25 m steps along, a mesh with its collider, and its underside 6 cm below (an open frame shows it)
             var v = new List<Vector3>(); var n = new List<Vector3>(); var uv = new List<Vector2>(); var t = new List<int>();
+            var vd = new List<Vector3>(); var nd = new List<Vector3>(); var td = new List<int>();
             int m = Mathf.CeilToInt(L / .25f);
             for (int i = 0; i <= m; i++)
             {
                 float tt = L * i / m, yy = y0 + Prof(tt), sl = tt / Mathf.Sqrt(Mathf.Max(1e-4f, R * R - tt * tt));
                 var nn = new Vector3(-sl, 1f, 0f).normalized;
-                foreach (float zz in new[] { r.z - hw, r.z + hw }) { v.Add(new Vector3(x0 + tt, yy + .02f, zz) * K); n.Add(nn); uv.Add(new Vector2(tt / 1.5f, (zz - r.z) / 1.5f)); }
+                foreach (float zz in new[] { r.z - hw, r.z + hw })
+                {
+                    v.Add(new Vector3(x0 + tt, yy + .02f, zz) * K); n.Add(nn); uv.Add(new Vector2(tt / 1.5f, (zz - r.z) / 1.5f));
+                    vd.Add(new Vector3(x0 + tt, yy - .04f, zz) * K); nd.Add(-nn);
+                }
             }
-            for (int i = 0; i < m; i++) { int q = i * 2; t.AddRange(new[] { q, q + 1, q + 2, q + 1, q + 3, q + 2 }); }
+            for (int i = 0; i < m; i++) { int q = i * 2; t.AddRange(new[] { q, q + 1, q + 2, q + 1, q + 3, q + 2 }); td.AddRange(new[] { q, q + 2, q + 1, q + 1, q + 2, q + 3 }); }
             Zapisz(g, "TOR DO KŁADÓW | freestyle rampa " + nr + " | kolizja", "tor_kladow_rampa_" + nr, v.ToArray(), n.ToArray(), uv.ToArray(), t, stal, true);
-            // the side plates and the frame: black steel, a post every 1.5 m, the back plate at the lip
+            Zapisz(g, "TOR DO KŁADÓW | freestyle rampa " + nr + " | spód", "tor_kladow_rampa_" + nr + "_spod", vd.ToArray(), nd.ToArray(), uv.ToArray(), td, czern, false);
+            // the deck's edges (6 cm plates) and the lip painted orange across its last 0.5 m
             for (int i = 0; i < m; i++)
             {
                 float t0 = L * i / m, t1 = L * (i + 1) / m;
-                Vector3 A(float tt, float zz, bool gora) => new Vector3(x0 + tt, gora ? y0 + Prof(tt) + .06f : y0 - .1f, zz);
-                float zl = r.z - hw - .03f, zr = r.z + hw + .03f;
+                Vector3 A(float tt, float zz, bool gora) => new Vector3(x0 + tt, y0 + Prof(tt) + (gora ? .02f : -.04f), zz);
+                float zl = r.z - hw, zr = r.z + hw;
                 b.Quad(czern, A(t0, zl, false), A(t0, zl, true), A(t1, zl, true), A(t1, zl, false));   // facing -z (outward)
                 b.Quad(czern, A(t1, zr, false), A(t1, zr, true), A(t0, zr, true), A(t0, zr, false));   // facing +z (outward)
+                if (t1 > L - .5f)
+                {
+                    Vector3 P(float tt, float zz) => new Vector3(x0 + tt, y0 + Prof(tt) + .035f, zz);
+                    b.Quad(pomarancz, P(t0, zl + .05f), P(t0, zr - .05f), P(t1, zr - .05f), P(t1, zl + .05f));
+                }
             }
-            b.BoxMinMax(czern, FLip - .06f, FLip + .06f, y0 - .1f, y0 + r.h + .04f, r.z - hw, r.z + hw);
-            for (float tt = .8f; tt < L; tt += 1.5f)
-                foreach (float zz in new[] { r.z - hw + .2f, r.z + hw - .2f }) b.BoxMinMax(czern, x0 + tt - .05f, x0 + tt + .05f, y0, y0 + Prof(tt), zz - .05f, zz + .05f);
+            // the frame: posts every 1.2 m both sides down to the ground, diagonal braces between them, the lip's two legs
+            // and their cross brace
+            var slupki = new List<float>(); for (float tt = .9f; tt < L - .3f; tt += 1.2f) slupki.Add(tt); slupki.Add(L - .06f);
+            foreach (float zz in new[] { r.z - hw + .12f, r.z + hw - .12f })
+            {
+                for (int k = 0; k < slupki.Count; k++)
+                {
+                    float tt = slupki[k], top = y0 + Prof(tt) - .04f;
+                    b.BoxMinMax(stal, x0 + tt - .05f, x0 + tt + .05f, y0 - .1f, top, zz - .05f, zz + .05f);
+                    if (k == 0) continue;
+                    var p0 = new Vector3(x0 + slupki[k - 1], y0 + .05f, zz); var p1 = new Vector3(x0 + tt, top - .05f, zz);
+                    var d = p1 - p0; b.Box(stal, (p0 + p1) * .5f, new Vector3(.035f, d.magnitude, .035f), Quaternion.FromToRotation(Vector3.up, d));
+                }
+            }
+            b.BoxMinMax(stal, FLip - .1f, FLip - .02f, y0 + .25f, y0 + .35f, r.z - hw + .12f, r.z + hw - .12f);       // the lip legs' cross brace
             W.Kolizja(new Vector3(x0 + L * .5f, y0 + r.h * .3f, r.z) * K, new Vector3(L * .7f, r.h * .6f, RampaSzer) * K, Quaternion.identity);
-            BraxChampionsLetters3D.Text(b, zloto, czern, nr.ToString(), new Vector3(FLip - .3f, y0 + r.h * .45f, r.z - hw - .06f), 180f, .6f, .05f, .12f, 0f);
-            // the landing: profile along x from its 1:1 face, the knuckle deck, the 26 deg slope; 1:1 sides; under the ground
-            // past its foot
-            float lx0 = FLip + r.luka - r.ladowanie, lx1 = FLip + r.luka, lx2 = lx1 + LadowanieDeck, lx3 = lx2 + r.ladowanie / Mathf.Tan(LadowanieKat * Mathf.Deg2Rad);
+            BraxChampionsLetters3D.Text(b, zloto, czern, nr.ToString(), new Vector3(FLip - .3f, y0 + r.h * .45f, r.z - hw - .1f), 180f, .6f, .05f, .12f, 0f);
+            // the board at the run-up's start: the lane's window of speeds (km/h at the lip)
+            float bx = x0 - FBieg + 3f, bz = r.z + hw + 3.5f;
+            foreach (float px in new[] { bx - .9f, bx + .9f }) b.Cylinder(stal, new Vector3(px, y0, bz), .05f, 2.1f, 8);
+            b.BoxMinMax(czern, bx - 1.2f, bx + 1.2f, y0 + 1.2f, y0 + 2.0f, bz - .04f, bz + .04f);
+            BraxChampionsLetters3D.Text(b, zloto, czern, Mathf.RoundToInt(VMin(r) * 3.6f / 5f) * 5 + "-" + Mathf.FloorToInt(VMax(r) * 3.6f / 5f) * 5 + " KM/H", new Vector3(bx, y0 + 1.42f, bz - .06f), 180f, .32f, .03f, .12f, 2.2f);
+            // the landing: its 1:1 face, the 2 m knuckle, the long landing; 1:1 sides; under the ground past its foot
+            float lx0 = FLip + r.luka - r.ladowanie, lx1 = FLip + r.luka, lx2 = lx1 + LadowanieDeck, lx3 = lx2 + LadowanieDl(r);
             float Ld(float x)
             {
                 if (x < lx0 || x > lx3) return -.3f;
@@ -811,7 +860,7 @@ public static class BraxChampionsTorKladow
                 {
                     float x = lx0 - 1f + i * .5f, zz = r.z - hl - side + j * .5f, yy = H(x, zz);
                     float gx = H(x + .25f, zz) - H(x - .25f, zz), gz = H(x, zz + .25f) - H(x, zz - .25f);
-                    lv.Add(new Vector3(x, y0 + yy, zz) * K); ln.Add(new Vector3(-gx * 2f, 1f, -gz * 2f).normalized); lu.Add(new Vector2(x / 1.3f, zz / 1.3f));
+                    lv.Add(new Vector3(x, y0 + yy, zz) * K); ln.Add(new Vector3(-gx * 2f, 1f, -gz * 2f).normalized); lu.Add(new Vector2(x, zz));
                 }
             for (int i = 0; i < nxL; i++)
                 for (int j = 0; j < nu; j++)
@@ -822,8 +871,8 @@ public static class BraxChampionsTorKladow
                 }
             Zapisz(g, "TOR DO KŁADÓW | freestyle lądowisko " + nr + " | kolizja", "tor_kladow_ladowisko_" + nr, lv.ToArray(), ln.ToArray(), lu.ToArray(), lt, pobocze, true);
         }
-        // the sign: BRAXHORN FREESTYLE on a black board on two posts at the zone's north side, facing the lanes
-        float sx = (FLip + FX0) * .5f + 10f, sz = FZ1 - 8f;
+        // the sign: BRAXHORN FREESTYLE on a black board on two posts at the zone's north edge, facing the lanes
+        float sx = (FX0 + FX1) * .5f, sz = FZ1 - 7f;
         foreach (float px in new[] { sx - 5.5f, sx + 5.5f }) { b.Cylinder(stal, new Vector3(px, y0, sz), .09f, 4.75f, 10); W.Kolizja(new Vector3(px, y0 + 2.375f, sz) * K, new Vector3(.25f, 4.75f, .25f) * K, Quaternion.identity); }   // the posts' tops over the board
         b.BoxMinMax(czern, sx - 6f, sx + 6f, y0 + 3f, y0 + 4.6f, sz - .06f, sz + .06f);
         BraxChampionsLetters3D.Text(b, zloto, czern, "BRAXHORN FREESTYLE", new Vector3(sx, y0 + 3.45f, sz - .08f), 180f, .7f, .06f, .12f, 11f);
@@ -968,7 +1017,7 @@ public static class BraxChampionsTorKladow
     // the riding speed along the line (real m/s): a corner from its radius and its berm (the friction of the dirt 0.7 with the
     // 13 deg bank: v^2 = g R (mu + tan b) / (1 - mu tan b)), the obstacles' own speeds, the braking (5 m/s2) for what comes
     public const float KrokWyscigu = 2f, MuWyscigu = .7f, VProsta = 23f, HamowanieAI = 5f, RozpedAI = 2f, VToczenie = 7f;
-    public const int Okrazen = 3;
+    public const int Okrazen = 2;                                   // the loop is 2.5 km: two laps, ~8 min
     /// <summary>A double's jump speed (real m/s): the take-off's lip angle (its face: Rampa, 6 m), the flight from the lip over
     /// the gap and the second one's top to 4 m down its landing (the middle of the safe range).</summary>
     public static float VSkoku(Przeszkoda p)
@@ -977,22 +1026,21 @@ public static class BraxChampionsTorKladow
         float dl = .4f + 5f + 4f + 5f + .4f + 4f;
         return Mathf.Sqrt(9.81f * dl / Mathf.Sin(2f * kat));
     }
-    public sealed class ProfilW { public Vector3[] p, lewo; public float[] v; public bool[] skok, prawa; public float sMety; public List<string> doubles = new List<string>(); }
+    public sealed class ProfilW { public Vector3[] p, lewo; public float[] v, szer; public bool[] skok; public float sMety; public List<string> doubles = new List<string>(); }
     static ProfilW profilW;
     public static ProfilW ProfilWyscigu()
     {
         if (profilW != null) return profilW;
         var o = Linia(); float L = o.dlugosc; int ig = IndeksBramki(), im = IndeksMety();
         float sG = o.s[ig]; int n = Mathf.FloorToInt(L / KrokWyscigu);
-        var w = new ProfilW { p = new Vector3[n], lewo = new Vector3[n], v = new float[n], skok = new bool[n], prawa = new bool[n] };
+        var w = new ProfilW { p = new Vector3[n], lewo = new Vector3[n], v = new float[n], szer = new float[n], skok = new bool[n] };
         w.sMety = ((o.s[im] - sG) % L + L) % L;
         var sl = new float[n];
         float T(float s, Przeszkoda q) { float t = s - q.s0; if (t > L * .5f) t -= L; if (t < -L * .5f) t += L; return t; }
         for (int k = 0; k < n; k++)
         {
             float s = (sG + k * KrokWyscigu) % L; sl[k] = s; int i = Indeks(s);
-            w.p[k] = new Vector3(o.x[i], Tor(i, 0f), o.z[i]); w.lewo[k] = new Vector3(-o.tz[i], 0f, o.tx[i]);
-            w.prawa[k] = WRozwidleniu(s, 45f);                          // a split ahead: the rivals take the right line (its rollers)
+            w.p[k] = new Vector3(o.x[i], Tor(i, 0f), o.z[i]); w.lewo[k] = new Vector3(-o.tz[i], 0f, o.tx[i]); w.szer[k] = o.w[i];
             float kr = Mathf.Abs(o.kr[i]), tb = Mathf.Abs(Przechyl(i)), v = VProsta;
             if (kr > 1e-4f) v = Mathf.Min(v, Mathf.Sqrt(9.81f * (MuWyscigu + tb) / Mathf.Max(.2f, 1f - MuWyscigu * tb) / kr));
             foreach (var q in ulozone)
@@ -1008,6 +1056,7 @@ public static class BraxChampionsTorKladow
                     case Typ.Gorka: if (t > 30f && t < q.dl) v = Mathf.Min(v, 16f); break;
                     case Typ.Brod: if (t > -10f && t < q.dl + 5f) v = Mathf.Min(v, 8f); break;
                     case Typ.Bloto: if (t > -10f && t < q.dl) v = Mathf.Min(v, 8f); break;
+                    case Typ.Klody: if (t > -8f && t < q.dl) v = Mathf.Min(v, 5f); break;      // over the logs at a walk
                 }
             }
             w.v[k] = v;
@@ -1045,7 +1094,7 @@ public static class BraxChampionsTorKladow
         ("rancher", "bialy", "DAMIAN", 63, new Color(.92f, .92f, .9f), new Color(.75f, .06f, .05f), .9f, -2.2f),
     };
     public const float ParkX = -100f, ParkZ = 962f, ParkKrok = 4.5f;            // the riders' park in the paddock, by the start
-    public const float TablicaX = -118f, TablicaZ = 898f, TablicaW = 10f, TablicaH = 5f, TablicaNad = 3f;   // the LED board in the infield
+    public const float TablicaX = -118f, TablicaZ = 888f, TablicaW = 10f, TablicaH = 5f, TablicaNad = 3f;   // the LED board in the infield
     public static int Rywali, Belek;
 
     // a part that moves (a gate bar): its own mesh about its hinge, nothing of it static
@@ -1065,9 +1114,8 @@ public static class BraxChampionsTorKladow
         var w = new GameObject("TOR DO KŁADÓW | wyścig z rywalami (3 okrążenia)").AddComponent<BraxChampionsWyscig>();
         w.transform.SetParent(g, false);
         int n = pr.p.Length;
-        w.punkty = new Vector3[n]; w.lewo = new Vector3[n]; w.vCel = new float[n]; w.skok = new bool[n];
-        w.prawa = new bool[n];
-        for (int k = 0; k < n; k++) { w.punkty[k] = pr.p[k] * K; w.lewo[k] = pr.lewo[k]; w.vCel[k] = pr.v[k]; w.skok[k] = pr.skok[k]; w.prawa[k] = pr.prawa[k]; }
+        w.punkty = new Vector3[n]; w.lewo = new Vector3[n]; w.vCel = new float[n]; w.skok = new bool[n]; w.szer = new float[n];
+        for (int k = 0; k < n; k++) { w.punkty[k] = pr.p[k] * K; w.lewo[k] = pr.lewo[k]; w.vCel[k] = pr.v[k]; w.skok[k] = pr.skok[k]; w.szer[k] = pr.szer[k]; }
         w.krok = KrokWyscigu; w.dlugosc = o.dlugosc; w.sMety = pr.sMety; w.polSzerokosci = Szer * .5f + Pobocze; w.K = K; w.okrazen = Okrazen;
         // the gate: five places behind the bars, facing west down the start straight; the bars on their hinges (down: lying
         // forward on the pad, up: 0.42 m over the hinge, FIM's 50 cm over the ground)

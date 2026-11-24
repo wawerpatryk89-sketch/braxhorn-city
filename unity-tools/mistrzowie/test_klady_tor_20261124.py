@@ -6,8 +6,11 @@
     far LODs, in an encrypted owner pack (the repository is public);
   - BraxChampionsKlad: AKCJA = WSIĄDŹ, astride (BraxPose.Ride), four ray-cast wheels on springs, the wheels roll, the front
     ones and the bars steer, jumps fly on gravity x K, the quad's own touch controls, a chase camera, real engine recordings;
-  - BraxChampionsTorKladow: a 1.7 km loop west of the city, north of the D2 hill, FIM's motocross rules where they apply;
-    the rental booth with the six quads, the grandstand, the start gate, the START / META arch; BraxChampionsTorCzas."""
+  - BraxChampionsTorKladow: a 2.5 km loop west of the city, north of the D2 hill (14:00-14:20, his photos of real tracks:
+    "jakieś zakręty", "w jakichś błotach albo po jakichś lasach", "lasy, górki", "więcej lasu"): a narrow woods' trail
+    over an 18 m wooded hill (logs, mud, a creek), then a motocross field of hairpins (FIM's rules where they apply); the
+    rental booth with the six quads, the grandstand, the start gate, the START / META arch; BraxChampionsTorCzas;
+  - BraxChampionsLasKladow: the forest - Poly Haven's scanned pines and firs as crossed cards."""
 import hashlib
 import json
 import math
@@ -29,6 +32,9 @@ WYSCIG = (RT / "BraxChampionsWyscig.cs").read_text(encoding="utf-8")
 RYWAL = (RT / "BraxChampionsKladRywal.cs").read_text(encoding="utf-8")
 ZAWODNIK = (ED / "BraxChampionsKladZawodnik.cs").read_text(encoding="utf-8")
 BLOTO = (RT / "BraxChampionsBloto.cs").read_text(encoding="utf-8")
+LAS = (ED / "BraxChampionsLasKladow.cs").read_text(encoding="utf-8")
+LAS_IMPORT = (ED / "BraxChampionsLasTextureImport.cs").read_text(encoding="utf-8")
+ATLAS = ROOT / "unity-city/Assets/Source/Mistrzowie/Las/las_atlas.png"
 PACK = ROOT / "unity-city/Prywatne/braxhorn-sklep-klady-01"
 K = 2.33 / 1.80
 
@@ -46,12 +52,15 @@ def const(name, src=TOR):
 
 
 def rogi():
-    return [(float(a), float(b), float(c)) for a, b, c in re.findall(r"new Vector3\((-?[\d.]+)f, (-?[\d.]+)f, (-?[\d.]+)f\)", TOR.split("public static readonly Vector3[] Rogi =")[1].split("};")[0])]
+    """the corners: (x, z, fillet radius, the riding width from this corner on - Start / MX / Las)"""
+    szer = {n: const(n) for n in ("Start", "MX", "Las")}
+    blok = TOR.split("public static readonly Vector4[] Rogi =")[1].split("};")[0]
+    return [(float(a), float(b), float(c), szer[d]) for a, b, c, d in re.findall(r"new Vector4\((-?[\d.]+)f, (-?[\d.]+)f, ([\d.]+)f, (\w+)\)", blok)]
 
 
 def petla():
     """the loop as the C# builds it: fillets of the corners; (arc lengths, straight lengths, the line every 1 m)"""
-    C = rogi(); n = len(C); P = [(x, z) for x, z, _ in C]
+    C = rogi(); n = len(C); P = [(x, z) for x, z, _, _ in C]
     t = []; luki = []; srodki = []
     for i in range(n):
         a, b, c = P[i - 1], P[i], P[(i + 1) % n]; R = C[i][2]
@@ -161,11 +170,18 @@ class Tor(unittest.TestCase):
     def test_fim_motocross(self):
         luki, proste, _ = petla()
         dl = sum(luki) + sum(proste)
-        self.assertGreater(dl, 1500); self.assertLess(dl, 2000)                                    # FIM 1.5-2 km
-        self.assertGreaterEqual(const("Szer"), 6.0)                                                # FIM >= 6 m
-        # the start straight (the last straight, into corner 0): 80 m+ before the first turn, no obstacle on it
+        self.assertGreater(dl, 2300); self.assertLess(dl, 2700)                                    # 2.5 km: two laps a race
+        self.assertGreaterEqual(len(rogi()), 60)                                                   # owner 14:01 "jakieś zakręty"
+        # the widths: the start 8 m, the motocross field 7 m (FIM >= 6 m), the woods' trail 5 m (two quads side by side)
+        self.assertEqual((const("Start"), const("MX"), const("Las")), (8.0, 7.0, 5.0))
+        self.assertGreaterEqual(const("MX"), 6.0); self.assertGreaterEqual(const("Las"), 2 * 1.28 + 1.5)
+        C = rogi()
+        self.assertEqual([w for _, _, _, w in C[1:32]], [const("Las")] * 31)                      # corners 1-31: the woods
+        self.assertTrue(all(w >= const("MX") for _, _, _, w in C[32:]))
+        self.assertIn("o.w[i] = sum / (2 * ww + 1);", TOR)                                         # the width eased over 16 m
+        # the start straight (the last straight, into corner 0): 120 m+ before the first turn, no obstacle on it
         self.assertGreater(proste[-1], 120)
-        self.assertNotRegex(TOR, r"new Przeszkoda\(10,")
+        self.assertNotRegex(TOR, r"new Przeszkoda\(%d," % (len(C) - 1))
         # rolling waves 8-10 m apart, at most 0.8 m
         self.assertIn("case Typ.Fale: return p.n * 9f;", TOR)
         for h in re.findall(r"Typ\.Fale, \.(\d+)f", TOR):
@@ -173,7 +189,9 @@ class Tor(unittest.TestCase):
         # every obstacle on its straight, 6 m clear of the next turn (the builder throws otherwise)
         dlug = {"Stol": None, "Podwojna": 6 + .4 + 5 + 4 + 5 + .4 + 8, "Schodek": 4.5 + 22 + 9, "Gorka": 40 + 8 + 18, "Brod": 18}
         for pr, od, typ, h, n in re.findall(r"new Przeszkoda\((\d+), ([\d.]+)f, Typ\.(\w+), \.?([\d.]+)f(?:, (\d+))?\)", TOR):
-            L = dlug.get(typ) or (int(n) * (9 if typ == "Fale" else 4.5) if typ in ("Fale", "Muldy") else (35 if float(h) >= 1.8 else 23))
+            if typ == "Klody": L = (int(n) - 1) * const("KlodaOdstep") + 2
+            elif typ == "Bloto": L = int(n)
+            else: L = dlug.get(typ) or (int(n) * (9 if typ == "Fale" else 4.5) if typ in ("Fale", "Muldy") else (35 if float(h) >= 1.8 else 23))
             self.assertLess(float(od) + L, proste[int(pr)] - 6, (typ, pr))
         self.assertIn('throw new InvalidOperationException("quad track: obstacle " + i + " runs into a turn");', TOR)
 
@@ -184,21 +202,25 @@ class Tor(unittest.TestCase):
         for x in (x0, (x0 + x1) / 2, x1):
             self.assertGreater(((x + 330) / 250) ** 2 + ((z0 - 186.5) / 400) ** 2, 1.2)
         # the loop inside the fence with room, the fence inside the rim band's end
-        inset = const("FenceInset"); brzeg = const("Szer") / 2 + const("Pobocze")
-        xs = [x for x, z, r in rogi()]; zs = [z for x, z, r in rogi()]
-        self.assertGreater(min(xs) - brzeg - (x0 + inset), 6); self.assertGreater((z1 - inset) - (max(zs) + brzeg), 6)
-        self.assertGreater(min(zs) - brzeg - (z0 + inset), 6)
+        inset = const("FenceInset"); pob = const("Pobocze")
+        pts = linia(1.0, szer=True)
+        self.assertGreater(min(x - w / 2 - pob for x, z, w in pts) - (x0 + inset), 6)
+        self.assertGreater((z1 - inset) - max(z + w / 2 + pob for x, z, w in pts), 6)
+        self.assertGreater(min(z - w / 2 - pob for x, z, w in pts) - (z0 + inset), 6)
         self.assertGreater(inset, const("RimBand"))
-        # the parallel sections never closer than 30 m (their embankments never meet)
-        luki, proste, srodki = petla()
-        C = rogi(); n = len(C); pts = []
-        for i in range(n):
-            a, b = C[i], C[(i + 1) % n]
-            for k in range(0, 100, 2): pts.append((i, a[0] + (b[0] - a[0]) * k / 100, a[1] + (b[1] - a[1]) * k / 100))
-        for i, xa, za in pts:
-            for j, xb, zb in pts:
-                if abs(i - j) > 1 and not {i, j} == {0, n - 1}:
-                    self.assertGreater(math.hypot(xa - xb, za - zb), 30, (i, j))
+        # the sections side by side: their shoulders 4 m+ apart in the woods (the trees between them, as on his photo), 8 m+
+        # on the field (two berms' fills); points more than 40 m apart along the loop
+        s = [0.0]
+        for (xa, za, _), (xb, zb, _) in zip(pts, pts[1:]): s.append(s[-1] + math.hypot(xb - xa, zb - za))
+        L = s[-1] + math.hypot(pts[0][0] - pts[-1][0], pts[0][1] - pts[-1][1])
+        for i in range(0, len(pts), 2):
+            xa, za, wa = pts[i]
+            for j in range(i + 1, len(pts), 2):
+                ds = abs(s[i] - s[j]); ds = min(ds, L - ds)
+                if ds < 40: continue
+                xb, zb, wb = pts[j]
+                gap = math.hypot(xa - xb, za - zb) - wa / 2 - wb / 2 - 2 * pob
+                self.assertGreater(gap, 8 if wa >= const("MX") and wb >= const("MX") else 4, (xa, za, xb, zb))
         # the paddock and the road inside the fence; the road ends on the city's grass (x 0-53), never on its asphalt (x 60+)
         self.assertGreater(const("PZ1"), const("PZ0")); self.assertLess(const("PZ1"), z1 - inset)
         self.assertLessEqual(const("DrogaX1"), 53.0)
@@ -237,9 +259,15 @@ class Tor(unittest.TestCase):
         self.assertIn('"dark_paneled_wood"', TOR)
 
 
-def linia(krok=1.0):
-    """the centre line as the C# lays it out: the straights between the fillets' tangent points and the fillet arcs"""
-    C = rogi(); n = len(C); P = [(x, z) for x, z, _ in C]; pts = []
+def linia(krok=1.0, szer=False):
+    """the centre line as the C# lays it out: the straights between the fillets' tangent points and the fillet arcs (with
+    szer: each point's riding width, the width of the corner it comes from)"""
+    pts = linia_w(krok)
+    return pts if szer else [(x, z) for x, z, _ in pts]
+
+
+def linia_w(krok=1.0):
+    C = rogi(); n = len(C); P = [(x, z) for x, z, _, _ in C]; pts = []
     for i in range(n):
         a, b, c = P[i - 1], P[i], P[(i + 1) % n]; R = C[i][2]
         d1 = ((b[0] - a[0]), (b[1] - a[1])); l1 = math.hypot(*d1); d1 = (d1[0] / l1, d1[1] / l1)
@@ -251,14 +279,14 @@ def linia(krok=1.0):
         a1 = math.atan2(p1[1] - o[1], p1[0] - o[0]); a2 = math.atan2(p2[1] - o[1], p2[0] - o[0])
         da = (a2 - a1 + math.pi) % (2 * math.pi) - math.pi
         m = max(2, int(abs(da) * R / krok))
-        pts += [(o[0] + R * math.cos(a1 + da * k / m), o[1] + R * math.sin(a1 + da * k / m)) for k in range(m + 1)]
+        pts += [(o[0] + R * math.cos(a1 + da * k / m), o[1] + R * math.sin(a1 + da * k / m), C[i][3]) for k in range(m + 1)]
         # the straight on to the next corner's fillet
         e, f2 = c, P[(i + 2) % n]; R2 = C[(i + 1) % n][2]
         g1 = (e[0] - b[0], e[1] - b[1]); lg = math.hypot(*g1); g1 = (g1[0] / lg, g1[1] / lg)
         g2 = (f2[0] - e[0], f2[1] - e[1]); lh = math.hypot(*g2); g2 = (g2[0] / lh, g2[1] / lh)
         t2 = R2 * math.tan(math.acos(max(-1, min(1, g1[0] * g2[0] + g1[1] * g2[1]))) / 2)
         q = (e[0] - g1[0] * t2, e[1] - g1[1] * t2); L = math.dist(p2, q); m = max(1, int(L / krok))
-        pts += [(p2[0] + (q[0] - p2[0]) * k / m, p2[1] + (q[1] - p2[1]) * k / m) for k in range(m + 1)]
+        pts += [(p2[0] + (q[0] - p2[0]) * k / m, p2[1] + (q[1] - p2[1]) * k / m, C[i][3]) for k in range(m + 1)]
     return pts
 
 
@@ -373,6 +401,13 @@ class Wyscig(unittest.TestCase):
             self.assertIn('("%s", "%s",' % (model, kolor), KLADY)                                 # a paint of the owner's pack
             self.assertTrue(.85 <= float(umiej) <= .97)
             self.assertLessEqual(abs(float(pas)) + 1.28 / 2, const("Szer") / 2 - .5)             # its lane inside the track
+            # its lane drawn in where the track narrows (the field 7 m, the woods' trail 5 m): still inside, quads apart
+            for w in (const("Start"), const("MX"), const("Las")):
+                hw = w / 2; skala = min(1.0, max(0.0, (hw - .8) / 3.2)); granica = max(.3, hw - .9)
+                self.assertLessEqual(min(abs(float(pas)) * skala, granica) + 1.28 / 2, hw - .2, (imie, w))
+        self.assertIn("float hw = w.szer.Length == n ? w.szer[(Idx + 4) % n] * .5f : 4f, skala = Mathf.Clamp01((hw - .8f) / 3.2f), granica = Mathf.Max(.3f, hw - .9f);", RYWAL)
+        self.assertIn("pasTeraz = Mathf.MoveTowards(pasTeraz, Mathf.Clamp(cel * skala, -granica, granica), 1.4f * dt);", RYWAL)
+        self.assertIn("public float[] szer = new float[0];", WYSCIG)
         # each on his own side, as his place in the gate: places 1, 2, 4, 5 (u = 3.2, 1.6, -1.6, -3.2 m left)
         sloty = [3.2, 1.6, -1.6, -3.2]
         for (model, kolor, imie, numer, umiej, pas), u in zip(r, sloty):
@@ -385,10 +420,10 @@ class Wyscig(unittest.TestCase):
         self.assertIn("t.localRotation = w.belkaDol; w.belki[k] = t; Belek++;", TOR)
         self.assertIn("bb => bb.BoxMinMax(mat, -.03f, .03f, .005f, .425f, -hz, hz)", TOR)          # 0.12 + 0.425: FIM's ~50 cm
         self.assertIn("GameObjectUtility.SetStaticEditorFlags(tr.gameObject, (StaticEditorFlags)0);", TOR)
-        # 3 - 2 - 1 and the drop; three laps from the gate; the order by the distance ridden along the line, followed from
-        # where each rider was (a cut gains nothing)
+        # 3 - 2 - 1 and the drop; two laps of the 2.5 km loop from the gate; the order by the distance ridden along the line,
+        # followed from where each rider was (a cut gains nothing)
         self.assertIn("if (t >= 3.6f) Puszczaj();", WYSCIG)
-        self.assertIn("public const int Okrazen = 3;", TOR)
+        self.assertIn("public const int Okrazen = 2;", TOR)
         self.assertIn("public float Dystans => sMety + okrazen * dlugosc;", WYSCIG)
         self.assertIn("for (int k = -4; k <= 12; k++)", WYSCIG)
         self.assertIn("static bool Przed(Uczestnik a, Uczestnik b) => a.meta ? (!b.meta || a.czas < b.czas) : (!b.meta && a.dystans > b.dystans);", WYSCIG)
@@ -443,49 +478,39 @@ class Wyscig(unittest.TestCase):
         self.assertIn("be.QuadUV(ekran, new Vector3(x1, yb, zs), new Vector3(x1, yt, zs), new Vector3(x0, yt, zs), new Vector3(x0, yb, zs),", TOR)
 
 
-def rozwidlenia():
-    blok = TOR.split("public static readonly Rozwidlenie[] Rozwidlenia =")[1].split("};")[0]
-    return [tuple(float(v) for v in w) for w in re.findall(r"new Rozwidlenie\((\d+), ([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f\)", blok)]
-
-
-class BoczneLinieIBloto(unittest.TestCase):
-    """owner 24.11 12:57, his pick "Boczne linie i błoto": split lines on the two long straights, the mud pit, dust and mud"""
+class LasyIBloto(unittest.TestCase):
+    """owner 24.11 12:57 his pick "Boczne linie i błoto" (the mud, the dust); 14:01-14:20 "w jakichś błotach albo po jakichś
+    lasach", "lasy, górki", "więcej lasu": the woods' trail over the hill, its logs, mud and creek"""
 
     def przeszkody(self):
-        return [(int(a), float(b), c, float(d)) for a, b, c, d in re.findall(r"new Przeszkoda\((\d+), ([\d.]+)f, Typ\.(\w+), ([\d.]+)f", TOR)]
+        return [(int(a), float(b), c, float(d), int(n) if n else 0) for a, b, c, d, n in re.findall(r"new Przeszkoda\((\d+), ([\d.]+)f, Typ\.(\w+), ([\d.]+)f(?:, (\d+))?\)", TOR)]
 
-    def test_splits_on_the_long_straights(self):
-        _, proste, _ = petla()
-        r = rozwidlenia(); self.assertEqual(len(r), 2)
-        najdluzsze = sorted(range(len(proste)), key=lambda i: -proste[i])[:4]
-        dl = {"Stol": lambda h: 35 if h >= 1.8 else 23, "Podwojna": lambda h: 28.8, "Schodek": lambda h: 35.5, "Fale": None, "Muldy": None,
-              "Gorka": lambda h: 66, "Brod": lambda h: 18, "Bloto": lambda h: 26}
-        for prosta, od, d, a, fa, h1, luka, fb, h2, deck, lad in r:
-            prosta = int(prosta)
-            self.assertIn(prosta, najdluzsze)
-            self.assertLess(od + d, proste[prosta] - 4)
-            warga = a + fa + .4; koniec = warga + 3 + luka + fb + deck + lad
-            self.assertLess(koniec, d - 4)
-            # over the rollers only: no other obstacle of that straight inside the stretch
-            for p, pod, typ, h in self.przeszkody():
-                if p != prosta or typ in ("Fale",): continue
-                koniec_p = pod + (dl[typ](h) if dl[typ] else 0)
-                self.assertTrue(koniec_p < od - 2 or pod > od + d + 2, (prosta, typ))
-            # the gap jump: its lip angle (the kicker's face: Rampa, toe 0.3), the flight to the middle of its landing a speed
-            # both quads reach (the Rancher's 75 km/h x 0.97); to its deck from a slower one; a real gap under it
-            kat = math.atan(h1 / fa / (1 - .15))
-            v_mid = math.sqrt(9.81 * (3 + luka + fb + deck + lad / 2) / math.sin(2 * kat))
-            v_deck = math.sqrt(9.81 * (3 + luka + fb) / math.sin(2 * kat))
-            self.assertLess(v_mid, 75 / 3.6 * .97); self.assertLess(v_deck, v_mid)
-            self.assertGreaterEqual(luka, 6)
-        # the left half its own, joined over the middle 2 m (the ribbon's columns 1 m apart, each its own normal)
-        self.assertIn("float w = Smooth(-2f, 2f, t) * (1f - Smooth(r.dl - 2f, r.dl + 2f, t)) * Smooth(-1f, 1f, u);", TOR)
-        self.assertIn("return Baza(i) + Profil(o.s[i], u) + Mathf.Abs(b) * (Szer * .5f - Mathf.Sign(b) * u);", TOR)
-        self.assertIn("float dAlong = (Tor(ib, u) - Tor(ia, u)) / (2f * ds), dAcross = Tor(i, u + .5f) - Tor(i, u - .5f);", TOR)
-        self.assertIn("// the split stretches: a row of stakes down the middle between the two lines", TOR)
-        # the rivals keep to the right line (the rollers): from 45 m before a split
-        self.assertIn("w.prawa[k] = WRozwidleniu(s, 45f);", TOR)
-        self.assertIn("if (w.prawa.Length == n && (w.prawa[Idx] || w.prawa[jp])) cel = Mathf.Clamp(cel, -2.6f, -1.1f);", RYWAL)
+    def test_the_wooded_hill(self):
+        gx, gz, gh, gr = const("GoraX"), const("GoraZ"), const("GoraH"), const("GoraR")
+        self.assertEqual((gh, gr), (18.0, 150.0))
+        self.assertIn("return GoraH * .5f * (1f + Mathf.Cos(Mathf.PI * d / GoraR)) * Smooth(0f, RimBand + 12f, DoKrawedzi(x, z));", TOR)
+        self.assertIn("public static float Naturalna(float x, float z) => BraxChampionsHorizon.FarHeight(x, z) + Gora(x, z);", TOR)
+        # the woods' corners on the hill (its slopes and its top), the field's off it
+        C = rogi()
+        for x, z, r, w in C[1:32]:
+            self.assertLess(math.hypot(x - gx, z - gz), gr + 15, (x, z))
+        # the track climbs it with the land (the base smoothed over 50 m: a grade a quad rides, no wall)
+        self.assertIn("baza = new float[N]; int w = 50;", TOR)
+        # the slope: steepest 18 * pi / 2 / 150 = 19 %, the trail's switchbacks across it
+        self.assertLess(gh * math.pi / 2 / gr, .2)
+
+    def test_logs_mud_and_the_creek_in_the_woods(self):
+        p = self.przeszkody()
+        lesne = [q for q in p if q[0] <= 31]
+        self.assertEqual(sorted({q[2] for q in lesne}), ["Bloto", "Brod", "Fale", "Klody"])
+        # logs: 0.4 m pine trunks 2.4 m apart on their dirt ramps, at most 3 in a row, ridden at a walk (5 m/s)
+        self.assertEqual((const("KlodaOdstep"), const("KlodaR")), (2.4, .2))
+        for q in p:
+            if q[2] == "Klody": self.assertLessEqual(q[4], 3); self.assertLessEqual(q[3], .4)
+        self.assertIn("case Typ.Klody: if (t > -8f && t < q.dl) v = Mathf.Min(v, 5f); break;", TOR)
+        self.assertIn('kora = BraxChampionsFoundation.SourceMaterial("tor_kladow_kora", "pine_bark", 2f, Color.white);', TOR)
+        # the creek's ford: 0.8 m dip, the water 0.42 m deep
+        self.assertIn("public const float WodaGlebokosc = .42f;", TOR)
 
     def test_ribbon_textures_at_real_size(self):
         # the riding surface's UVs in metres: the ruts (muddy_tracks, 2.25 m on Poly Haven) and the mud (aerial_mud_1, 8 m)
@@ -494,13 +519,14 @@ class BoczneLinieIBloto(unittest.TestCase):
         self.assertIn('SourceMaterial("tor_kladow_koleiny", "muddy_tracks", 2.25f,', TOR)
         self.assertIn('SourceMaterial("tor_kladow_bloto", "aerial_mud_1", 8f,', TOR)
 
-    def test_mud_pit(self):
-        mud = [p for p in self.przeszkody() if p[2] == "Bloto"]
-        self.assertEqual(len(mud), 1)
-        prosta, od, _, h = mud[0]
+    def test_mud_pits(self):
+        mud = [q for q in self.przeszkody() if q[2] == "Bloto"]
+        self.assertEqual(len(mud), 2)                                                              # the hole on the climb, the big pit
         _, proste, _ = petla()
-        self.assertLess(od + 26, proste[prosta] - 6); self.assertAlmostEqual(h, .3)
-        self.assertIn("case Typ.Bloto: return 26f;", TOR)
+        for prosta, od, _, h, n in mud:
+            self.assertLessEqual(prosta, 31)                                                       # both in the woods
+            self.assertLess(od + n, proste[prosta] - 6); self.assertLessEqual(h, .35)
+        self.assertIn("case Typ.Bloto: return p.n > 0 ? p.n : 26f;", TOR)
         # the quad in it: the tyre holds 55 %, the mud drags at 0.25 of the load; the rivals slow to 29 km/h for it
         self.assertIn("float lim = przyczepnosc * sila * (bl ? .55f : 1f);", KLAD)
         self.assertIn("if (bl) wzdluz -= Mathf.Clamp(vLon * masa * .25f / dt, -.25f * sila, .25f * sila);", KLAD)
@@ -516,6 +542,119 @@ class BoczneLinieIBloto(unittest.TestCase):
         self.assertIn("if (mokre) q.v[i] += Vector3.down * (9.81f * K * dt);", BLOTO)            # the clumps on the world's gravity
         meta = (RT / "BraxChampionsBloto.cs.meta").read_text(encoding="utf-8")
         self.assertRegex(meta, r"guid: [0-9a-f]{32}\n")
+
+
+def png(path):
+    """(width, height, rows of RGBA bytes) of an 8-bit RGBA PNG (no PIL in the checks)"""
+    import struct
+    import zlib
+    b = path.read_bytes(); assert b[:8] == b"\x89PNG\r\n\x1a\n"
+    i, idat, w = 8, b"", 0
+    while i < len(b):
+        n, typ = struct.unpack(">I4s", b[i:i + 8]); d = b[i + 8:i + 8 + n]; i += 12 + n
+        if typ == b"IHDR": w, h, depth, ctype = struct.unpack(">IIBB", d[:10]); assert (depth, ctype) == (8, 6)
+        elif typ == b"IDAT": idat += d
+    raw = zlib.decompress(idat); st = w * 4; rows = []; prev = bytearray(st); p = 0
+    for _ in range(h):
+        f = raw[p]; line = bytearray(raw[p + 1:p + 1 + st]); p += 1 + st
+        for x in range(st):
+            a = line[x - 4] if x >= 4 else 0; up = prev[x]; c = prev[x - 4] if x >= 4 else 0
+            if f == 1: line[x] = (line[x] + a) & 255
+            elif f == 2: line[x] = (line[x] + up) & 255
+            elif f == 3: line[x] = (line[x] + (a + up) // 2) & 255
+            elif f == 4:
+                pa, pb, pc = abs(up - c), abs(a - c), abs(a + up - 2 * c)
+                line[x] = (line[x] + (a if pa <= pb and pa <= pc else up if pb <= pc else c)) & 255
+        rows.append(bytes(line)); prev = line
+    return w, h, rows
+
+
+class Las(unittest.TestCase):
+    """owner 24.11 14:20 "Tak, ale więcej lasu": the forest of Poly Haven's scanned pines and firs, as crossed cards"""
+
+    def test_the_cards_from_the_real_scans(self):
+        self.assertIn('public const string Atlas = "Assets/Source/Mistrzowie/Las/las_atlas.png";', LAS)
+        karty = re.findall(r'new Karta\("(\w+)", ([\d.]+)f, ([\d.]+)f, (-?[\d.]+)f, (\d+)\)', LAS)
+        self.assertEqual([k[0] for k in karty], ["sosna_a", "sosna_b", "sosna_c", "jodla_a", "jodla_b", "jodla_c", "mloda_jodla", "mloda_sosna"])
+        self.assertEqual([int(k[4]) for k in karty], list(range(0, 16, 2)))                        # each tree two cells: 0 and 90 deg
+        for nazwa, wys, ramka, stopa, _ in karty:
+            wys, ramka = float(wys), float(ramka)
+            self.assertGreaterEqual(ramka, wys); self.assertLess(ramka, wys * 1.4)                 # the tree fills its picture
+            if nazwa.startswith("mloda"): self.assertLess(wys, 3)
+            else: self.assertTrue(14 <= wys <= 21, nazwa)                                          # real grown pines and firs
+        # the picture half as wide as it is tall (512 x 1024), centred on the trunk
+        self.assertIn("float h = ka.ramka * d.skala, hw = h * .25f, y0 = d.y + ka.stopa * d.skala;", LAS)
+        credits = (ATLAS.parent / "CREDITS.md").read_text(encoding="utf-8")
+        for m in ("pine_tree_01", "fir_tree_01", "fir_sapling", "pine_sapling_small"):
+            self.assertIn("https://polyhaven.com/a/" + m, credits)
+        self.assertIn("CC0", credits)
+        # the tools that made it: the needles' own alpha (Poly Haven's glTF leaves it out), no mipmaps in the render, the
+        # cut-out's coverage kept in the atlas
+        pob = (TOOLS / "las/pobierz_drzewo.py").read_text(encoding="utf-8")
+        self.assertIn('twig = next(k[:-len("_alpha")] for k in files if k.endswith("_alpha"))', pob)
+        self.assertIn('m["alphaMode"] = "MASK"', pob)
+        self.assertIn("t.generateMipmaps = false; t.minFilter = THREE.LinearFilter;", (TOOLS / "las/wypal_drzewa.js").read_text(encoding="utf-8"))
+        atl = (TOOLS / "las/atlas_lasu.py").read_text(encoding="utf-8")
+        self.assertIn("def pokrycie(alpha_duze, alpha):", atl); self.assertIn("def wypelnij(rgba):", atl)
+
+    def test_the_atlas(self):
+        w, h, rows = png(ATLAS)
+        self.assertEqual((w, h), (4096, 2048))
+        for c in range(16):
+            x0, y0 = (c % 8) * 512, (c // 8) * 1024
+            krycie = sum(1 for y in range(y0, y0 + 1024, 8) for x in range(x0, x0 + 512, 8) if rows[y][x * 4 + 3] > 127) / (128 * 64)
+            self.assertTrue(.05 < krycie < .35, (c, krycie))                                      # a tree, not a sheet
+            # its trunk's foot at the bottom middle of its cell
+            stopa = [rows[y0 + 1023 - dy][(x0 + 256 + dx) * 4 + 3] for dy in range(2, 24) for dx in range(-24, 25)]
+            self.assertGreater(max(stopa), 200, c)
+            # the colour under the transparent texels pushed out (no black fringe at any mip level)
+            przez = [rows[y][x * 4:x * 4 + 3] for y in range(y0, y0 + 1024, 32) for x in range(x0, x0 + 512, 32) if rows[y][x * 4 + 3] == 0]
+            self.assertGreater(sum(sum(p) for p in przez) / max(1, 3 * len(przez)), 25, c)
+
+    def test_material_and_import(self):
+        for s in ('m.SetFloat("_AlphaClip", 1f); m.SetFloat("_Cutoff", .5f); m.SetFloat("_Cull", 0f);', "m.renderQueue = 2450;",
+                  'm.SetFloat("_VertexTint", 1f);', "r.shadowCastingMode = ShadowCastingMode.On;"):
+            self.assertIn(s, LAS)
+        for s in ("t.mipMapsPreserveCoverage = true;", "t.alphaTestReferenceValue = .5f;", "android.format = TextureImporterFormat.ASTC_6x6;",
+                  '"Assets/Source/Mistrzowie/Las/"', "t.wrapMode = UnityEngine.TextureWrapMode.Clamp;"):
+            self.assertIn(s, LAS_IMPORT)
+        for f in ("BraxChampionsLasKladow.cs", "BraxChampionsLasTextureImport.cs"):
+            meta = (ED / (f + ".meta")).read_text(encoding="utf-8")
+            self.assertIn("MonoImporter:", meta); self.assertRegex(meta, r"guid: [0-9a-f]{32}\n")
+        # one mesh per 60 m square (one draw call each), its trunks' capsules with it; the young trees none
+        self.assertIn("public const float Oczko = 4.6f, OczkoMlodych = 3.2f, Kwadrat = 60f", LAS)
+        self.assertIn("var cc = pk.AddComponent<CapsuleCollider>(); cc.direction = 1;", LAS)
+        self.assertIn("if (ka.Mloda) Mlodych++; else { Drzew++; p.pnie.Add(d); }", LAS)
+        self.assertIn("var rnd = new System.Random(20261124);", LAS)                               # the same forest every build
+
+    def test_where_it_stands(self):
+        # the hill, the wall round the site (not on the city's side), the woods north-west of the hill, the field's clumps and rows
+        for s in ("float gora = 1f - Smooth(T.GoraR * .9f, T.GoraR * 1.1f, dh);", "float sciana = (1f - Smooth(T.FenceInset - 2f, T.FenceInset + 12f, kr + brzeg * 14f)) * wschod;",
+                  "float kepa = Smooth(.60f, .70f, n) * wschod;", "if (NaPolu(x, z)) d = Mathf.Max(d, PoleGestosc);"):
+            self.assertIn(s, LAS)
+        # clear of the trail 2.5 m past its shoulders, of the field and the start 6 m; the paddock, the freestyle zone, the road,
+        # the LED board, the fence line
+        self.assertGreaterEqual(const("OdLesnejSciezki", LAS), 2.0); self.assertGreaterEqual(const("OdToru", LAS), 5.0)
+        self.assertGreaterEqual(const("OdFreestyle", LAS), 15.0); self.assertGreaterEqual(const("OdPaddocku", LAS), 10.0)
+        for s in ("T.DoPaddocku(x, z) < OdPaddocku", "T.DoFreestyle(x, z) < OdFreestyle", "Mathf.Abs(z - T.DrogaZ) < T.DrogaPol + 8f",
+                  "dx * dx + dz * dz < OdTablicy * OdTablicy", "Mathf.Abs(x - fx0) < OdPlotu", "if (e < 1.6f) continue;",
+                  "(e < od || los >= d * Mathf.Lerp(.55f, 1f, Smooth(od, od + 3f, e)))"):
+            self.assertIn(s, LAS)
+        # the trunk's foot sunk by the ground's slope, never floating
+        self.assertIn("t.y = T.Grunt(t.x, t.z) - .1f - Mathf.Sqrt(gx * gx + gz * gz) * .35f * Mathf.Max(1f, t.skala);", LAS)
+
+    def test_forest_floor_and_its_textures(self):
+        # the grass split again where the forest stands: its needle litter under it (one closed surface with the grass)
+        self.assertIn("foreach (var q in vl) pl.Add(BraxChampionsLasKladow.Las(q.x / K, q.z / K) - .45f);", TOR)
+        self.assertIn('Zapisz(g, "TOR DO KŁADÓW | grunt: ściółka lasu | kolizja", "tor_kladow_grunt_sciolka", va, nrm, ua, tl, sciolka, true);', TOR)
+        self.assertIn('SourceMaterial("tor_kladow_sciolka", "forest_floor", 2.14f,', TOR)
+        self.assertIn("BraxChampionsLasKladow.Zbuduj(g);", TOR)
+        prep = (TOOLS / "prepare_assets.py").read_text(encoding="utf-8")
+        fx = json.loads((TOOLS / "pbr-provider-preflight.json").read_text(encoding="utf-8"))
+        for slug in ("pine_bark", "forest_floor"):
+            self.assertIn("'" + slug + "'", prep)
+            for key in ("Diffuse", "nor_gl", "Rough", "arm"):
+                self.assertIn("/4k/", json.dumps(fx[slug][key]["4k"]))
 
 
 if __name__ == "__main__":

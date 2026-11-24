@@ -20,7 +20,7 @@ public sealed class BraxChampionsWyscig : MonoBehaviour
     public Vector3[] lewo = new Vector3[0];      // the left normal there (flat, unit)
     public float[] vCel = new float[0];          // the riding speed there, real m/s (corners, berms, obstacles, braking ahead)
     public bool[] skok = new bool[0];            // a double's run-up and flight: its own speed, whatever the rider's skill
-    public bool[] prawa = new bool[0];           // a split stretch (BraxChampionsTorKladow.Rozwidlenia) ahead: the rivals keep to its right line
+    public float[] szer = new float[0];          // the riding width there, nominal metres (8 the start, 7 the field, 5 the woods)
     public float krok = 2f;                      // nominal metres between the points
     public float dlugosc = 1000f;                // the loop, nominal metres
     public float sMety;                          // the finish line from the gate, nominal metres

@@ -60,7 +60,11 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  # the shoulders' packed soil, the paddock's and the road's gravel - no dirt on his list (ZASADY 5.8)
                  'muddy_tracks','brown_mud_02','gravel_ground_01',
                  # 24.11 12:57 owner's pick "Boczne linie i błoto": the mud pit's dark wet mud with its ruts (Poly Haven, 8 m)
-                 'aerial_mud_1')
+                 'aerial_mud_1',
+                 # 24.11 14:20 owner ("lasy, górki", "więcej lasu"): the woods' logs across the trail (Pine Bark, 2 m) and the
+                 # pine forest's floor under its trees - needles, cones, twigs (Forest Floor, 2.14 m); neither on his list
+                 # (ZASADY 5.8: its terrain has rock, no woodland floor; its one bark is fir_tree_01's own)
+                 'pine_bark','forest_floor')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
 # Owner 10.11 19:12 ("Nieba też brak", "I panorama realistyczną HDR 360"): the region's sky is a real 360 HDR panorama
 # (Poly Haven CC0), the original 4K Radiance .hdr checked against the provider's size and MD5 (BraxChampionsSky imports it
