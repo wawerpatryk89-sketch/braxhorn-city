@@ -373,7 +373,9 @@ public static class BraxChampionsTorKladow
     /// embankments and cuts (1:1.6 fill, 1:1 cut), under the riding surface 0.35 m down, at the rim 1.5 m under the far land.</summary>
     public static float Grunt(float x, float z) => Grunt(x, z, out _);
     /// <summary>The ground, and how far it is from the land's own lie there (the fill and the cut of the track: bare earth).</summary>
-    public static float Grunt(float x, float z, out float ziemia)
+    public static float Grunt(float x, float z, out float ziemia) => Grunt(x, z, out ziemia, true);
+    /// <summary>The ground; bunkier false: without the classics' bunker's forest road (the bunker lays its line on this).</summary>
+    public static float Grunt(float x, float z, out float ziemia, bool bunkier)
     {
         float h = Naturalna(x, z);
         ziemia = -1f;
@@ -400,6 +402,11 @@ public static class BraxChampionsTorKladow
             ziemia = Mathf.Max(Mathf.Abs(h - nat) - .2f, brzeg + 1.5f - e);
         }
         if (dr > 35f) h -= RimDip * (1f - Smooth(0f, RimBand, DoKrawedzi(x, z)));   // under the far land at the rim (not at the road)
+        if (bunkier)                                                     // the classics' bunker's forest road (owner 24.11 23:13)
+        {
+            float hb = BraxChampionsBunkier.Grunt(x, z, h);
+            if (!float.IsNaN(hb)) h = hb;
+        }
         return h;
     }
     /// <summary>For BraxChampionsHorizon.Height: inside the site the far land goes 1 m under its ground (not in the rim band,
@@ -409,6 +416,8 @@ public static class BraxChampionsTorKladow
         if (!WTorze(x, z)) return float.PositiveInfinity;
         Droga(x, z, out float dr);
         if (DoKrawedzi(x, z) < RimBand && dr > 35f) return float.PositiveInfinity;
+        // round the classics' bunker under its floor: no cell of the far land crosses the cut, the tunnel or the hall
+        if (BraxChampionsBunkier.Strefa(x, z)) return Mathf.Min(Grunt(x, z) - 1f, BraxChampionsBunkier.Podloga - 1.5f);
         return Grunt(x, z) - 1f;
     }
 
@@ -465,6 +474,8 @@ public static class BraxChampionsTorKladow
         var wyscig = Wyscig(g, b);
         b.Build(g, "TOR DO KŁADÓW | detale", Folder, true, K);
         Trojkaty += b.Triangles;
+        BraxChampionsBunkier.Zbuduj(g);                              // the classics' bunker under the hill (owner 24.11 23:09-23:13)
+        Trojkaty += BraxChampionsBunkier.Trojkaty;
         BraxChampionsLasKladow.Zbuduj(g);                            // the forest (owner 14:20 "więcej lasu")
         Trojkaty += BraxChampionsLasKladow.Trojkaty;
         BraxChampionsOponyKladow.Zbuduj(g);                          // the tyres at the turns, the tyre walls, the tape (17:11)
@@ -527,6 +538,7 @@ public static class BraxChampionsTorKladow
             {
                 int a = i * (nz + 1) + j, bq = (i + 1) * (nz + 1) + j, c = a + 1, e = bq + 1;
                 if (pod[a] && pod[bq] && pod[c] && pod[e]) continue;
+                if (BraxChampionsBunkier.Dziura(X0 + (i + .5f) * krok, Z0 + (j + .5f) * krok)) continue;   // the bunker's cut and portal
                 Trojkat(tg, tz, a, c, bq); Trojkat(tg, tz, c, e, bq);
             }
         // the forest's floor: the grass's triangles cut again where the forest's field crosses its edge
@@ -666,7 +678,7 @@ public static class BraxChampionsTorKladow
         }
     }
 
-    static void Zapisz(Transform g, string nazwa, string plik, Vector3[] v, Vector3[] n, Vector2[] uv, List<int> t, Material mat, bool kolizja)
+    internal static void Zapisz(Transform g, string nazwa, string plik, Vector3[] v, Vector3[] n, Vector2[] uv, List<int> t, Material mat, bool kolizja)
     {
         if (t.Count == 0) return;
         // only the vertices the triangles use

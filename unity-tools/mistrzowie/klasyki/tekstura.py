@@ -1,0 +1,246 @@
+"""Texture work on a Tripo model's colour map, placed in 3D (owner 24.11.2026 22:54-23:06: "każde napisy, jak są źle, to
+zmazać i nowe", "trzeba odrestaurować, napisy poprawić ... wyraźnie").
+
+Tripo paints one 2048 atlas whose islands lie at any angle, mirrored or not; a lettering painted straight into the atlas
+would come out crooked or mirrored. So everything here is placed on the vehicle, as a sign-writer would: a view (L the
+left side seen from +x, P the right side from -x, F the front from +z, T the rear from -z), a box in that view's metres
+(u to the viewer's right, v up - the same numbers as the gridded orthographic pictures of unity-tools/mistrzowie/klasyki),
+and every texel of the faces seen there is mapped back to its point on the body (barycentric, per face):
+  - zmaz:   what differs from the panel's own paint in the box (letters, crosses, stickers) is inpainted from the paint
+            round it (OpenCV Telea) - the panel's shading stays;
+  - napis:  crisp letters (Montserrat SemiBold, SIL OFL - the region's typeface, unity-tools/mistrzowie/fonts) laid on the
+            panel, antialiased at the atlas' own texel size;
+  - tablica: a registration plate of the time (1976-2000: black, white characters, 520 x 120 mm);
+  - odnow:  the restoration - rust, dirt and scratches in the paint taken back to the paint's own colour, its shading
+            (the low frequencies of the luminance) kept, the panel lines and trim left alone.
+Only faces facing the viewer and in front (a depth test on a 2 cm grid) take paint: nothing goes through to the far side
+or onto the inside of a panel."""
+from pathlib import Path
+
+import cv2
+import numpy as np
+from fontTools.ttLib import TTFont
+from PIL import Image, ImageDraw, ImageFont
+
+FONTS = Path(__file__).resolve().parents[1] / "fonts"
+FONT_FILES = [FONTS / "Montserrat-SemiBold-latin.ttf", FONTS / "Montserrat-SemiBold-latin-ext.ttf"]
+_CMAPS = [TTFont(str(f)).getBestCmap() for f in FONT_FILES]
+
+# a view: the direction to the viewer, (u, v) from a body point
+WIDOKI = {
+    "L": (np.array([1.0, 0, 0]), lambda p: (-p[..., 2], p[..., 1])),
+    "P": (np.array([-1.0, 0, 0]), lambda p: (p[..., 2], p[..., 1])),
+    "F": (np.array([0, 0, 1.0]), lambda p: (p[..., 0], p[..., 1])),
+    "T": (np.array([0, 0, -1.0]), lambda p: (-p[..., 0], p[..., 1])),
+    "G": (np.array([0, 1.0, 0]), lambda p: (-p[..., 0], p[..., 2])),      # from above: u the vehicle's right... v forward
+}
+
+
+def lin(c): return np.where(c <= .04045, c / 12.92, ((c + .055) / 1.055) ** 2.4)
+def srgb(c): return np.where(c <= .0031308, c * 12.92, 1.055 * np.power(np.maximum(c, 0), 1 / 2.4) - .055)
+
+
+class Model:
+    """P (n, 3) the body in metres (front +z, up +y, +x the left), I (m, 3), U (n, 2) glTF UVs (origin top left)"""
+
+    def __init__(self, P, I, U, img, normal=None, mr=None):
+        self.P, self.I, self.U = P, I, U
+        self.img = np.asarray(img.convert("RGB")).astype(np.float32) / 255
+        # the other maps: Tripo bakes the letters' relief into the normal map and their gloss into the metallic-roughness
+        # map - an erased lettering that stayed there would still show as a ghost in the light
+        self.mapy = {k: np.asarray(v.convert("RGB")).copy() for k, v in (("normal", normal), ("mr", mr)) if v is not None}
+        self.h, self.w = self.img.shape[:2]
+        T = P[I]; self.cen = T.mean(1)
+        n = np.cross(T[:, 1] - T[:, 0], T[:, 2] - T[:, 0]); self.area = np.linalg.norm(n, axis=1) / 2
+        self.n = n / np.maximum(2 * self.area[:, None], 1e-12)
+        self.log = []
+        self.ramki = []                                      # (kind, view, box): what was done where (the recipe's picture)
+
+    # ---- which faces are seen in a view's box
+    def widoczne(self, widok, box, cos=.35, glebia=.06, margines=.05, zewn=False):
+        d, uv = WIDOKI[widok]; u, v = uv(self.cen); dep = self.cen @ d
+        u0, u1, v0, v1 = box
+        inb = (u > u0 - margines) & (u < u1 + margines) & (v > v0 - margines) & (v < v1 + margines)
+        nd = self.n @ d
+        # Tripo's shells are two layers ~1 cm apart: the outer facing out, the inner facing in. Both take the same paint
+        # (the inner one shows through wherever the layers cross); only what lies at the front-most surface does
+        ok = inb & ((nd > cos) if zewn else (np.abs(nd) > cos))   # zewn: the outer layer only (a door's inside is its card)
+        if not ok.any(): return ok
+        # depth: the front-most outward surface on a 2 cm grid (the panel, not what lies behind it)
+        gu = np.floor((u - u0) / .02).astype(int); gv = np.floor((v - v0) / .02).astype(int)
+        key = gu * 100000 + gv; best = {}
+        out = inb & (nd > cos)
+        for k, z in zip(key[out], dep[out]):
+            if z > best.get(k, -1e9): best[k] = z
+        idx = np.nonzero(ok)[0]
+        front = np.zeros(len(dep), bool)
+        front[idx] = [dep[i] > best.get(key[i], 1e9) - glebia for i in idx]
+        return ok & front
+
+    # ---- the texels of faces: their atlas pixels and body points
+    def teksele(self, faces):
+        ys, xs, pts = [], [], []
+        for f in np.nonzero(faces)[0]:
+            tri = self.I[f]; t = self.U[tri] * [self.w, self.h]; p = self.P[tri]
+            x0, y0 = np.floor(t.min(0)).astype(int); x1, y1 = np.ceil(t.max(0)).astype(int)
+            x0, y0 = max(x0, 0), max(y0, 0); x1, y1 = min(x1, self.w - 1), min(y1, self.h - 1)
+            if x1 < x0 or y1 < y0: continue
+            gx, gy = np.meshgrid(np.arange(x0, x1 + 1) + .5, np.arange(y0, y1 + 1) + .5)
+            a, b, c = t; den = (b[1] - c[1]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[1] - c[1])
+            if abs(den) < 1e-12: continue
+            l1 = ((b[1] - c[1]) * (gx - c[0]) + (c[0] - b[0]) * (gy - c[1])) / den
+            l2 = ((c[1] - a[1]) * (gx - c[0]) + (a[0] - c[0]) * (gy - c[1])) / den
+            l3 = 1 - l1 - l2; m = (l1 >= -.02) & (l2 >= -.02) & (l3 >= -.02)
+            if not m.any(): continue
+            ys.append(gy[m].astype(int)); xs.append(gx[m].astype(int))
+            pts.append(l1[m, None] * p[0] + l2[m, None] * p[1] + l3[m, None] * p[2])
+        if not ys: return np.zeros(0, int), np.zeros(0, int), np.zeros((0, 3))
+        return np.concatenate(ys), np.concatenate(xs), np.concatenate(pts)
+
+    # ---- erase: what differs from the panel's paint in the box, inpainted from round it
+    def zmaz(self, widok, box, prog=.16, rozszerz=3, farba=None, cos=.2, glebia=.08, plasko=False):
+        self.ramki.append(("zmaz", widok, box))
+        f = self.widoczne(widok, box, cos=cos, glebia=glebia)
+        ys, xs, pts = self.teksele(f)
+        u, v = WIDOKI[widok][1](pts); u0, u1, v0, v1 = box
+        m = (u >= u0) & (u <= u1) & (v >= v0) & (v <= v1)
+        ys, xs = ys[m], xs[m]
+        if len(ys) == 0: self.log.append("zmaz %s %s: nothing seen" % (widok, box)); return 0
+        c = self.img[ys, xs]
+        ref = np.array(farba, np.float32) / 255 if farba is not None else np.median(c, 0)
+        dev = np.linalg.norm(c - ref, axis=1) > prog
+        mask = np.zeros((self.h, self.w), np.uint8); mask[ys[dev], xs[dev]] = 255
+        if rozszerz: mask = cv2.dilate(mask, np.ones((2 * rozszerz + 1, 2 * rozszerz + 1), np.uint8))
+        region = np.zeros((self.h, self.w), np.uint8); region[ys, xs] = 255
+        region = cv2.dilate(region, np.ones((3, 3), np.uint8)); mask &= region
+        sel = mask > 0
+        if plasko and farba is not None:                       # a big badge: the paint itself (the restoration shades it)
+            self.img[sel] = ref
+        else:
+            src = (np.clip(self.img, 0, 1) * 255).astype(np.uint8)
+            out = cv2.inpaint(src, mask, 9, cv2.INPAINT_TELEA)
+            self.img[sel] = out[sel].astype(np.float32) / 255
+        for k, mp in self.mapy.items():                       # the same texels in the relief and the gloss
+            mh, mw = mp.shape[:2]
+            mk = mask if (mh, mw) == (self.h, self.w) else cv2.resize(mask, (mw, mh), interpolation=cv2.INTER_NEAREST)
+            mk = cv2.dilate(mk, np.ones((3, 3), np.uint8))
+            o2 = cv2.inpaint(mp, mk, 9, cv2.INPAINT_TELEA); s2 = mk > 0; mp[s2] = o2[s2]
+        self.log.append("zmaz %s %s: %d texels" % (widok, box, int(sel.sum())))
+        return int(sel.sum())
+
+    # ---- paint a picture (RGBA, its own metres w x h) centred at (uc, vc) in a view
+    def naklej(self, widok, rgba, uc, vc, w, h, nazwa=""):
+        box = (uc - w / 2, uc + w / 2, vc - h / 2, vc + h / 2)
+        self.ramki.append(("napis", widok, box))
+        f = self.widoczne(widok, box)
+        ys, xs, pts = self.teksele(f)
+        u, v = WIDOKI[widok][1](pts)
+        px = (u - box[0]) / w * rgba.shape[1]; py = (box[3] - v) / h * rgba.shape[0]
+        m = (px >= 0) & (px < rgba.shape[1] - 1) & (py >= 0) & (py < rgba.shape[0] - 1)
+        ys, xs, px, py = ys[m], xs[m], px[m], py[m]
+        x0, y0 = np.floor(px).astype(int), np.floor(py).astype(int); fx, fy = (px - x0)[:, None], (py - y0)[:, None]
+        s = (rgba[y0, x0] * (1 - fx) * (1 - fy) + rgba[y0, x0 + 1] * fx * (1 - fy) + rgba[y0 + 1, x0] * (1 - fx) * fy + rgba[y0 + 1, x0 + 1] * fx * fy)
+        a = s[:, 3:4]
+        self.img[ys, xs] = self.img[ys, xs] * (1 - a) + s[:, :3] * a
+        # under paint the surface is smooth: the relief there goes flat (a sign-writer's paint, a plate's flat face)
+        if "normal" in self.mapy:
+            mp = self.mapy["normal"]; mh, mw = mp.shape[:2]
+            yy = np.clip((ys * mh) // self.h, 0, mh - 1); xx = np.clip((xs * mw) // self.w, 0, mw - 1); aa = a[:, 0][:, None]
+            mp[yy, xx] = (mp[yy, xx] * (1 - aa) + np.array([128, 128, 255]) * aa).astype(np.uint8)
+        self.log.append("naklej %s %s at (%.2f, %.2f) %.2fx%.2f m: %d texels" % (widok, nazwa, uc, vc, w, h, int((a > .5).sum())))
+
+    def napis(self, widok, tekst, uc, vc, cap, kolor=(240, 240, 236), szer_max=None, ppm=2400):
+        rgba, w, h = tekst_rgba(tekst, cap, kolor, ppm)
+        if szer_max and w > szer_max: s = szer_max / w; rgba, w, h = tekst_rgba(tekst, cap * s, kolor, ppm)
+        self.naklej(widok, rgba, uc, vc, w, h, tekst)
+
+    def tablica(self, widok, tekst, uc, vc, w=.52, h=.12, nowa=False):
+        self.naklej(widok, (tablica_nowa_rgba if nowa else tablica_rgba)(tekst, w, h), uc, vc, w, h, "tablica " + tekst)
+
+    # ---- the restoration: the paint's own colour where rust, dirt and scratches are, its shading kept
+    def odnow(self, farby, tol=.20, rdza=.10, sigma=10, maska_ciala=None):
+        a = self.img; L = lin(a) @ np.array([.2126, .7152, .0722], np.float32)
+        out = a.copy(); total = 0
+        for c in farby:
+            c = np.array(c, np.float32) / 255
+            d = np.linalg.norm(a - c, axis=2)
+            core = (d < tol).astype(np.uint8)                                       # the paint as it is
+            near = cv2.dilate(core, np.ones((15, 15), np.uint8)) > 0                # its panels (spots inside them)
+            if maska_ciala is not None: near &= maska_ciala
+            # what to clean: in the paint's panels, off its colour but not dark trim (panel lines, rubber: under 15 %)
+            # nor chrome or glass (low saturation, bright): rust is warm and darker, dirt is greyer and darker
+            mx = a.max(2); mn = a.min(2); sat = (mx - mn) / np.maximum(mx, 1e-6)
+            # nor grey trim (a bumper, a hub cap: unsaturated and far from the paint) - rust and dirt keep some colour
+            brud = near & (d >= tol) & (mx > .15) & ~((sat < .12) & (mx > .55)) & (d < .55) & ((sat > .22) | (d < .28))
+            # the shading: the paint's own luminance, smoothed over its panels (normalised convolution)
+            w = core.astype(np.float32); Ls = cv2.GaussianBlur(L * w, (0, 0), sigma) / np.maximum(cv2.GaussianBlur(w, (0, 0), sigma), 1e-4)
+            Lc = float(lin(c) @ np.array([.2126, .7152, .0722], np.float32))
+            czysta = srgb(np.clip(lin(c)[None, None, :] * (Ls / max(Lc, 1e-4))[..., None], 0, 1))
+            sel = brud & (cv2.GaussianBlur(w, (0, 0), sigma) > .05)
+            out[sel] = czysta[sel]
+            # the paint itself: its speckle (fine dirt) evened half-way to the clean colour
+            pc = core > 0; out[pc] = a[pc] * .5 + czysta[pc] * .5
+            total += int(sel.sum())
+        self.img = out
+        self.log.append("odnow %d colours: %d texels cleaned" % (len(farby), total))
+        return total
+
+    def obraz(self): return Image.fromarray((np.clip(self.img, 0, 1) * 255 + .5).astype(np.uint8))
+    def mapa(self, k): return Image.fromarray(self.mapy[k])
+
+
+def _font_for(ch):
+    for i, c in enumerate(_CMAPS):
+        if ord(ch) in c: return i
+    return 0
+
+
+def tekst_rgba(tekst, cap, kolor, ppm=2400):
+    """letters (cap height in metres) as an RGBA float image and its size in metres"""
+    px = max(8, int(round(cap * ppm / .70)))                  # Montserrat's cap height ~ 0.70 em
+    fonts = [ImageFont.truetype(str(f), px) for f in FONT_FILES]
+    widths = [fonts[_font_for(ch)].getlength(ch) for ch in tekst]
+    tracking = px * .04
+    W = int(sum(widths) + tracking * (len(tekst) - 1) + px * .2); H = int(px * 1.35)   # room for Ą Ę's ogonek
+    im = Image.new("L", (W, H), 0); d = ImageDraw.Draw(im); x = px * .1
+    for ch, wd in zip(tekst, widths):
+        d.text((x, px * .12), ch, font=fonts[_font_for(ch)], fill=255); x += wd + tracking
+    a = np.asarray(im).astype(np.float32) / 255
+    ys, xs = np.nonzero(a > .02)
+    a = a[max(ys.min() - 4, 0):ys.max() + 5, max(xs.min() - 4, 0):xs.max() + 5]
+    rgba = np.zeros(a.shape + (4,), np.float32); rgba[..., :3] = np.array(kolor, np.float32) / 255; rgba[..., 3] = a
+    return rgba, a.shape[1] / ppm, a.shape[0] / ppm
+
+
+def tablica_rgba(tekst, w=.52, h=.12, ppm=2400):
+    """a plate of 1976-2000: black, a thin white rim, white characters"""
+    W, H = int(w * ppm), int(h * ppm)
+    im = Image.new("RGBA", (W, H), (14, 14, 16, 255)); d = ImageDraw.Draw(im)
+    r = int(.006 * ppm); d.rectangle([r, r, W - r - 1, H - r - 1], outline=(236, 236, 232, 255), width=max(2, int(.004 * ppm)))
+    t, tw, th = tekst_rgba(tekst, h * .62, (236, 236, 232), ppm)
+    s = min(1.0, (w * .9) / tw); t = np.asarray(Image.fromarray((t * 255).astype(np.uint8)).resize((max(1, int(t.shape[1] * s)), max(1, int(t.shape[0] * s))), Image.LANCZOS)).astype(np.float32) / 255
+    base = np.asarray(im).astype(np.float32) / 255
+    y0 = (H - t.shape[0]) // 2; x0 = (W - t.shape[1]) // 2
+    reg = base[y0:y0 + t.shape[0], x0:x0 + t.shape[1]]; a = t[..., 3:4]
+    reg[..., :3] = reg[..., :3] * (1 - a) + t[..., :3] * a
+    return base
+
+
+def tablica_nowa_rgba(tekst, w=.52, h=.114, ppm=2400):
+    """a plate of today (since 2006): white, black characters, the blue band at the left with PL (no flag drawn)"""
+    W, H = int(w * ppm), int(h * ppm)
+    im = Image.new("RGBA", (W, H), (240, 240, 236, 255)); d = ImageDraw.Draw(im)
+    d.rectangle([0, 0, W - 1, H - 1], outline=(20, 20, 22, 255), width=max(2, int(.004 * ppm)))
+    bw = int(.040 * ppm); d.rectangle([0, 0, bw, H - 1], fill=(0, 51, 153, 255))
+    pl, pw, ph = tekst_rgba("PL", h * .22, (240, 240, 236), ppm)
+    base = np.asarray(im).astype(np.float32) / 255
+    y0 = int(H * .62); x0 = max(0, (bw - pl.shape[1]) // 2)
+    reg = base[y0:y0 + pl.shape[0], x0:x0 + pl.shape[1]]; a = pl[:reg.shape[0], :reg.shape[1], 3:4]
+    reg[..., :3] = reg[..., :3] * (1 - a) + pl[:reg.shape[0], :reg.shape[1], :3] * a
+    t, tw, th = tekst_rgba(tekst, h * .58, (16, 16, 18), ppm)
+    s = min(1.0, (w * .84) / tw)
+    t = np.asarray(Image.fromarray((t * 255).astype(np.uint8)).resize((max(1, int(t.shape[1] * s)), max(1, int(t.shape[0] * s))), Image.LANCZOS)).astype(np.float32) / 255
+    y0 = (H - t.shape[0]) // 2; x0 = bw + (W - bw - t.shape[1]) // 2
+    reg = base[y0:y0 + t.shape[0], x0:x0 + t.shape[1]]; a = t[..., 3:4]
+    reg[..., :3] = reg[..., :3] * (1 - a) + t[..., :3] * a
+    return base

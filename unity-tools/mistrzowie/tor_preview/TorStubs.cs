@@ -61,3 +61,41 @@ public static class BraxChampionsKlady
         return null;
     }
 }
+
+// the classics' bunker's vehicles (an encrypted owner pack): with a decrypted copy beside the run
+// (Assets/Source/Prywatne/Miasto/pojazdy_klasyki_01) each part's .glb at its pivot, its colour map (a .jpg)
+public static class BraxChampionsKlasyki
+{
+    public const string Paczka = "pojazdy_klasyki_01";
+    public static System.Collections.Generic.List<(string model, Vector3 p, float yaw)> Miejsca = new System.Collections.Generic.List<(string, Vector3, float)>();
+    static string Baza => BraxMiastoAssety.Baza + Paczka + "/";
+    public static bool Jest => System.IO.File.Exists(Baza + "katalog.json");
+    static System.Text.Json.JsonElement? M(string model)
+    {
+        if (!Jest) return null;
+        var doc = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(Baza + "katalog.json"));
+        foreach (var m in doc.RootElement.GetProperty("modele").EnumerateArray()) if (m.GetProperty("model").GetString() == model) return m.Clone();
+        return null;
+    }
+    public static Vector2 Wymiar(string model) { var m = M(model); return m == null ? Vector2.zero : new Vector2(m.Value.GetProperty("dlugosc").GetSingle(), m.Value.GetProperty("szerokosc").GetSingle()); }
+    public static string Typ(string model) => M(model)?.GetProperty("typ").GetString() ?? "";
+    public static GameObject Postaw(Transform parent, string model, Vector3 p, float yaw, bool jezdny = true)
+    {
+        Miejsca.Add((model, p, yaw));
+        var m = M(model); if (m == null) return null;
+        float K = BraxClaudeOsiedle.K;
+        var root = new GameObject("KLASYK | " + model); root.transform.SetParent(parent, false); root.transform.position = p * K; root.transform.rotation = Quaternion.Euler(0f, yaw, 0f);
+        string tex = Baza + "_tekstury/" + m.Value.GetProperty("kolor").GetString() + ".jpg";
+        foreach (var c in m.Value.GetProperty("czesci").EnumerateArray())
+        {
+            var pv = c.GetProperty("pivot"); var piv = new Vector3(pv[0].GetSingle(), pv[1].GetSingle(), pv[2].GetSingle());
+            string plik = c.GetProperty("plik").GetString(), glb = Baza + plik + ".glb";
+            var g = new GameObject(plik); g.transform.SetParent(root.transform, false);
+            g.transform.localPosition = piv * K; g.transform.localScale = Vector3.one * K;
+            var pm = g.AddComponent<PreviewModel>(); pm.path = glb; (pm.min, pm.max) = GltfBounds.Read(glb);
+            bool szklo = plik.Contains("szyby");
+            g.AddComponent<MeshRenderer>().sharedMaterial = szklo ? new Material { name = "klasyk szyba", color = new Color(.05f, .06f, .07f) } : new Material { name = "klasyk " + model, textured = true, picture = tex };
+        }
+        return root;
+    }
+}

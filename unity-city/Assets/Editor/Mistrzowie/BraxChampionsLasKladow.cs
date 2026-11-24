@@ -108,6 +108,7 @@ public static class BraxChampionsLasKladow
         if (T.DoPaddocku(x, z) < OdPaddocku || T.DoFreestyle(x, z) < OdFreestyle) return true;
         if (x > T.DrogaX0 - 15f && Mathf.Abs(z - T.DrogaZ) < T.DrogaPol + 8f) return true;
         if (x > T.PlotWschodX - 25f) return true;                                          // the city's side
+        if (BraxChampionsBunkier.Wolne(x, z)) return true;                                 // the bunker's forest road and its cut
         float dx = x - T.TablicaX, dz = z - T.TablicaZ; if (dx * dx + dz * dz < OdTablicy * OdTablicy) return true;
         // the fence (x0, z0 .. x1, z1): its line stays clear
         float fx0 = T.X0 + T.FenceInset, fz0 = T.Z0 + T.FenceInset, fz1 = T.Z1 - T.FenceInset, fx1 = T.PlotWschodX;
