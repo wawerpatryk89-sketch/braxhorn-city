@@ -59,6 +59,25 @@ class TeksturyGlb(unittest.TestCase):
         # #54 died with 2.2 GB RAM + 1 GB swap free: the threshold is above that
         self.assertGreater(int(re.search(r"MinPamiecMB = (\d+);", GLB).group(1)), 2200 + 1000)
 
+    def test_images_one_at_a_time_55(self):
+        """#55 (run 45374837203) was killed (exit 137) in this step 18 s after the import: ~250 ASTC images loaded at once
+        and kept, each decompressed for the editor's software GPU, on top of the 12 GB of the built scene"""
+        krok = GLB[GLB.index("AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);"):]
+        # loaded one by one, put into the copies' slots, let go again before the next
+        petla = krok[krok.index("foreach (var kv in sloty)"):krok.index("// 5. the copies")]
+        self.assertIn("var t = AssetDatabase.LoadAssetAtPath<Texture2D>(kv.Key);", petla)
+        self.assertIn("Resources.UnloadAsset(t);", petla)
+        self.assertLess(petla.index("c.SetTexture(id, t)"), petla.index("Resources.UnloadAsset(t);"))
+        # nothing collects the loaded images any more
+        self.assertNotIn("nowe[kv.Key] = t", GLB)
+        # short of memory midway: the rest stay original, the build goes on
+        self.assertIn("if (w >= 0 && w < MinPamiecMB)", petla)
+        self.assertIn("break;", petla)
+        # only copies that really got a compressed image are saved and used
+        self.assertIn("if (kv.Value == null || !zamienione.Contains(kv.Value)) continue;", krok)
+        # the originals out of memory before the player is built
+        self.assertIn("EditorUtility.UnloadUnusedAssetsImmediate();", krok[krok.index("SaveScene(scene)"):])
+
 
 class Swap(unittest.TestCase):
     def test_24_gib(self):

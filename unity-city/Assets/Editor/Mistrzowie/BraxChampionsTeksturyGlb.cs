@@ -172,40 +172,63 @@ public static class BraxChampionsTeksturyGlb
             return 0;
         }
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
-        var nowe = new Dictionary<Texture2D, Texture2D>();
-        foreach (var kv in plan)
+
+        // 3. a copy of every material that uses one of them, each copy's slots waiting for their image (not loaded yet)
+        var kopie = new Dictionary<Material, Material>();
+        var sloty = new Dictionary<string, List<(Material kopia, int id)>>();       // image file -> the copies' slots
+        foreach (var r in renderers)
+        foreach (var m in r.sharedMaterials)
         {
-            if (kv.Value == null) continue;
-            var t = AssetDatabase.LoadAssetAtPath<Texture2D>(kv.Value);
-            if (t) nowe[kv.Key] = t; else { pominiete++; Debug.LogWarning("BRAX_GLB_TEXTURES not imported: " + kv.Value); }
+            if (!m || kopie.ContainsKey(m)) continue;
+            Material c = null;
+            foreach (int id in m.GetTexturePropertyNameIDs())
+            {
+                if (!(m.GetTexture(id) is Texture2D t) || !plan.TryGetValue(t, out var plikObrazu) || plikObrazu == null) continue;
+                if (c == null) c = new Material(m) { name = m.name };
+                if (!sloty.TryGetValue(plikObrazu, out var l)) sloty[plikObrazu] = l = new List<(Material, int)>();
+                l.Add((c, id));
+            }
+            kopie[m] = c;
         }
 
-        // 3. a copy of every material that uses one of them, the scene's renderers pointed at the copies
+        // 4. the images one at a time: loaded, put into their slots, let go again. #55 (24.11) was killed (exit 137) when
+        // they were loaded all at once and kept: every ASTC image is decompressed for the editor's software GPU (a 4096 one
+        // ~85 MB), ~250 of them on top of the 12 GB the built scene already holds. Short of memory midway: the rest stay
+        // original (as in #52), the build goes on.
+        var zamienione = new HashSet<Material>(); int nowych = 0; long po = 0;
+        foreach (var kv in sloty)
+        {
+            long w = WolnaPamiecMB();
+            if (w >= 0 && w < MinPamiecMB)
+            {
+                BraxBuildQuality.Warn("DO POPRAWKI BRAX_GLB_TEXTURES stopped: " + w + " MB of memory + swap free < " + MinPamiecMB + " MB (" + (sloty.Count - nowych) + " images left uncompressed)");
+                break;
+            }
+            var t = AssetDatabase.LoadAssetAtPath<Texture2D>(kv.Key);
+            if (!t) { pominiete++; Debug.LogWarning("BRAX_GLB_TEXTURES not imported: " + kv.Key); continue; }
+            foreach (var (c, id) in kv.Value) { c.SetTexture(id, t); zamienione.Add(c); }
+            po += (long)(Mathf.CeilToInt(t.width / 6f) * Mathf.CeilToInt(t.height / 6f) * 16 * (t.mipmapCount > 1 ? 1.333f : 1f));
+            nowych++;
+            Resources.UnloadAsset(t);                     // the materials keep the reference (the asset reloads when it is used)
+        }
+
+        // 5. the copies that got at least one compressed image are saved; the scene's renderers point at them
         BraxChampionsMeshBatch.Folder(MatFolder);
-        var kopie = new Dictionary<Material, Material>();
+        var zapisane = new Dictionary<Material, Material>();
+        foreach (var kv in kopie)
+        {
+            if (kv.Value == null || !zamienione.Contains(kv.Value)) continue;
+            var m = kv.Key;
+            string nazwa = AssetDatabase.TryGetGUIDAndLocalFileIdentifier(m, out string g, out long lid) ? g + "_" + lid.ToString("x") : Guid.NewGuid().ToString("N");
+            BraxZapisAssetu.Utworz(kv.Value, MatFolder + "/" + nazwa + ".mat");
+            zapisane[m] = kv.Value;
+        }
         int rendererow = 0;
         foreach (var r in renderers)
         {
             var mats = r.sharedMaterials; bool zmiana = false;
             for (int i = 0; i < mats.Length; i++)
-            {
-                var m = mats[i];
-                if (!m) continue;
-                if (!kopie.TryGetValue(m, out var c))
-                {
-                    c = null;
-                    var ids = m.GetTexturePropertyNameIDs().Where(id => m.GetTexture(id) is Texture2D t && nowe.ContainsKey(t)).ToArray();
-                    if (ids.Length != 0)
-                    {
-                        c = new Material(m) { name = m.name };
-                        foreach (int id in ids) c.SetTexture(id, nowe[(Texture2D)m.GetTexture(id)]);
-                        string nazwa = AssetDatabase.TryGetGUIDAndLocalFileIdentifier(m, out string g, out long lid) ? g + "_" + lid.ToString("x") : Guid.NewGuid().ToString("N");
-                        BraxZapisAssetu.Utworz(c, MatFolder + "/" + nazwa + ".mat");
-                    }
-                    kopie[m] = c;
-                }
-                if (c) { mats[i] = c; zmiana = true; }
-            }
+                if (mats[i] && zapisane.TryGetValue(mats[i], out var c)) { mats[i] = c; zmiana = true; }
             if (!zmiana) continue;
             r.sharedMaterials = mats;
             if (PrefabUtility.IsPartOfPrefabInstance(r)) PrefabUtility.RecordPrefabInstancePropertyModifications(r);
@@ -215,12 +238,15 @@ public static class BraxChampionsTeksturyGlb
         AssetDatabase.SaveAssets();
         EditorSceneManager.MarkSceneDirty(scene);
         if (!EditorSceneManager.SaveScene(scene)) throw new InvalidOperationException("scene not saved after the texture swap");
+        // the .glb's uncompressed originals are no longer used by the scene: out of memory before the player is built
+        plan.Clear(); kopie.Clear(); sloty.Clear();
+        EditorUtility.UnloadUnusedAssetsImmediate();
+        GC.Collect();
 
-        long po = nowe.Values.Sum(t => (long)(Mathf.CeilToInt(t.width / 6f) * Mathf.CeilToInt(t.height / 6f) * 16 * (t.mipmapCount > 1 ? 1.333f : 1f)));
-        Debug.Log("BRAX_GLB_TEXTURES compressed=" + nowe.Count + " skipped=" + pominiete + " materials=" + kopie.Values.Count(c => c) +
+        Debug.Log("BRAX_GLB_TEXTURES compressed=" + nowych + " skipped=" + pominiete + " materials=" + zapisane.Count +
                   " renderers=" + rendererow + " before~" + (przed >> 20) + " MB after~" + (po >> 20) + " MB t=" +
                   (DateTime.UtcNow - t0).TotalSeconds.ToString("F0") + " s");
-        return nowe.Count;
+        return nowych;
     }
 }
 
