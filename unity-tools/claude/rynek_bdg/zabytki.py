@@ -542,9 +542,10 @@ def spichrz_lukowy(S, g, P, k0=0):
 
 
 def spichrz_ceglany(S, g, P, k0=0):
-    """Spichlerz ceglany ze schodkowym szczytem (Grodzka 9, IMG_2011–2012): dwie dolne kondygnacje w beżowym tynku
-    z drewnianymi wrotami-okiennicami, wyżej czerwona cegła z małymi oknami z łukiem odcinkowym, gzyms, szczyt schodkowy
-    z kotwami „X”, dach 58° z dachówki."""
+    """Spichlerz ceglany (Grodzka 9, IMG_2011–2012): dwie dolne kondygnacje w beżowym tynku z drewnianymi wrotami,
+    wyżej czerwona cegła z małymi oknami z łukiem odcinkowym, gzyms, szczyt trójkątny (24.11, 01:38 właściciel: „musi mieć
+    tak trójkątny” — nie schodkowy) z kotwami „X”, dach 58° z dachówki wysunięty 0,3 m przed szczyt, deska wiatrowa
+    i podbitka pod okapem."""
     o, ax, bx, L, Wd = _prostokat(P)
     a = Wd / 2; Hw = 10.8; tg = math.tan(math.radians(58)); Hs = a * tg
     c0 = o + bx * a
@@ -556,17 +557,9 @@ def spichrz_ceglany(S, g, P, k0=0):
     for (s, kier) in ((0.0, -ax), (L, ax)):
         t_ = bx if kier is ax else -bx; sx = 1 if kier is ax else -1
         orig = Q(s, -a * sx, 0)
-        # schodkowy obrys szczytu: stopnie co 1,4 m wysokości
-        pts = [(0, 0), (Wd, 0), (Wd, Hw)]
-        stopnie = int(Hs // 1.4)
-        for k in range(1, stopnie + 1):
-            y = Hw + k * 1.4; x_in = (y - Hw) / tg
-            pts += [(Wd - x_in + .25, y - 1.4 + .0), (Wd - x_in + .25, y)] if False else [(Wd - max(x_in - .35, 0), Hw + (k - 1) * 1.4 + .0), (Wd - max(x_in - .35, 0), y)]
-        szczyt = Hw + Hs + .4
-        pts += [(a + .45, szczyt), (a - .45, szczyt)]
-        lewa = [(Wd - x, y) for (x, y) in pts[3:-2]][::-1]
-        pts += lewa + [(0, Hw)]
-        obrys = Polygon(pts).buffer(0)
+        # szczyt trójkątny: krawędzie pod połaciami dachu
+        szczyt = Hw + Hs
+        obrys = Polygon([(0, 0), (Wd, 0), (Wd, Hw), (a, szczyt), (0, Hw)])
         dol = box(0, 0, Wd, 5.6)
         otw = [box(.6, 0, 2.2, 3.2), box(Wd - 2.2, 0, Wd - .6, 3.2), luk_pol(a - .7, a + .7, 0, 2.6, 8)]
         for v, n_ in ((3.9, 4), (6.6, 4), (9.0, 4), (11.8, 4), (14.2, 3), (16.4, 1)):
@@ -590,10 +583,17 @@ def spichrz_ceglany(S, g, P, k0=0):
             for sgn in (1, -1):
                 A = p_ - t_ * .25 - UP * .25 * sgn; Bq = p_ + t_ * .25 + UP * .25 * sgn; tt = nrm(Bq - A)
                 S.box(g, "latarnia_czarna", A - nrm(np.cross(tt, kier)) * .025 * 0, tt, nrm(np.cross(kier, tt)), -kier, .72, .05, .03)
-    # dach dwuspadowy
+    # dach dwuspadowy 3 cm nad krawędzią szczytu, wysunięty 0,3 m przed oba szczyty; podbitka 4 cm pod połacią (widok
+    # spod okapu), deska wiatrowa 0,22 m wzdłuż krawędzi połaci na obu szczytach
     for sx in (-1, 1):
-        p = [Q(-.05, sx * (a + .3), Hw - .3 * tg), Q(L + .05, sx * (a + .3), Hw - .3 * tg), Q(L + .05, 0, Hw + Hs), Q(-.05, 0, Hw + Hs)]
-        S.quad(g, "dachowka", *p, kier=nrm(bx * sx + UP))
+        e0, e1 = (sx * (a + .3), Hw - .3 * tg + .03), (0, Hw + Hs + .03)
+        p = [Q(-.3, *e0), Q(L + .3, *e0), Q(L + .3, *e1), Q(-.3, *e1)]
+        nd = nrm(bx * sx * tg + UP)
+        S.quad(g, "dachowka", *p, kier=nd)
+        S.quad(g, "deska_podbitka", *[q - UP * .04 for q in p], kier=-nd)
+        for s_, kk in ((-.3, -ax), (L + .3, ax)):
+            A = Q(s_, *e0) + kk * .01; Bq = Q(s_, *e1) + kk * .01
+            S.quad(g, "deska_ciemna", A + UP * .02, Bq + UP * .02, Bq - UP * .22, A - UP * .22, kier=kk)
 
 
 SAVOY = dict(kond=6, p0=5.4, hk=3.5, krok=3.9, tynk="k_bialy", kamien="s_jasny", h_kamien=9.2, h_luk=4.9, kolumny=True,
