@@ -14,9 +14,13 @@ public static class BraxMiastoGranice
     public const float X0 = -872f;   // zachód (nowe dzielnice ze Sketchfaba, 2.11): za placem ATLANTY na zamknięciu Alei Centralnej — wcześniej −264 (ETAP 2), −162
     public const float X1 = 170f;    // wschód: za cyplem plaży (do 150) i mariną (do 166); dalej otwarte morze (wyspa = obszar nabrzeża)
     public const float Z0 = -85.45f; // południe: tył muru portalu tunelu na końcu Alei Południowej (lico portalu z = −84)
-    public const float Z1 = 900f;    // północ (23.11, MIASTO R1): za osiedlem bydgoskim (do z ≈ 897); wcześniej 180 — za lasem za plażą (z 160…174)
+    public const float Z1 = 1591.3f; // północ (24.11, MIASTO R1): za Starym Rynkiem (okno Rynku do z 1591,3); wcześniej 900 — za osiedlem, 180 — za lasem za plażą
     public const float Z1Miasta = 180f;  // dawna północna krawędź miasta: od niej na północ osiedle (BraxBydgoszcz, x OsiedleX0…OsiedleX1)
     public const float OsiedleX0 = -560f, OsiedleX1 = 150f;   // osiedle bydgoskie: zachód (okno −320 m) i brzeg morza (x 150)
+    public const float Z1Osiedla = 897f; // szew osiedle / Stary Rynek: północna krawędź okna osiedla (508,8 + 300 m × K)
+    // Stary Rynek, Mostowa, Focha, Brda (24.11, BraxBydgoszcz: rynek_bdg) — od szwu z osiedlem do Z1, od X0 do RynekX1
+    // (okno −420…160 m × K od punktu zerowego x −328,5); na wschód od niego, na północ od osiedla — teren za granicą.
+    public const float RynekX1 = -121.5f;
 
     // ---- wycięcia: części prostokąta, które NIE są grywalne (teren i las wchodzą do środka, granica idzie dookoła) ----
     // Las na północny zachód (za pętlą Alei Północnej, z ≥ 126) i wzgórze za placem wieżowców (na płd. od z −68, na wschód od x −61.4).
@@ -33,7 +37,8 @@ public static class BraxMiastoGranice
         // 23.11 (osiedle bydgoskie na północ od miasta): las miasta tylko do dawnej krawędzi z 180; działka po starym sklepie
         // (x −152…−100) od z 162 to wjazd 1 na osiedle (siatka osiedla); na zachód od osiedla i na wschód od brzegu — teren za granicą
         Rect.MinMaxRect(-262f, 126f, -152f, Z1Miasta), Rect.MinMaxRect(-100f, 126f, -40f, Z1Miasta),
-        Rect.MinMaxRect(X0, 156f, -262f, Z1Miasta), Rect.MinMaxRect(X0, Z1Miasta, OsiedleX0, Z1), Rect.MinMaxRect(OsiedleX1, Z1Miasta, X1, Z1),
+        Rect.MinMaxRect(X0, 156f, -262f, Z1Miasta), Rect.MinMaxRect(X0, Z1Miasta, OsiedleX0, Z1Osiedla), Rect.MinMaxRect(OsiedleX1, Z1Miasta, X1, Z1),
+        Rect.MinMaxRect(RynekX1, Z1Osiedla, OsiedleX1, Z1),
         Rect.MinMaxRect(FawelaX1, Z0, 84f, -68f)
     };
 

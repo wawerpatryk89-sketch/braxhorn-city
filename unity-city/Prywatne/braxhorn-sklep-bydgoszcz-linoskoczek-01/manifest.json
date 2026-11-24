@@ -1,0 +1,21 @@
+{
+ "source": "właściciel 23.11.2026: figura linoskoczka nad Brdą (model Tripo), bez podstawy i pręta, 15 tys. trójkątów",
+ "target": "bydgoszcz_linoskoczek",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/bydgoszcz_linoskoczek (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "434362212137b7a29c0f0db6384e37dc939478d8981d8eda0e66f934c0708b17",
+ "cmsSha256": "b9fba768e260b46fffa0fed68adee6ce8233bdbc7452246bfc14d5bf6a9b3a2a",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 7434816,
+   "sha256": "b9fba768e260b46fffa0fed68adee6ce8233bdbc7452246bfc14d5bf6a9b3a2a"
+  }
+ ],
+ "files": {
+  "bydgoszcz_linoskoczek/linoskoczek.glb": "db1e3d1fdd1462ce75ba744d0a77229377a6e861dd0807a3ee5c3d5eafd1598e",
+  "oryginal/linoskoczek_tripo.glb": "34af36002eabe7e94dfb68332b711d8e3b3eade4745d7cfafebbac1e6787b19d",
+  "oryginal/spec.json": "d0b6907baa2143abf97cdfbe500ed158cb9b67e572c86d7af71bcb7c3830011c"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

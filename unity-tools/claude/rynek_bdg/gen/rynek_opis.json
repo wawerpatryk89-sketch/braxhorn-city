@@ -1,0 +1,1581 @@
+{
+ "budynki": {
+  "k0": {
+   "nazwa": "Opera Nova",
+   "kond": 5,
+   "zrodlo": "OSM 5 p."
+  },
+  "k1": {
+   "nazwa": "Bydgoskie Centrum Finansowe",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Jagiellońska)"
+  },
+  "k2": {
+   "nazwa": "Urząd Miasta Bydgoszczy",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Jezuicka)"
+  },
+  "k3": {
+   "nazwa": "Český Port",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Stary Port)"
+  },
+  "k4": {
+   "nazwa": "Kujawsko-Pomorski Urząd Wojewódzki",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Jagiellońska)"
+  },
+  "k5": {
+   "nazwa": "Stary Rynek 7",
+   "kond": 2,
+   "zrodlo": "ZAŁ 2 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k6": {
+   "nazwa": "Stary Rynek 7",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k7": {
+   "nazwa": "Stary Rynek 7",
+   "kond": 2,
+   "zrodlo": "ZAŁ 2 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k8": {
+   "nazwa": "Stary Rynek 27",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k9": {
+   "nazwa": "Stary Rynek 1",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k10": {
+   "nazwa": "Stary Rynek 1",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k11": {
+   "nazwa": "Stary Rynek 5",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k12": {
+   "nazwa": "Mostowa 27",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Mostowa)"
+  },
+  "k13": {
+   "nazwa": "Stary Rynek 3",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k14": {
+   "nazwa": "Teofila Magdzińskiego 1",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Teofila Magdzińskiego)"
+  },
+  "k15": {
+   "nazwa": "Teofila Magdzińskiego 1",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Teofila Magdzińskiego)"
+  },
+  "k16": {
+   "nazwa": "Stary Rynek 15",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k17": {
+   "nazwa": "Stary Rynek 21",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k18": {
+   "nazwa": "Wojewódzka i Miejska Biblioteka Publiczna imienia doktora Witolda Bełzy",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k19": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k20": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k21": {
+   "nazwa": "Stary Rynek 22",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k22": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k23": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k24": {
+   "nazwa": "Farna 2",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Farna)"
+  },
+  "k25": {
+   "nazwa": "Niedźwiedzia 5",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Niedźwiedzia)"
+  },
+  "k26": {
+   "nazwa": "Stary Rynek 20",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k27": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k28": {
+   "nazwa": "Katarynka",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Niedźwiedzia)"
+  },
+  "k29": {
+   "nazwa": "Stefana Batorego 2",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Stefana Batorego)"
+  },
+  "k30": {
+   "nazwa": "Stefana Batorego 2",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Stefana Batorego)"
+  },
+  "k31": {
+   "nazwa": "Pałacyk Lloyda",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Grodzka)"
+  },
+  "k32": {
+   "nazwa": "Pocztowa 1",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Pocztowa)"
+  },
+  "k33": {
+   "nazwa": "Pocztowa 1",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Pocztowa)"
+  },
+  "k34": {
+   "nazwa": "Pocztowa 1",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Pocztowa)"
+  },
+  "k35": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k36": {
+   "nazwa": "",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (bez adresu)"
+  },
+  "k37": {
+   "nazwa": "Kamienica Juliusza Rosenthala",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Stary Port)"
+  },
+  "k38": {
+   "nazwa": "Wyższa Szkoła Nauk o Zdrowiu",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Jagiellońska)"
+  },
+  "k39": {
+   "nazwa": "",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (bez adresu)"
+  },
+  "k40": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k41": {
+   "nazwa": "Stary Port 7",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Stary Port)"
+  },
+  "k42": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k43": {
+   "nazwa": "Poczta Główna",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Jagiellońska)"
+  },
+  "k44": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k45": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k46": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k47": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k48": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k49": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k50": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k51": {
+   "nazwa": "",
+   "kond": 2,
+   "zrodlo": "ZAŁ 2 kond. wg zdjęć (bez adresu)"
+  },
+  "k52": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k53": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k54": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k55": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k56": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k57": {
+   "nazwa": "Długa 29",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Długa)"
+  },
+  "k58": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k59": {
+   "nazwa": "Jezuicka 5",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Jezuicka)"
+  },
+  "k60": {
+   "nazwa": "Niedźwiedzia 11",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Niedźwiedzia)"
+  },
+  "k61": {
+   "nazwa": "Mostowa 3",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Mostowa)"
+  },
+  "k62": {
+   "nazwa": "Stefana Batorego 4",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Stefana Batorego)"
+  },
+  "k63": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k64": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k65": {
+   "nazwa": "Przyrzecze 15a",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Przyrzecze)"
+  },
+  "k66": {
+   "nazwa": "Jezuicka 18",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Jezuicka)"
+  },
+  "k67": {
+   "nazwa": "Jezuicka 3",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Jezuicka)"
+  },
+  "k68": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k69": {
+   "nazwa": "Farna 8",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Farna)"
+  },
+  "k70": {
+   "nazwa": "Kuria diecezjalna",
+   "kond": 2,
+   "zrodlo": "OSM 2 p."
+  },
+  "k71": {
+   "nazwa": "Farna 6",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Farna)"
+  },
+  "k72": {
+   "nazwa": "Jezuicka 16",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Jezuicka)"
+  },
+  "k73": {
+   "nazwa": "Jezuicka 16",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Jezuicka)"
+  },
+  "k74": {
+   "nazwa": "Długa 23",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Długa)"
+  },
+  "k75": {
+   "nazwa": "Mostowa 7",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Mostowa)"
+  },
+  "k76": {
+   "nazwa": "Mostowa 7",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Mostowa)"
+  },
+  "k77": {
+   "nazwa": "Przyrzecze 2",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Przyrzecze)"
+  },
+  "k78": {
+   "nazwa": "Grodzka 4",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Grodzka)"
+  },
+  "k79": {
+   "nazwa": "Grodzka 4",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Grodzka)"
+  },
+  "k80": {
+   "nazwa": "Jezuicka 7",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Jezuicka)"
+  },
+  "k81": {
+   "nazwa": "Jezuicka 20",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Jezuicka)"
+  },
+  "k82": {
+   "nazwa": "Farna 4",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Farna)"
+  },
+  "k83": {
+   "nazwa": "Sąd biskupi diecezji bydgoskiej",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Farna)"
+  },
+  "k84": {
+   "nazwa": "Mostowa 5",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Mostowa)"
+  },
+  "k85": {
+   "nazwa": "Jezuicka 6",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Jezuicka)"
+  },
+  "k86": {
+   "nazwa": "Niedźwiedzia 9",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Niedźwiedzia)"
+  },
+  "k87": {
+   "nazwa": "Jezuicka 14",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Jezuicka)"
+  },
+  "k88": {
+   "nazwa": "Jezuicka 14",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Jezuicka)"
+  },
+  "k89": {
+   "nazwa": "Przyrzecze 7-13",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Przyrzecze)"
+  },
+  "k90": {
+   "nazwa": "Przyrzecze 7-13",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Przyrzecze)"
+  },
+  "k91": {
+   "nazwa": "",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (bez adresu)"
+  },
+  "k92": {
+   "nazwa": "Jezuicka 4A",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Jezuicka)"
+  },
+  "k93": {
+   "nazwa": "Prokuratura Rejonowa Bydgoszcz-Północ",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Przyrzecze)"
+  },
+  "k94": {
+   "nazwa": "Jezuicka 24",
+   "kond": 2,
+   "zrodlo": "ZAŁ 2 kond. wg zdjęć (Jezuicka)"
+  },
+  "k95": {
+   "nazwa": "Jezuicka 24",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Jezuicka)"
+  },
+  "k96": {
+   "nazwa": "Jezuicka 4",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Jezuicka)"
+  },
+  "k97": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k98": {
+   "nazwa": "Dom Polski w Bydgoszczy",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Grodzka)"
+  },
+  "k99": {
+   "nazwa": "Jezuicka 22",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Jezuicka)"
+  },
+  "k100": {
+   "nazwa": "Długa 51",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Długa)"
+  },
+  "k101": {
+   "nazwa": "Długa 45",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Długa)"
+  },
+  "k102": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k103": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k104": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k105": {
+   "nazwa": "Pod Blankami 13",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Pod Blankami)"
+  },
+  "k106": {
+   "nazwa": "Teofila Magdzińskiego 7",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Teofila Magdzińskiego)"
+  },
+  "k107": {
+   "nazwa": "Zaułek 12",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Zaułek)"
+  },
+  "k108": {
+   "nazwa": "Zaułek 20",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Zaułek)"
+  },
+  "k109": {
+   "nazwa": "Rezydencja Sowa",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Grodzka)"
+  },
+  "k110": {
+   "nazwa": "Stary Rynek 18",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k111": {
+   "nazwa": "Długa 39",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Długa)"
+  },
+  "k112": {
+   "nazwa": "Teofila Magdzińskiego 3",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Teofila Magdzińskiego)"
+  },
+  "k113": {
+   "nazwa": "Kręta 3",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Kręta)"
+  },
+  "k114": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k115": {
+   "nazwa": "Długa 28",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Długa)"
+  },
+  "k116": {
+   "nazwa": "Elektrownia wodna \"Kujawska\"",
+   "kond": 3,
+   "zrodlo": "OSM 3 p."
+  },
+  "k117": {
+   "nazwa": "Stary Rynek 14",
+   "kond": 2,
+   "zrodlo": "ZAŁ 2 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k118": {
+   "nazwa": "Stary Rynek 14",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k119": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k120": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k121": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k122": {
+   "nazwa": "Pod Blankami 19",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Pod Blankami)"
+  },
+  "k123": {
+   "nazwa": "Długa 24",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Długa)"
+  },
+  "k124": {
+   "nazwa": "Teofila Magdzińskiego 9",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Teofila Magdzińskiego)"
+  },
+  "k125": {
+   "nazwa": "Podwale 11",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Podwale)"
+  },
+  "k126": {
+   "nazwa": "Grodzka 22",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Grodzka)"
+  },
+  "k127": {
+   "nazwa": "Grodzka 20",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Grodzka)"
+  },
+  "k128": {
+   "nazwa": "Grodzka 18",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Grodzka)"
+  },
+  "k129": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k130": {
+   "nazwa": "Grodzka 20",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Grodzka)"
+  },
+  "k131": {
+   "nazwa": "Grodzka 32",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Grodzka)"
+  },
+  "k132": {
+   "nazwa": "Podwale 3",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Podwale)"
+  },
+  "k133": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k134": {
+   "nazwa": "Pizzeria Piratto",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Podwale)"
+  },
+  "k135": {
+   "nazwa": "Podwale 5",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Podwale)"
+  },
+  "k136": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k137": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k138": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k139": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k140": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k141": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k142": {
+   "nazwa": "Grodzka 18",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Grodzka)"
+  },
+  "k143": {
+   "nazwa": "Marszałka Ferdynanda Focha 10",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Marszałka Ferdynanda Focha)"
+  },
+  "k144": {
+   "nazwa": "Marszałka Ferdynanda Focha 10",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Marszałka Ferdynanda Focha)"
+  },
+  "k145": {
+   "nazwa": "Marszałka Ferdynanda Focha 18",
+   "kond": 2,
+   "zrodlo": "OSM 2 p."
+  },
+  "k146": {
+   "nazwa": "Marszałka Ferdynanda Focha 18",
+   "kond": 2,
+   "zrodlo": "OSM 2 p."
+  },
+  "k147": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k148": {
+   "nazwa": "Dworcowa 9",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Dworcowa)"
+  },
+  "k149": {
+   "nazwa": "Muzeum Okręgowe im. Leona Wyczółkowskiego",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k150": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k151": {
+   "nazwa": "Gdańska 1",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k152": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k153": {
+   "nazwa": "Marszałka Ferdynanda Focha 10",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Marszałka Ferdynanda Focha)"
+  },
+  "k154": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k155": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k156": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k157": {
+   "nazwa": "Marszałka Ferdynanda Focha 16",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Marszałka Ferdynanda Focha)"
+  },
+  "k158": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k159": {
+   "nazwa": "",
+   "kond": 2,
+   "zrodlo": "ZAŁ 2 kond. wg zdjęć (bez adresu)"
+  },
+  "k160": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k161": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k162": {
+   "nazwa": "Marszałka Ferdynanda Focha 8",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Marszałka Ferdynanda Focha)"
+  },
+  "k163": {
+   "nazwa": "Gdańska 3",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k164": {
+   "nazwa": "Drukarska 1",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Drukarska)"
+  },
+  "k165": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k166": {
+   "nazwa": "Marszałka Ferdynanda Focha 6",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Marszałka Ferdynanda Focha)"
+  },
+  "k167": {
+   "nazwa": "Marszałka Ferdynanda Focha 18",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Marszałka Ferdynanda Focha)"
+  },
+  "k168": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k169": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k170": {
+   "nazwa": "Marszałka Ferdynanda Focha 4",
+   "kond": 4,
+   "zrodlo": "OSM 4 p."
+  },
+  "k171": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k172": {
+   "nazwa": "Marszałka Ferdynanda Focha 14",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Marszałka Ferdynanda Focha)"
+  },
+  "k173": {
+   "nazwa": "Marszałka Ferdynanda Focha 14",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Marszałka Ferdynanda Focha)"
+  },
+  "k174": {
+   "nazwa": "",
+   "kond": 2,
+   "zrodlo": "ZAŁ 2 kond. wg zdjęć (bez adresu)"
+  },
+  "k175": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k176": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k177": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k178": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k179": {
+   "nazwa": "Drukarska 10",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Drukarska)"
+  },
+  "k180": {
+   "nazwa": "Marszałka Ferdynanda Focha 16",
+   "kond": 4,
+   "zrodlo": "OSM 4 p."
+  },
+  "k181": {
+   "nazwa": "Marszałka Ferdynanda Focha 16",
+   "kond": 4,
+   "zrodlo": "OSM 4 p."
+  },
+  "k182": {
+   "nazwa": "Marszałka Ferdynanda Focha 16",
+   "kond": 4,
+   "zrodlo": "OSM 4 p."
+  },
+  "k183": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k184": {
+   "nazwa": "Gdańska 11",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k185": {
+   "nazwa": "Gdańska 7",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k186": {
+   "nazwa": "Gdańska 7",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k187": {
+   "nazwa": "Gdańska 7",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k188": {
+   "nazwa": "Gdańska 9",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k189": {
+   "nazwa": "Doktora Emila Warmińskiego 6",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Doktora Emila Warmińskiego)"
+  },
+  "k190": {
+   "nazwa": "Doktora Emila Warmińskiego 6",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Doktora Emila Warmińskiego)"
+  },
+  "k191": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k192": {
+   "nazwa": "Marszałka Ferdynanda Focha 22",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Marszałka Ferdynanda Focha)"
+  },
+  "k193": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k194": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k195": {
+   "nazwa": "Doktora Emila Warmińskiego 6c",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Doktora Emila Warmińskiego)"
+  },
+  "k196": {
+   "nazwa": "Doktora Emila Warmińskiego 6c",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Doktora Emila Warmińskiego)"
+  },
+  "k197": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k198": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k199": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k200": {
+   "nazwa": "Gdańska 9",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k201": {
+   "nazwa": "Doktora Emila Warmińskiego 4",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Doktora Emila Warmińskiego)"
+  },
+  "k202": {
+   "nazwa": "Doktora Emila Warmińskiego 4",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Doktora Emila Warmińskiego)"
+  },
+  "k203": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k204": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k205": {
+   "nazwa": "Marszałka Ferdynanda Focha 26",
+   "kond": 3,
+   "zrodlo": "OSM 3 p."
+  },
+  "k206": {
+   "nazwa": "Marszałka Ferdynanda Focha 26",
+   "kond": 3,
+   "zrodlo": "OSM 3 p."
+  },
+  "k207": {
+   "nazwa": "Gdańska 9",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k208": {
+   "nazwa": "Gdańska 9",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k209": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k210": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k211": {
+   "nazwa": "Drukarska 6",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Drukarska)"
+  },
+  "k212": {
+   "nazwa": "Gdańska 11",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k213": {
+   "nazwa": "Doktora Emila Warmińskiego 6b",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Doktora Emila Warmińskiego)"
+  },
+  "k214": {
+   "nazwa": "Gdańska 9",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k215": {
+   "nazwa": "Doktora Emila Warmińskiego 6a",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Doktora Emila Warmińskiego)"
+  },
+  "k216": {
+   "nazwa": "Kamienica Augusta Mentzla",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k217": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k218": {
+   "nazwa": "Gdańska 9",
+   "kond": 6,
+   "zrodlo": "ZAŁ 6 kond. wg zdjęć (Gdańska)"
+  },
+  "k219": {
+   "nazwa": "Opera Hostel",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Marszałka Ferdynanda Focha)"
+  },
+  "k220": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k221": {
+   "nazwa": "Gdańska 12",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k222": {
+   "nazwa": "Gdańska 12",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k223": {
+   "nazwa": "Kamienica Ernsta Mixa",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k224": {
+   "nazwa": "Parkowa 2",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Parkowa)"
+  },
+  "k225": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k226": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k227": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k228": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k229": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k230": {
+   "nazwa": "Stefana Batorego 1",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Stefana Batorego)"
+  },
+  "k231": {
+   "nazwa": "Stefana Batorego 1",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Stefana Batorego)"
+  },
+  "k232": {
+   "nazwa": "Stefana Batorego 1",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Stefana Batorego)"
+  },
+  "k233": {
+   "nazwa": "Stefana Batorego 1",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Stefana Batorego)"
+  },
+  "k234": {
+   "nazwa": "Długa 32",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Długa)"
+  },
+  "k235": {
+   "nazwa": "Długa 30",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Długa)"
+  },
+  "k236": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k237": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k238": {
+   "nazwa": "Gdańska 10",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k239": {
+   "nazwa": "Nowe Spichrze - mBank",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Grodzka)"
+  },
+  "k240": {
+   "nazwa": "M2",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Jatki)"
+  },
+  "k241": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k242": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k243": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k244": {
+   "nazwa": "Katedra Świętego Marcina i Świętego Mikołaja",
+   "kond": 1,
+   "zrodlo": "ZAŁ kościół gotycki z cegły"
+  },
+  "k245": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k246": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k247": {
+   "nazwa": "",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (bez adresu)"
+  },
+  "k248": {
+   "nazwa": "Długa 21",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Długa)"
+  },
+  "k249": {
+   "nazwa": "Gregorio",
+   "kond": 5,
+   "zrodlo": "ZAŁ 5 kond. wg zdjęć (Gdańska)"
+  },
+  "k250": {
+   "nazwa": "Teofila Magdzińskiego 5",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Teofila Magdzińskiego)"
+  },
+  "k251": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k252": {
+   "nazwa": "Marszałka Ferdynanda Focha 24",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Marszałka Ferdynanda Focha)"
+  },
+  "k253": {
+   "nazwa": "Plac Teatralny 4",
+   "kond": 5,
+   "zrodlo": "OSM 5 p."
+  },
+  "k254": {
+   "nazwa": "Doktora Emila Warmińskiego 1",
+   "kond": 3,
+   "zrodlo": "OSM 3 p."
+  },
+  "k255": {
+   "nazwa": "Doktora Emila Warmińskiego 1",
+   "kond": 3,
+   "zrodlo": "OSM 3 p."
+  },
+  "k256": {
+   "nazwa": "Doktora Emila Warmińskiego 3",
+   "kond": 3,
+   "zrodlo": "OSM 3 p."
+  },
+  "k257": {
+   "nazwa": "Doktora Emila Warmińskiego 3",
+   "kond": 3,
+   "zrodlo": "OSM 3 p."
+  },
+  "k258": {
+   "nazwa": "Doktora Emila Warmińskiego 3",
+   "kond": 3,
+   "zrodlo": "OSM 3 p."
+  },
+  "k259": {
+   "nazwa": "Doktora Emila Warmińskiego 5",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Doktora Emila Warmińskiego)"
+  },
+  "k260": {
+   "nazwa": "Doktora Emila Warmińskiego 5",
+   "kond": 2,
+   "zrodlo": "ZAŁ 2 kond. wg zdjęć (Doktora Emila Warmińskiego)"
+  },
+  "k261": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k262": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k263": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k264": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k265": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k266": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k267": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k268": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k269": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k270": {
+   "nazwa": "Podwale 6",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Podwale)"
+  },
+  "k271": {
+   "nazwa": "Teatr Kameralny im. Wandy Rucińskiej",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Grodzka)"
+  },
+  "k272": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k273": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k274": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k275": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k276": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k277": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k278": {
+   "nazwa": "Podwale 8",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (Podwale)"
+  },
+  "k279": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k280": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k281": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k282": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k283": {
+   "nazwa": "Stary Rynek 17",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Stary Rynek)"
+  },
+  "k284": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k285": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k286": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k287": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k288": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k289": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k290": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k291": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k292": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k293": {
+   "nazwa": "Kamienica Ernsta Mixa",
+   "kond": 5,
+   "zrodlo": "OSM 5 p."
+  },
+  "k294": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k295": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k296": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k297": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k298": {
+   "nazwa": "",
+   "kond": 2,
+   "zrodlo": "ZAŁ 2 kond. wg zdjęć (bez adresu)"
+  },
+  "k299": {
+   "nazwa": "Doktora Emila Warmińskiego 2",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Doktora Emila Warmińskiego)"
+  },
+  "k300": {
+   "nazwa": "Spichlerz nad Brdą przy ul. Grodzkiej 11",
+   "kond": 1,
+   "zrodlo": "ZAŁ spichlerz wg zdjęć m22–m26, m33–m35"
+  },
+  "k301": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k302": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k303": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "ZAŁ 4 kond. wg zdjęć (bez adresu)"
+  },
+  "k304": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k305": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k306": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k307": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k308": {
+   "nazwa": "Przyrzecze 6A",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Przyrzecze)"
+  },
+  "k309": {
+   "nazwa": "",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (bez adresu)"
+  },
+  "k310": {
+   "nazwa": "Długa 26",
+   "kond": 3,
+   "zrodlo": "ZAŁ 3 kond. wg zdjęć (Długa)"
+  },
+  "k311": {
+   "nazwa": "",
+   "kond": 4,
+   "zrodlo": "OSM 4 p."
+  }
+ },
+ "teren": {
+  "jezdnie": 39670,
+  "rynek": 14996,
+  "chodniki": 59580,
+  "trawa": 86792,
+  "woda": 27230,
+  "latarnie": 313,
+  "lawki": 34,
+  "drzewa": 80,
+  "slupki": 168,
+  "mury": 17,
+  "ploty": 40,
+  "zywoploty": 17,
+  "mosty_zespoly": 4
+ },
+ "mostow": 5,
+ "trojkatow": 834132
+}

@@ -124,7 +124,7 @@ def test_sklep_w_markecie_i_maska_trawy():
     assert abs(yaw - np.degrees(np.arctan2(-n[0], -n[1]))) < .2
     assert "public static readonly bool Wlaczone = true;" in cs
     gr = (root / "unity-city/Assets/Claude/Runtime/BraxMiastoGranice.cs").read_text(encoding="utf-8")
-    assert "public const float Z1 = 900f;" in gr
+    assert "public const float Z1Osiedla = 897f;" in gr       # 24.11: za osiedlem Stary Rynek (Z1 — test_stary_rynek_podpiety)
     raw = gzip.open(root / "unity-tools/claude/osiedle_bdg/gen/osiedle_trawa_maska.bin").read()
     assert raw[:4] == b"BTM1"; x0, z0, krok, y, w, h = struct.unpack("<4f2i", raw[4:28])
     assert len(raw) - 28 == w * h // 8 and krok < .4 and x0 < -500 and z0 < 170 and z0 + h * krok > 880
@@ -143,7 +143,7 @@ def test_bus_z_bosna_wlasciciela_na_parkingu_marketu():
     assert man["target"] == "bydgoszcz_bosna" and "bydgoszcz_bosna/bosna_van.glb" in man["files"]
     assert not list((R / "unity-city/Prywatne/braxhorn-sklep-bydgoszcz-bosna-01").glob("*.glb"))      # nic jawnego
     cs = (R / "unity-city/Assets/Editor/Claude/Region/BraxBydgoszcz.cs").read_text(encoding="utf-8")
-    assert "ModeleWlasciciela(root, Swiat)" in cs and "Mathf.Atan2(-kz, kx)" in cs
+    assert "ModeleWlasciciela(root, Swiat, punkty)" in cs and "Mathf.Atan2(-kz, kx)" in cs and 'Obok(sciezka, przedrostek, "punkty.json")' in cs
 
 
 def test_bus_z_bosna_okienko_i_miejsce_sprzedawcy():
@@ -156,7 +156,7 @@ def test_bus_z_bosna_okienko_i_miejsce_sprzedawcy():
     d = math.hypot(a["bosna_kup"]["x"] - a["bosna_sprzedawca"]["x"], a["bosna_kup"]["z"] - a["bosna_sprzedawca"]["z"])
     assert 1.5 < d < 2.5                                            # klient przed ladą, sprzedawca za nią
     cs = (R / "unity-city/Assets/Editor/Claude/Region/BraxBydgoszcz.cs").read_text(encoding="utf-8")
-    assert "Akcje(root, Swiat)" in cs and "osiedle_akcje.json" in cs
+    assert 'Akcje(root, Swiat, Obok(sciezka, przedrostek, "akcje.json"))' in cs and '"osiedle", Out)' in cs   # gen/osiedle_akcje.json
 
 
 def test_kazdy_mur_i_tynk_z_tekstura():
@@ -193,3 +193,40 @@ def test_mur_ogrodzeniowy_z_cegly():
     assert mats == {"c_stara", "cokol4"}
     R = Path(__file__).resolve().parents[2]
     assert "wyposazenie.mur(" in (R / "unity-tools/claude/rynek_bdg/rynek.py").read_text(encoding="utf-8")
+
+
+def test_stary_rynek_podpiety_do_gry():
+    """24.11 (właściciel: „najpierw Stary Rynek”, potem jeden build): rynek.bin w gen, ten sam punkt zerowy w generatorze,
+    pliku i wczytywaczu C#, okno Rynku = granica miasta (X0, RynekX1, Z1) od szwu z osiedlem; figura linoskoczka z paczki
+    szyfrowanej; skrót gen w Assets (klucz pamięci rejonu w CI widzi zmianę plików gen)."""
+    import gzip, json, re, struct
+    from pathlib import Path
+    R = Path(__file__).resolve().parents[2]
+    rz = json.loads((R / "unity-tools/claude/rynek_bdg/dane/rynek_rzut.json").read_text(encoding="utf-8"))
+    K = rz["K"]; gx, gz = rz["gra_a"]
+    b = gzip.open(R / "unity-tools/claude/rynek_bdg/gen/rynek.bin").read(1 << 16)
+    assert b[:4] == b"BYD2"
+    n = struct.unpack("<i", b[4:8])[0]; nag = b[8:8 + n].decode("utf-8")
+    assert re.search(r'"punkt_zerowy_gry":\s*\[\s*%s,\s*%s\s*\]' % (re.escape(repr(gx)), re.escape(repr(gz))), nag), nag[:200]
+    cs = (R / "unity-city/Assets/Editor/Claude/Region/BraxBydgoszcz.cs").read_text(encoding="utf-8")
+    assert "PunktZerowyRynku = new Vector2(%sf, %sf)" % (gx, gz) in cs and 'rynek_bdg/gen/rynek.bin' in cs and "Wczytaj(cityRoot, PlikRynku" in cs
+    gr = (R / "unity-city/Assets/Claude/Runtime/BraxMiastoGranice.cs").read_text(encoding="utf-8")
+    liczba = lambda nazwa: float(re.search(r"\b%s = (-?[\d.]+)f" % nazwa, gr).group(1))
+    assert abs(liczba("X0") - (gx - 420 * K)) < .1                        # zachodnia krawędź okna = granica miasta
+    assert abs(liczba("RynekX1") - (gx + 160 * K)) < .1
+    assert abs(liczba("Z1") - (gz + 160 * K)) < .1                        # północ okna = nowa granica
+    assert abs(liczba("Z1Osiedla") - (508.8 + 300 * K)) < .1               # szew = północ okna osiedla
+    assert "Rect.MinMaxRect(RynekX1, Z1Osiedla, OsiedleX1, Z1)" in gr and "Rect.MinMaxRect(X0, Z1Miasta, OsiedleX0, Z1Osiedla)" in gr
+    pk = json.loads((R / "unity-tools/claude/rynek_bdg/gen/rynek_punkty.json").read_text(encoding="utf-8"))
+    assert list(pk)[-1] == "modele"                                       # wczytywacz czyta listę modeli do „]]”
+    fig = [m for m in pk["modele"] if m[0] == "bydgoszcz_linoskoczek"]
+    assert len(fig) == 1 and 5 < fig[0][6] < 12                            # na linie, kilka metrów nad wodą
+    kx, kz = pk["linoskoczek_kier"]; assert abs(fig[0][4] * kx + fig[0][5] * kz) < 1e-3   # drąg w poprzek liny
+    pak = R / "unity-city/Prywatne/braxhorn-sklep-bydgoszcz-linoskoczek-01"
+    man = json.loads((pak / "manifest.json").read_text(encoding="utf-8"))
+    assert man["target"] == "bydgoszcz_linoskoczek" and "bydgoszcz_linoskoczek/linoskoczek.glb" in man["files"]
+    assert not list(pak.glob("*.glb"))
+    assert pk["bariery"] and all(len(x) == 6 for x in pk["bariery"])
+    sys.path.insert(0, str(R / "unity-tools/claude"))
+    import bydgoszcz_skrot
+    assert json.loads(bydgoszcz_skrot.CEL.read_text(encoding="utf-8")) == bydgoszcz_skrot.skrot(), "uruchom bydgoszcz_skrot.py po skopiowaniu gen"

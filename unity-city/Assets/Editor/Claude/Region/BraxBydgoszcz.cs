@@ -22,6 +22,12 @@ using UnityEngine.Rendering;
 /// północna miasta odsunięta za osiedle (BraxMiastoGranice.Z1), pas lasu i wjazdy są w siatce osiedla (z ≥ 162 j.).
 /// Stare supermarkety miasta usunięte — wnętrze sklepu stoi w markecie osiedla (SklepFront, BraxSupermarket.WOsiedlu).
 /// Trawa 3D: z maski trawnika (gen/osiedle_trawa_maska.bin → BraxClaudeTrawaMaska), nie z limitu kęp miasta.
+///
+/// 24.11 (właściciel: „najpierw Stary Rynek”, potem jeden build): STARY RYNEK, Mostowa, Focha, spichrze i Brda — drugi plik
+/// BYD2 z unity-tools/claude/rynek_bdg/rynek.py (gen/rynek.bin, punkty, maska trawy), ten sam wczytywacz i paleta. Punkt
+/// zerowy Rynku (−328,5; 1384,3): okno x −872…−121,5 (granica miasta X0), z 897…1591 — od szwu z osiedlem (ulica wzdłuż
+/// szwu i łączniki do dróg osiedla są w siatce Rynku) do nowej północnej granicy (BraxMiastoGranice.Z1). Figura linoskoczka
+/// nad Brdą z paczki szyfrowanej braxhorn-sklep-bydgoszcz-linoskoczek-01 (model właściciela, 15 tys. trójkątów).
 /// </summary>
 public static class BraxBydgoszcz
 {
@@ -32,19 +38,43 @@ public static class BraxBydgoszcz
     public static readonly Vector3 SklepFront = new Vector3(-391.86f, .12f * 1.294f + .03f, 510.27f);
     public const float SklepYaw = 165.1f;
     public static readonly Vector2 PunktZerowy = new Vector2(-145.9f, 508.8f);
+    public static readonly Vector2 PunktZerowyRynku = new Vector2(-328.5f, 1384.3f);   // rynek_bdg/dane/rynek_rzut.json: gra_a
     const string Plik = "unity-tools/claude/osiedle_bdg/gen/osiedle.bin";
+    const string PlikRynku = "unity-tools/claude/rynek_bdg/gen/rynek.bin";
+    const string WodaPortu = "Assets/PlayableGenerated/CityRebuildWater/HarbourWater.mat";
     const string Naklejki = "Assets/Source/Claude/Bydgoszcz/";
     const string Prywatne = "Assets/Source/Prywatne/Miasto/bydgoszcz_mural/";
     const string Pokoje = "Assets/Source/Claude/Osiedle/detail/pokoje.png";
     static float K => BraxClaudeOsiedle.K;
     static string Out => BraxRegion.Out + "/Bydgoszcz";
 
-    [Serializable] class Mat { public string tex; public float m; public float[] kol; public float[] tint; public float szorst; public float metal; public string nakl; public string alfa; public bool okno; public string gra; }
+    [Serializable] class Mat { public string tex; public float m; public float[] kol; public float[] tint; public float szorst; public float metal; public string nakl; public string alfa; public bool okno; public string gra; public string woda; }
 
-    static string Sciezka()
+    static string Sciezka(string plik = Plik)
     {
-        foreach (var p in new[] { Plik, "../" + Plik }) if (File.Exists(p)) return p;
+        foreach (var p in new[] { plik, "../" + plik }) if (File.Exists(p)) return p;
         return null;
+    }
+
+    /// <summary>Plik obok pliku BYD2 (punkty, akcje, maska trawy): gen/&lt;przedrostek&gt;_&lt;nazwa&gt;.</summary>
+    static string Obok(string bin, string przedrostek, string nazwa) => Path.Combine(Path.GetDirectoryName(bin) ?? "", przedrostek + "_" + nazwa);
+
+    static Material rzeka; static bool rzekaProba;
+
+    /// <summary>Brda (24.11): kopia materiału wody portu (HarbourWater — fale, odbicia nieba) z małą falą i stałą głębokością
+    /// 2,2 m (bez mapy dna zatoki, która rzeki nie obejmuje), dno mułowe. Bez wody portu — ciemna gładka tafla z palety.</summary>
+    static Material Rzeka(string nazwa)
+    {
+        if (rzekaProba) return rzeka; rzekaProba = true;
+        var baza = AssetDatabase.LoadAssetAtPath<Material>(WodaPortu);
+        if (!baza) { BraxRegion.Note("Bydgoszcz: brak " + WodaPortu + " — Brda jako gładka tafla z palety"); return null; }
+        var m = new Material(baza) { name = "Bydgoszcz: " + nazwa + " (woda rzeki)" };
+        if (m.HasProperty("_SwellStrength")) m.SetFloat("_SwellStrength", .12f);
+        if (m.HasProperty("_DnoTex")) m.SetTexture("_DnoTex", null);          // domyślna „white” = głębokość _DnoMax wszędzie
+        if (m.HasProperty("_DnoMax")) m.SetFloat("_DnoMax", 2.2f * K);
+        if (m.HasProperty("_DnoKolor")) m.SetColor("_DnoKolor", new Color(.42f, .38f, .30f, 1f));
+        BraxZapisAssetu.Utworz(m, Out + "/brda_woda.mat");
+        return rzeka = m;
     }
 
     static string Tekst(BinaryReader r) { int n = r.ReadInt32(); return Encoding.UTF8.GetString(r.ReadBytes(n)); }
@@ -94,6 +124,7 @@ public static class BraxBydgoszcz
     {
         if (d.okno || nazwa == "okno" || nazwa == "okno_klatka") return Okno(nazwa == "okno");
         if (d.gra == "BraxRegionTrawa") return BraxRegionTrawa.Material;
+        if (!string.IsNullOrEmpty(d.woda)) { var w = Rzeka(nazwa); if (w) return w; }
         string n = "Bydgoszcz: " + nazwa;
         if (!string.IsNullOrEmpty(d.nakl))
         {
@@ -136,10 +167,18 @@ public static class BraxBydgoszcz
 
     public static void Apply(Transform cityRoot)
     {
-        okna.Clear();
-        string sciezka = Sciezka();
-        if (sciezka == null) { BraxRegion.Note("Bydgoszcz: brak pliku " + Plik + " — osiedle pominięte"); return; }
-        var root = BraxRegion.Root(cityRoot, "BYDGOSZCZ osiedle Skłodowskiej-Curie");
+        okna.Clear(); rzeka = null; rzekaProba = false;
+        Wczytaj(cityRoot, Plik, PunktZerowy, "BYDGOSZCZ osiedle Skłodowskiej-Curie", "osiedle", Out);
+        Wczytaj(cityRoot, PlikRynku, PunktZerowyRynku, "BYDGOSZCZ Stary Rynek (Mostowa, Focha, Brda)", "rynek", Out + "/Rynek");
+    }
+
+    /// <summary>Jeden plik BYD2 (osiedle albo Stary Rynek): siatki × materiał w metrach → jednostki gry od punktu zerowego,
+    /// drzewa, modele właściciela i akcje z plików obok (&lt;przedrostek&gt;_punkty.json, _akcje.json), maska trawy 3D.</summary>
+    static void Wczytaj(Transform cityRoot, string plikBin, Vector2 zero, string nazwaKorzenia, string przedrostek, string katalogSiatek)
+    {
+        string sciezka = Sciezka(plikBin);
+        if (sciezka == null) { BraxRegion.Note("Bydgoszcz: brak pliku " + plikBin + " — " + przedrostek + " pominięte"); return; }
+        var root = BraxRegion.Root(cityRoot, nazwaKorzenia);
         var grupy = new Dictionary<string, Transform>();
         Transform Grupa(string g)
         {
@@ -147,7 +186,7 @@ public static class BraxBydgoszcz
             if (!grupy.TryGetValue(klucz, out var t)) { t = new GameObject(klucz).transform; t.SetParent(root, false); grupy[klucz] = t; }
             return t;
         }
-        Vector3 Swiat(float x, float y, float z) => new Vector3(PunktZerowy.x + x * K, y * K, PunktZerowy.y + z * K);
+        Vector3 Swiat(float x, float y, float z) => new Vector3(zero.x + x * K, y * K, zero.y + z * K);
         int siatek = 0, trojkatow = 0, kolizji = 0;
         var maty = new Dictionary<string, Material>();
         using (var plik = File.OpenRead(sciezka))
@@ -157,7 +196,7 @@ public static class BraxBydgoszcz
             gz.CopyTo(pamiec); pamiec.Position = 0;
             using (var r = new BinaryReader(pamiec))
             {
-                if (Encoding.ASCII.GetString(r.ReadBytes(4)) != "BYD2") { BraxRegion.Note("Bydgoszcz: inny format pliku — osiedle pominięte"); return; }
+                if (Encoding.ASCII.GetString(r.ReadBytes(4)) != "BYD2") { BraxRegion.Note("Bydgoszcz: inny format pliku " + plikBin + " — pominięty"); return; }
                 string naglowek = Encoding.UTF8.GetString(r.ReadBytes(r.ReadInt32()));
                 var paleta = Paleta(naglowek);
                 int ns = r.ReadInt32();
@@ -185,7 +224,7 @@ public static class BraxBydgoszcz
                     var mesh = new Mesh { name = "Bydgoszcz " + g + " " + mn, indexFormat = nv > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
                     mesh.vertices = v; mesh.normals = n; mesh.tangents = tg; mesh.uv = uv; mesh.uv2 = uv2;
                     mesh.SetTriangles(idx, 0); mesh.RecalculateBounds();
-                    BraxZapisAssetu.Utworz(mesh, Out + "/" + g.Replace('#', '_') + "_" + mn + ".asset");
+                    BraxZapisAssetu.Utworz(mesh, katalogSiatek + "/" + g.Replace('#', '_') + "_" + mn + ".asset");
                     var go = new GameObject(g + " [" + mn + "]"); go.transform.SetParent(Grupa(g), false);
                     go.AddComponent<MeshFilter>().sharedMesh = mesh;
                     var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterial = mat;
@@ -198,13 +237,43 @@ public static class BraxBydgoszcz
                 }
             }
         }
-        int drzew = Drzewa(root, Swiat);
-        int modeli = ModeleWlasciciela(root, Swiat);
-        int akcji = Akcje(root, Swiat);
-        TrawaMaska(root);
+        string punkty = Obok(sciezka, przedrostek, "punkty.json");
+        int barier = Bariery(root, Swiat, punkty);
+        int drzew = Drzewa(root, Swiat, punkty);
+        int modeli = ModeleWlasciciela(root, Swiat, punkty);
+        int akcji = Akcje(root, Swiat, Obok(sciezka, przedrostek, "akcje.json"));
+        TrawaMaska(root, Obok(sciezka, przedrostek, "trawa_maska.bin"), katalogSiatek);
         int lodow = Zasiegi(root);
-        Debug.Log("BRAXHORN_BYDGOSZCZ_OSIEDLE siatek=" + siatek + " trojkatow=" + trojkatow + " kolizji=" + kolizji + " materialow=" + maty.Count +
-                  " drzew=" + drzew + " modeli_wlasciciela=" + modeli + " akcji=" + akcji + " lod=" + lodow + " punkt_zerowy=(" + PunktZerowy.x + "; " + PunktZerowy.y + ")");
+        Debug.Log("BRAXHORN_BYDGOSZCZ_" + przedrostek.ToUpperInvariant() + " siatek=" + siatek + " trojkatow=" + trojkatow + " kolizji=" + kolizji + " materialow=" + maty.Count +
+                  " drzew=" + drzew + " modeli_wlasciciela=" + modeli + " akcji=" + akcji + " barier=" + barier + " lod=" + lodow + " punkt_zerowy=(" + zero.x + "; " + zero.y + ")");
+    }
+
+    /// <summary>Niewidzialne ściany (punkty.json → "bariery": [x0, z0, x1, z1, y0, y1], metry): Brda ucięta granicą miasta —
+    /// tam nie ma muru nabrzeża, a płot granicy stoi na poziomie bulwaru; ściana od dna do 3 m nad bulwarem.</summary>
+    static int Bariery(Transform root, Func<float, float, float, Vector3> swiat, string p)
+    {
+        if (!File.Exists(p)) return 0;
+        string json = File.ReadAllText(p);
+        int a = json.IndexOf("\"bariery\"", StringComparison.Ordinal);
+        if (a < 0) return 0;
+        int e = json.IndexOf("]]", a, StringComparison.Ordinal); if (e < 0) return 0;
+        var ci = System.Globalization.CultureInfo.InvariantCulture; var fs = System.Globalization.NumberStyles.Float;
+        var kol = new GameObject("Bydgoszcz: bariery (brzeg rzeki na granicy)").transform; kol.SetParent(root, false);
+        int n = 0;
+        foreach (var wpis in json.Substring(a, e - a).Split('['))
+        {
+            var pola = wpis.Split(',');
+            if (pola.Length < 6) continue;
+            var v = new float[6]; bool ok = true;
+            for (int k = 0; k < 6; k++) ok &= float.TryParse(pola[k].Trim().Trim(']', ' '), fs, ci, out v[k]);
+            if (!ok) continue;
+            Vector3 p0 = swiat(v[0], v[4], v[1]), p1 = swiat(v[2], v[4], v[3]); float h = (v[5] - v[4]) * K;
+            var d = p1 - p0; d.y = 0f; float L = d.magnitude; if (L < .05f) continue;
+            var bc = new GameObject("bariera").AddComponent<BoxCollider>(); bc.transform.SetParent(kol, false);
+            bc.transform.position = (p0 + p1) * .5f + Vector3.up * h * .5f; bc.transform.rotation = Quaternion.LookRotation(d / L, Vector3.up);
+            bc.size = new Vector3(.4f, h, L + .4f); n++;
+        }
+        return n;
     }
 
     /// <summary>Budżet kadru na telefonie (ZASADY 10.2, 800 tys./kadr): każda grupa osiedla (budynek, wyposażenie, budki) dostaje
@@ -225,10 +294,9 @@ public static class BraxBydgoszcz
     }
 
     /// <summary>Maska trawnika (osiedle.py: zapisz_maske_trawy) → zasób BraxClaudeTrawaMaska; kępy dokłada krok trawnika miasta.</summary>
-    static void TrawaMaska(Transform root)
+    static void TrawaMaska(Transform root, string p, string katalog)
     {
-        string p = Path.Combine(Path.GetDirectoryName(Sciezka() ?? Plik) ?? "", "osiedle_trawa_maska.bin");
-        if (!File.Exists(p)) { BraxRegion.Note("Bydgoszcz: brak maski trawnika — trawniki bez kęp 3D"); return; }
+        if (!File.Exists(p)) { BraxRegion.Note("Bydgoszcz: brak maski trawnika " + p + " — trawniki bez kęp 3D"); return; }
         using (var gz = new GZipStream(File.OpenRead(p), CompressionMode.Decompress))
         using (var ms = new MemoryStream()) { gz.CopyTo(ms); var b = ms.ToArray();
             if (b.Length < 28 || Encoding.ASCII.GetString(b, 0, 4) != "BTM1") { BraxRegion.Note("Bydgoszcz: zła maska trawnika"); return; }
@@ -236,7 +304,7 @@ public static class BraxBydgoszcz
             m.poczatek = new Vector2(BitConverter.ToSingle(b, 4), BitConverter.ToSingle(b, 8)); m.krok = BitConverter.ToSingle(b, 12);
             m.y = BitConverter.ToSingle(b, 16); m.szer = BitConverter.ToInt32(b, 20); m.wys = BitConverter.ToInt32(b, 24);
             m.bity = new byte[b.Length - 28]; Array.Copy(b, 28, m.bity, 0, m.bity.Length);
-            BraxZapisAssetu.Utworz(m, Out + "/trawa_maska.asset");
+            BraxZapisAssetu.Utworz(m, katalog + "/trawa_maska.asset");
             BraxRegionTrawa.MaskaKep(root, m);
             Debug.Log("BRAXHORN_BYDGOSZCZ_TRAWA maska " + m.szer + " × " + m.wys + " krok " + m.krok.ToString("F2") + " y " + m.y.ToString("F3")); }
     }
@@ -274,26 +342,29 @@ public static class BraxBydgoszcz
     /// metry osiedla). 23.11, 22:44: bus z bosną (jego model Tripo, bez logo firm) na parkingu przed marketem przy zapiekankach.
     /// Model w metrach (BraxMiastoAssety.Postaw skaluje × K); glTFast odbija x, więc kabina (−x w glTF) jest lokalnie +x:
     /// yaw = atan2(−kier_z, kier_x) ustawia kabinę wzdłuż kier, a bok z okienkiem (+z) w stronę parkingu. Bez paczki — pomija.</summary>
-    static int ModeleWlasciciela(Transform root, Func<float, float, float, Vector3> swiat)
+    static int ModeleWlasciciela(Transform root, Func<float, float, float, Vector3> swiat, string p)
     {
-        string p = Path.Combine(Path.GetDirectoryName(Sciezka() ?? Plik) ?? "", "osiedle_punkty.json");
         if (!File.Exists(p)) return 0;
         string json = File.ReadAllText(p);
         int a = json.IndexOf("\"modele\"", StringComparison.Ordinal);
         if (a < 0) return 0;
+        int e = json.IndexOf("]]", a, StringComparison.Ordinal);              // tylko lista „modele” (kolejne klucze — nie)
         var ci = System.Globalization.CultureInfo.InvariantCulture; var fs = System.Globalization.NumberStyles.Float;
         int licz = 0;
-        foreach (var wpis in json.Substring(a).Split(new[] { "[" }, StringSplitOptions.RemoveEmptyEntries))
+        foreach (var wpis in json.Substring(a, (e > a ? e + 2 : json.Length) - a).Split(new[] { "[" }, StringSplitOptions.RemoveEmptyEntries))
         {
             var pola = wpis.Split(',');
             if (pola.Length < 6) continue;
-            string paczka = pola[0].Trim().Trim('"', ' '), plik = pola[1].Trim().Trim('"', ' ');
+            for (int k = 0; k < pola.Length; k++) pola[k] = pola[k].Trim().Trim('"', ' ', ']', '}', '\n', '\r');
+            string paczka = pola[0], plik = pola[1];
             if (!float.TryParse(pola[2], fs, ci, out float x) || !float.TryParse(pola[3], fs, ci, out float z) ||
-                !float.TryParse(pola[4], fs, ci, out float kx) || !float.TryParse(pola[5].Trim().TrimEnd(']', '}', ' '), fs, ci, out float kz)) continue;
+                !float.TryParse(pola[4], fs, ci, out float kx) || !float.TryParse(pola[5], fs, ci, out float kz)) continue;
+            // 7. pole (opcjonalne): wysokość w metrach — figura linoskoczka na linie nad Brdą (rynek_punkty.json)
+            float y = pola.Length > 6 && float.TryParse(pola[6], fs, ci, out float yy) ? yy : 0f;
             var m = BraxMiastoAssety.Jest(paczka) ? BraxMiastoAssety.Model(paczka, plik) : null;
             if (!m) { BraxRegion.Note("Bydgoszcz: brak paczki " + paczka + "/" + plik + " — miejsce bez modelu"); continue; }
             float yaw = Mathf.Atan2(-kz, kx) * Mathf.Rad2Deg;
-            var o = BraxMiastoAssety.Postaw(root, m, "Bydgoszcz: model właściciela · " + plik, swiat(x, 0f, z), yaw, 1f, true, true);
+            var o = BraxMiastoAssety.Postaw(root, m, "Bydgoszcz: model właściciela · " + plik, swiat(x, y, z), yaw, 1f, true, true);
             if (!o) continue;
             // kolizja: prostopadłościan z granic siatek w układzie modelu (nie z AABB świata — model jest obrócony)
             bool jest = false; var lb = new Bounds();
@@ -318,9 +389,8 @@ public static class BraxBydgoszcz
 
     /// <summary>Punkty akcji osiedla (osiedle_akcje.json, metry): 24.11 00:16 — bus z bosną: „KUP BOSNĘ” przy okienku i miejsce
     /// sprzedawcy za ladą (znacznik z kierunkiem twarzą do okienka — dla obsady, gdy ludzie będą włączeni, i dla pracy gracza).</summary>
-    static int Akcje(Transform root, Func<float, float, float, Vector3> swiat)
+    static int Akcje(Transform root, Func<float, float, float, Vector3> swiat, string p)
     {
-        string p = Path.Combine(Path.GetDirectoryName(Sciezka() ?? Plik) ?? "", "osiedle_akcje.json");
         if (!File.Exists(p)) return 0;
         var dane = JsonUtility.FromJson<AkcjeJ>(File.ReadAllText(p));
         if (dane == null || dane.akcje == null) return 0;
@@ -339,9 +409,8 @@ public static class BraxBydgoszcz
     }
 
     /// <summary>Drzewa z osiedle_punkty.json — modele z biblioteki właściciela (drzewo_verdant, las_sosna_a).</summary>
-    static int Drzewa(Transform root, Func<float, float, float, Vector3> swiat)
+    static int Drzewa(Transform root, Func<float, float, float, Vector3> swiat, string p)
     {
-        string p = Path.Combine(Path.GetDirectoryName(Sciezka() ?? Plik) ?? "", "osiedle_punkty.json");
         if (!File.Exists(p)) return 0;
         string json = File.ReadAllText(p);
         int a = json.IndexOf("\"drzewa\"", StringComparison.Ordinal), b = json.IndexOf("\"latarnie\"", StringComparison.Ordinal);

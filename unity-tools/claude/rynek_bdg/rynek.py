@@ -29,8 +29,13 @@ import paleta  # noqa: E402
 
 R = json.loads((TU / "dane" / "rynek_rzut.json").read_text())
 K = R["K"]; O = np.array(R["gra_a"])
-# okno etapu 1: Rynek, Mostowa z mostem, spichrze, Opera, Focha (metry od kotwicy; Rynek ~ (−180…−60, −230…−150))
-OKNO = box(-420, -340, 160, 160)
+# okno: Rynek, Mostowa z mostem, spichrze, Opera, Focha (metry od kotwicy; Rynek ~ (−180…−60, −230…−150)). 24.11 (właściciel:
+# „najpierw Stary Rynek” — podpięty do gry): okno sięga na południe do szwu z osiedlem (z 897 j. = północna krawędź okna
+# osiedla, osiedle_bdg/teren.OKNO), x −420 m = granica miasta X0 −872 j. (BraxMiastoGranice).
+SZEW_Z = 897.0                                    # jednostki gry: osiedle kończy się na z 508,8 + 300 m × K
+Y_SZEW = (SZEW_Z - O[1]) / K                      # ok. −376,6 m
+OKNO = box(-420, Y_SZEW, 160, 160)
+Y_LACZNIK = -344.0                                # oś ulicy łączącej wzdłuż szwu (północ budynków osiedla wystających za szew)
 SKRZYZOWANIE = (-30.0, -15.0)          # Focha × Gdańska × Jagiellońska (zdjęcia IMG_1983–1992): pasy, tory, słupki z łańcuchami
 CEGLY = ["c_czerwona", "c_sredniowieczna", "c_ceglasta", "c_mieszana", "c_stara", "c_bielona"]
 KAMIENIE = ["s_piaskowiec", "s_szary", "s_zamkowy", "s_grafit", "s_ochra", "s_rozowy"]
@@ -45,6 +50,44 @@ def wczytaj():
         try: b["poly"] = Polygon(b["obrys"]).buffer(0)
         except Exception: b["poly"] = Polygon()
     return d
+
+
+def osiedle_przy_szwie():
+    """Szew z osiedlem (24.11): budynki osiedla, które wystają za jego okno na północ (szpital: Patomorfologia do z 929 j.,
+    Budynek C, Budynek D), w metrach Rynku — tu Rynek nie stawia nic (ani budynku, ani trawy pod nimi); końce dróg osiedla
+    na szwie (x w metrach Rynku) — do nich dochodzą łączniki z ulicy wzdłuż szwu."""
+    import shapely.affinity
+    import osiedle as OS
+    import teren as TO
+    d = OS.wczytaj(); OS.WCZYTANE.update(d)
+    zo = np.asarray(OS.O, float)
+    dx, dz = (zo - O) / K                                       # metry osiedla → metry Rynku (ta sama skala K)
+    bud = []
+    for b in d["budynki"]:
+        P = b["poly"]
+        if P.is_empty or P.area < 40 or not TO.OKNO.contains(P.centroid) or OS.w_lesie(P.centroid): continue
+        Q = shapely.affinity.translate(P, dx, dz)
+        if Q.bounds[3] > Y_SZEW: bud.append(Q)
+    konce = []
+    y_os = Y_SZEW - dz                                          # szew w metrach osiedla (300 m)
+    for u in d["ulice"]:
+        if u["klasa"] not in ("service", "residential", "unclassified", "tertiary") or len(u["linia"]) < 2: continue
+        I = LineString(u["linia"]).intersection(box(-1e4, y_os - 1.0, 1e4, y_os + .5))
+        if I.is_empty: continue
+        x = I.centroid.x + dx
+        if -415 < x < 155 and not any(Q.buffer(4.0).intersects(LineString([(x, Y_SZEW), (x, Y_LACZNIK)])) for Q in bud): konce.append(round(x, 2))
+    return bud, sorted(set(konce))
+
+
+def lacznik(d, konce):
+    """Ulica wzdłuż szwu z osiedlem (bez nazwy, asfalt, chodniki — jak reszta ulic) od zachodniej do wschodniej krawędzi
+    okna: łączy ucięte na szwie ulice Starego Miasta (Jezuicka, Długa, Batorego, Magdzińskiego, Przy Zamczysku…)
+    i łącznikami (droga dojazdowa 5 m) końce dróg osiedla. Wpisy jak z OSM — teren, chodniki i latarnie robi reszta kodu."""
+    d["ulice"].append({"osm": "lacznik", "klasa": "residential", "nazwa": None, "most": None, "warstwa": None, "nawierzchnia": "asphalt",
+                       "pasy": None, "jednokier": None, "obszar": None, "tory": None, "linia": [[-420.0, Y_LACZNIK], [160.0, Y_LACZNIK]]})
+    for k, x in enumerate(konce):
+        d["ulice"].append({"osm": "lacznik_%d" % k, "klasa": "service", "nazwa": None, "most": None, "warstwa": None, "nawierzchnia": "asphalt",
+                           "pasy": None, "jednokier": None, "obszar": None, "tory": None, "linia": [[x, Y_SZEW - 1.0], [x, Y_LACZNIK]]})
 
 
 def woda(d):
@@ -234,6 +277,7 @@ def teren(d, bud, W):
     plaski("krawoznik", KRAW.simplify(.02), .14)
     plaski("nabrzeze", NABRZEZE.simplify(.05), .12)
     plaski("trawa", TRAWA.simplify(.1), .11)
+    TRAWNIK[0] = TRAWA
     plaski("woda_brda", W.simplify(.1), POZIOM_WODY)
     for q in getattr(KRAW.simplify(.02), "geoms", [KRAW]):                 # czoła krawężnika (0 → +0,14)
         if q.is_empty or q.geom_type != "Polygon": continue
@@ -261,12 +305,37 @@ def teren(d, bud, W):
                 S.box("teren", "mur_nabrzeza", a + UP * .12 - t * .01, t, UP, -n, L + .02, .25, .4)
                 e = a - n * .2 + UP * .37
                 S.quad("teren", "balustrada_kuta", e, e + t * L, e + t * L + UP * 1.0, e + UP * 1.0, uv_o=e, kier=n)
+                # pochwyt (24.11, gra: kolizja wzdłuż nabrzeża — postać nie wpada do Brdy między słupkami)
+                S.box("teren", "latarnia_czarna", e + UP * 1.0 - n * .03 - t * .01, t, UP, n, L + .02, .05, .06)
                 for k_ in np.arange(0, L, 2.4):
                     S.box("teren", "latarnia_czarna", e + t * k_ - t * .04 - n * .04, t, UP, n, .08, 1.06, .08)
     return S, {"jezdnie": round(JEZ.area), "rynek": round(PLAC.area), "chodniki": round(CHOD.area), "trawa": round(TRAWA.area), "woda": round(W.area)}, mosty, (PLAC.union(PAS), CHOD, NABRZEZE)
 
 
 POZIOM_WODY = -2.4                    # lustro Brdy 2,5 m pod bulwarem (zdjęcia m15–m16, m28: wysokie nabrzeża, prześwit pod mostem)
+TRAWNIK = [None]                      # pole trawy z teren() — maska kęp trawy 3D w grze
+
+
+def zapisz_maske_trawy(trawa, drzewa, plik, y=.11, krok=.32):
+    """Maska trawnika Rynku dla trawy 3D w grze (BraxClaudeTrawaMaska, ten sam format co osiedle_bdg/osiedle.py:
+    'BTM1', float32 x0 z0 krok y, int32 szer wys, bity od z0, bit = x % 8), bez pierścieni ziemi pod drzewami (0,8 m)."""
+    import gzip, struct
+    from PIL import Image, ImageDraw
+    x0m, z0m, x1m, z1m = trawa.bounds
+    gx0, gz0 = O[0] + x0m * K, O[1] + z0m * K
+    W_ = int(math.ceil((x1m - x0m) * K / krok)) + 1; H = int(math.ceil((z1m - z0m) * K / krok)) + 1
+    img = Image.new("1", (W_, H), 0); dr = ImageDraw.Draw(img)
+    px = lambda x, z: ((O[0] + x * K - gx0) / krok, (O[1] + z * K - gz0) / krok)
+    for g in getattr(trawa, "geoms", [trawa]):
+        if g.is_empty or g.geom_type != "Polygon": continue
+        dr.polygon([px(x, z) for x, z in g.exterior.coords], fill=1)
+        for r in g.interiors: dr.polygon([px(x, z) for x, z in r.coords], fill=0)
+    for (x, z, _) in drzewa:
+        cx, cz = px(x, z); rr = .8 * K / krok; dr.ellipse((cx - rr, cz - rr, cx + rr, cz + rr), fill=0)
+    bity = np.packbits(np.asarray(img, dtype=np.uint8), axis=1, bitorder="little")
+    with gzip.open(plik, "wb") as f:
+        f.write(b"BTM1" + struct.pack("<4f2i", gx0, gz0, krok, y * K, bity.shape[1] * 8, H)); f.write(bity.tobytes())
+    return W_, H
 
 
 def mosty_scal(S, mosty, W, d=None):
@@ -557,9 +626,14 @@ def detale(d, bud_lista, PLAC_, CHOD_, NABRZ_, W, R_):
 def main(out):
     out = Path(out); out.mkdir(parents=True, exist_ok=True)
     d = wczytaj(); R_ = random.Random(11)
+    OBCE, konce = osiedle_przy_szwie()
+    lacznik(d, konce)
     W = woda(d)
     D = Siatka(); opis = {}
-    budynki = [b for b in d["budynki"] if not b["poly"].is_empty and b["poly"].area > 25 and OKNO.contains(b["poly"].centroid) and not b.get("czesc")]
+    ulica_szwu = LineString([(-420, Y_LACZNIK), (160, Y_LACZNIK)]).buffer(3.5 + 2.6 + .5, cap_style=2)
+    zajete = unary_union(OBCE + [ulica_szwu] + [LineString(u["linia"]).buffer(3.1, cap_style=2) for u in d["ulice"] if str(u["osm"]).startswith("lacznik_")])
+    budynki = [b for b in d["budynki"] if not b["poly"].is_empty and b["poly"].area > 25 and OKNO.contains(b["poly"].centroid) and not b.get("czesc")
+               and not b["poly"].intersects(zajete)]
     import zabytki
     wlasne = {b["osm"]: b["poly"] for b in budynki if b["osm"] in zabytki.WLASNE}
     budynki = [b for b in budynki if b["osm"] not in zabytki.WLASNE]
@@ -585,7 +659,7 @@ def main(out):
         dd = D._c(g, m); b0 = len(dd["v"])
         for f in ("v", "n", "t", "uv", "uv1"): dd[f] += c[f]
         dd["i"] += [b0 + q for q in c["i"]]
-    bud = unary_union([b["poly"] for b in budynki] + [q for k, q in wlasne.items() if k != zabytki.OSM_BARKA])
+    bud = unary_union([b["poly"] for b in budynki] + [q for k, q in wlasne.items() if k != zabytki.OSM_BARKA] + [Q.buffer(.3) for Q in OBCE])
     T, pola, mosty, (PLAC_, CHOD_, NABRZ_) = teren(d, bud, W)
     Dt, pola_d, punkty = detale(d, budynki, PLAC_, CHOD_, NABRZ_, W, random.Random(5))
     pola.update(pola_d)
@@ -595,8 +669,26 @@ def main(out):
         dd["i"] += [b0 + q for q in c["i"]]
     pola["mosty_zespoly"] = mosty_scal(T, mosty, W)
     lina = lina_linoskoczka(T, d, W)
-    if lina: punkty["linoskoczek"] = [lina[0]]; punkty["linoskoczek_kier"] = lina[1]
+    if lina:
+        punkty["linoskoczek"] = [lina[0]]; punkty["linoskoczek_kier"] = lina[1]
+        # figura w grze (paczka szyfrowana braxhorn-sklep-bydgoszcz-linoskoczek-01): [paczka, plik, x, z, kier_x, kier_z, y];
+        # kier prostopadły do liny (drąg w poprzek), przód modelu (+z) wzdłuż liny — BraxBydgoszcz.ModeleWlasciciela
+        (lx, ly, lz), (kx, kz) = lina[0], lina[1]
+        punkty["modele"] = [["bydgoszcz_linoskoczek", "linoskoczek", lx, lz, round(kz, 4), round(-kx, 4), ly]]
+    # bariery (gra): Brda ucięta krawędzią okna = granicą miasta — tam nie ma muru nabrzeża; niewidzialna ściana od lustra
+    # wody − 1 m do +3 m wzdłuż odcinka [x0, z0, x1, z1, y0, y1] (metry), żeby z tafli nie wyjść pod płotem granicy
+    bar = []
+    brzeg_okna = OKNO.exterior
+    for q in getattr(W, "geoms", [W]):
+        if q.is_empty: continue
+        pts = list(q.exterior.coords)
+        for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
+            if math.hypot(x1 - x0, z1 - z0) > .2 and brzeg_okna.distance(Point((x0 + x1) / 2, (z0 + z1) / 2)) < .3:
+                bar.append([round(x0, 2), round(z0, 2), round(x1, 2), round(z1, 2), POZIOM_WODY - 1.0, 3.0])
+    punkty["bariery"] = bar
+    if "modele" in punkty: punkty["modele"] = punkty.pop("modele")              # modele na końcu (wczytywacz C# czyta do „]]”)
     (out / "rynek_punkty.json").write_text(json.dumps(punkty, ensure_ascii=False), encoding="utf-8")
+    if TRAWNIK[0] is not None: zapisz_maske_trawy(TRAWNIK[0], punkty.get("drzewa", []), out / "rynek_trawa_maska.bin")
     for (g, m), c in T.dane().items():
         dd = D._c(g, m); b0 = len(dd["v"])
         for f in ("v", "n", "t", "uv", "uv1"): dd[f] += c[f]

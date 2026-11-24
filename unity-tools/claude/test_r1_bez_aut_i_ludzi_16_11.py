@@ -80,7 +80,8 @@ class WejscieSupermarketuGranica(unittest.TestCase):
     def test_store_lot_is_playable(self):
         self.assertIn("DzialkaSupermarketu = Rect.MinMaxRect(-152f, 126f, -100f, 162f)", GRANICE)
         self.assertNotIn("Rect.MinMaxRect(-262f, 126f, -40f, Z1)", GRANICE)
-        self.assertIn("Rect.MinMaxRect(-262f, 126f, -152f, Z1), Rect.MinMaxRect(-100f, 126f, -40f, Z1), Rect.MinMaxRect(-152f, 162f, -100f, Z1)", GRANICE)
+        # 23.11: od z 162 działka to wjazd 1 na osiedle (grywalny) — wycięcia lasu tylko po bokach działki, do dawnej krawędzi miasta
+        self.assertIn("Rect.MinMaxRect(-262f, 126f, -152f, Z1Miasta), Rect.MinMaxRect(-100f, 126f, -40f, Z1Miasta)", GRANICE)
 
     def test_corridor_cleared_of_any_collider_and_probed_finely(self):
         self.assertIn("static void KorytarzWejscia(", SM)

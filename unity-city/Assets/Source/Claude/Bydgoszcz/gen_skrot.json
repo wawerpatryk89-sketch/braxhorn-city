@@ -1,0 +1,11 @@
+{
+ "unity-tools/claude/osiedle_bdg/gen/osiedle.bin": "f5cfb9fcfba93ff7a66a92464df21269bbb1f83f2558adaa3dc1cf520908ed97",
+ "unity-tools/claude/osiedle_bdg/gen/osiedle_akcje.json": "a1dc5d298f93930104174a50301be4c8483949d262ce1111e786ce66733d4026",
+ "unity-tools/claude/osiedle_bdg/gen/osiedle_opis.json": "ded26d60a8eaacac144ce3510d991e9d44d438711ecd63fcac4b4a27290d08aa",
+ "unity-tools/claude/osiedle_bdg/gen/osiedle_punkty.json": "663be3312faffb9aff896730e3406dbb6c2f161ae1a409abaad4cbbb6616688f",
+ "unity-tools/claude/osiedle_bdg/gen/osiedle_trawa_maska.bin": "3ba59353fcfe3cfc8f4c373e99e8ba903aee4fc9d40e20a3997d8a60e7dc29f2",
+ "unity-tools/claude/rynek_bdg/gen/rynek.bin": "b16e1ebd5ccd44afb76286e287d62b37321b896ac3234e49b9c214411113fe9a",
+ "unity-tools/claude/rynek_bdg/gen/rynek_opis.json": "97f9f8af5e842de61e9679bd259a17033788269d36ef8aa141bbeecb2b017531",
+ "unity-tools/claude/rynek_bdg/gen/rynek_punkty.json": "92e09e9d8a9ea92f8b2c247d3649262904d8029e89d2000f99c6f33ecb1e6ace",
+ "unity-tools/claude/rynek_bdg/gen/rynek_trawa_maska.bin": "eaaab15b7bb149fb41520a0f39bdf0566cc709eeec1aecd1e462365240759fb2"
+}
