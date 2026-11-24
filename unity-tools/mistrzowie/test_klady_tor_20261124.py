@@ -10,7 +10,8 @@
     "jakieś zakręty", "w jakichś błotach albo po jakichś lasach", "lasy, górki", "więcej lasu"): a narrow woods' trail
     over an 18 m wooded hill (logs, mud, a creek), then a motocross field of hairpins (FIM's rules where they apply); the
     rental booth with the six quads, the grandstand, the start gate, the START / META arch; BraxChampionsTorCzas;
-  - BraxChampionsLasKladow: the forest - Poly Haven's scanned pines and firs as crossed cards."""
+  - BraxChampionsLasKladow: the forest - Poly Haven's scanned pines and firs as crossed cards;
+  - BraxChampionsOponyKladow (17:11 "Opony na zakrętach" + "Ściany z opon"): tyre bundles, tyre walls, the stakes' tape."""
 import hashlib
 import json
 import math
@@ -34,6 +35,8 @@ ZAWODNIK = (ED / "BraxChampionsKladZawodnik.cs").read_text(encoding="utf-8")
 BLOTO = (RT / "BraxChampionsBloto.cs").read_text(encoding="utf-8")
 LAS = (ED / "BraxChampionsLasKladow.cs").read_text(encoding="utf-8")
 LAS_IMPORT = (ED / "BraxChampionsLasTextureImport.cs").read_text(encoding="utf-8")
+OPONY = (ED / "BraxChampionsOponyKladow.cs").read_text(encoding="utf-8")
+OPONA = ROOT / "unity-city/Assets/Source/Mistrzowie/Opony/opona.bytes"
 ATLAS = ROOT / "unity-city/Assets/Source/Mistrzowie/Las/las_atlas.png"
 PACK = ROOT / "unity-city/Prywatne/braxhorn-sklep-klady-01"
 K = 2.33 / 1.80
@@ -655,6 +658,78 @@ class Las(unittest.TestCase):
             self.assertIn("'" + slug + "'", prep)
             for key in ("Diffuse", "nor_gl", "Rough", "arm"):
                 self.assertIn("/4k/", json.dumps(fx[slug][key]["4k"]))
+
+
+class Opony(unittest.TestCase):
+    """owner 24.11 17:11 "Jakie rampy barierki na zakrętach może?"; his pick: "Opony na zakrętach" and "Ściany z opon"."""
+
+    def poziomy(self):
+        import struct
+        b = OPONA.read_bytes(); self.assertEqual(b[:4], b"OPN1")
+        n, = struct.unpack_from("<i", b, 4); i = 8; wynik = []
+        for _ in range(n):
+            nv, ni = struct.unpack_from("<ii", b, i); i += 8
+            v = [struct.unpack_from("<8f", b, i + k * 32) for k in range(nv)]; i += nv * 32
+            t = struct.unpack_from("<%dH" % ni, b, i); i += ni * 2
+            wynik.append((v, t))
+        self.assertEqual(i, len(b))
+        return wynik
+
+    def test_the_scanned_tyre(self):
+        lv = self.poziomy()
+        self.assertEqual([len(t) // 3 for v, t in lv], [2880, 896])              # the scan, the same simplified (UV seams kept)
+        for v, t in lv:
+            self.assertLess(max(t), len(v))
+            r = [math.hypot(p[0], p[1]) for p in v]; zs = [p[2] for p in v]
+            self.assertAlmostEqual(max(r), .3, 2); self.assertLess(max(zs) - min(zs), .17)   # 0.6 m across, 0.165 wide, axis z
+            self.assertTrue(all(0 <= p[6] <= 1 and 0 <= p[7] <= 1 for p in v))
+        self.assertIn("https://polyhaven.com/a/old_tyre", (OPONA.parent / "CREDITS.md").read_text(encoding="utf-8"))
+        self.assertIn('SourceMaterial("tor_kladow_opona", "old_tyre", 1f, Color.white)', OPONY)   # its own 4K maps on its own UVs
+        prep = (TOOLS / "prepare_assets.py").read_text(encoding="utf-8")
+        fx = json.loads((TOOLS / "pbr-provider-preflight.json").read_text(encoding="utf-8"))
+        self.assertIn("'old_tyre'", prep)
+        for key in ("Diffuse", "nor_gl", "Rough", "arm"):
+            self.assertIn("/4k/old_tyre/", json.dumps(fx["old_tyre"][key]["4k"]))
+        tool = (TOOLS / "opony/opona_lod.py").read_text(encoding="utf-8")
+        self.assertIn("1.0 - t[1]", tool)                                          # glTF's v flipped for Unity
+
+    def test_levels_for_a_phone(self):
+        # a bundle: the scan close up, the simplified one, a 10-sided ring; a wall starts at the simplified one; 28 a group
+        self.assertIn("static readonly int[] PoziomyPiramidy = { 0, 1, 2 }, PoziomySciany = { 1, 2 };", OPONY)
+        self.assertIn("lista.Add(Pierscien(10));", OPONY)
+        self.assertIn("NaGrupe = 28f;", OPONY)
+        self.assertLess(28 * 2090, 65536)                                          # 16-bit indices
+        self.assertIn("var lg = go.AddComponent<LODGroup>();", OPONY)
+        self.assertIn('go => go.name.EndsWith(" LOD1") || go.name.EndsWith(" LOD2")', (TOOLS / "tor_preview/TorMain.cs").read_text(encoding="utf-8"))
+
+    def test_bundles_and_walls_where_real_tracks_put_them(self):
+        # the apex of each turn of 35 deg+: 3-2-1 on the field and the start (60 deg+), 2-1 in the woods; past the stakes
+        self.assertIn("bool duza = o.w[sz] >= 6f && kat >= 60f;", OPONY)
+        self.assertIn("public const float MinKatPiramidy = 35f, MinKatSciany = 90f, MinVWjazdu = 12.5f, MinHamowanie = 4f;", OPONY)
+        self.assertGreater(const("OdPobocza", OPONY), .5 + .1)                     # the stakes stand 0.5 m past the shoulder
+        # the walls: the fast turns' outsides (and the start's first turn), the sections closer than 10 m side by side
+        self.assertIn("float sg = -Mathf.Sign(o.kr[sz]);", OPONY)
+        self.assertIn("bool start = k == pierwszy;", OPONY)
+        self.assertIn("if (jb < i || gap > MaxSzczelina || gap < 1.4f) { Zamknij(); continue; }", OPONY)
+        self.assertEqual((const("MaxSzczelina", OPONY), const("MinWzdluz", OPONY)), (10.0, 80.0))
+        # two rows, the top one nested (0.6 sin 60), a box collider each 5 tyres and each bundle
+        self.assertAlmostEqual(const("Wiersz", OPONY), .6 * math.sin(math.radians(60)), 2)
+        self.assertEqual(OPONY.count("W.Kolizja("), 2)
+        self.assertIn("BraxChampionsOponyKladow.Zbuduj(g);", TOR)
+        self.assertLess(TOR.index("BraxChampionsOponyKladow.Zbuduj(g);"), TOR.index('W.Zapisz("mistrzowie_tor_kladow");'))
+        meta = (ED / "BraxChampionsOponyKladow.cs.meta").read_text(encoding="utf-8")
+        self.assertRegex(meta, r"guid: [0-9a-f]{32}\n")
+
+    def test_the_tape_in_a_picture(self):
+        # the stakes recorded (a break where the row stops); the tape between neighbours 0.6 m up, sagging 4 cm
+        self.assertIn("public static readonly List<Vector3>[] Paliki", TOR)
+        self.assertIn("if (float.IsNaN(a.x) || float.IsNaN(c.x)) continue;", OPONY)
+        self.assertEqual((const("TasmaH", OPONY), const("TasmaZwis", OPONY)), (.6, .04))
+        # a thin bright line as geometry flickers (ZASADA-MIGOTANIE 3.1): a 6 cm band in a transparent, mipmapped picture
+        self.assertIn("c.a = (byte)(y >= 12 && y < 20 ? 255 : 0);", OPONY)
+        self.assertIn("imp.mipmapEnabled = true; imp.wrapMode = TextureWrapMode.Repeat;", OPONY)
+        self.assertIn('BraxChampionsHarbour.Surface("tor_kladow_tasma", Color.white, .55f, 0f, null, true);', OPONY)
+        self.assertGreater(const("TasmaPas", OPONY), .2)                           # the quad: 4 times the band
 
 
 if __name__ == "__main__":

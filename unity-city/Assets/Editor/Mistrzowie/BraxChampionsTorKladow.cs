@@ -311,9 +311,21 @@ public static class BraxChampionsTorKladow
         }
         return baza[i];
     }
-    static int Indeks(float s) { var o = Linia(); s = ((s % o.dlugosc) + o.dlugosc) % o.dlugosc; int lo = 0, hi = o.N - 1; while (lo < hi) { int m = (lo + hi + 1) / 2; if (o.s[m] <= s) lo = m; else hi = m - 1; } return lo; }
+    public static int Indeks(float s) { var o = Linia(); s = ((s % o.dlugosc) + o.dlugosc) % o.dlugosc; int lo = 0, hi = o.N - 1; while (lo < hi) { int m = (lo + hi + 1) / 2; if (o.s[m] <= s) lo = m; else hi = m - 1; } return lo; }
     /// <summary>The berm: tan of the bank at sample i (+ the outer edge is to the right for a left turn).</summary>
     static float Przechyl(int i) { var o = Linia(); float k = o.kr[i]; return Mathf.Sign(k) * Mathf.Tan(13f * Mathf.Deg2Rad) * Mathf.Clamp01(Mathf.Abs(k) * 18f); }
+    /// <summary>The speed a turn at the line's sample i holds (m/s: its radius, its berm's bank, the tyres' grip).</summary>
+    public static float VZakretu(int i)
+    {
+        var o = Linia(); float kr = Mathf.Abs(o.kr[i]), tb = Mathf.Abs(Przechyl(i));
+        return kr > 1e-4f ? Mathf.Min(VProsta, Mathf.Sqrt(9.81f * (MuWyscigu + tb) / Mathf.Max(.2f, 1f - MuWyscigu * tb) / kr)) : VProsta;
+    }
+    /// <summary>The race's riding speed (m/s) at the line's sample i (ProfilWyscigu: the turns, the obstacles, the braking).</summary>
+    public static float VNaLinii(int i)
+    {
+        var o = Linia(); var pr = ProfilWyscigu(); int n = pr.v.Length; float sG = o.s[IndeksBramki()];
+        return pr.v[Mathf.RoundToInt((((o.s[i] - sG) % o.dlugosc) + o.dlugosc) % o.dlugosc / KrokWyscigu) % n];
+    }
     /// <summary>The riding surface at sample i, u metres to the left of the centre line (the shoulders continue it).</summary>
     public static float Tor(int i, float u)
     {
@@ -454,6 +466,8 @@ public static class BraxChampionsTorKladow
         Trojkaty += b.Triangles;
         BraxChampionsLasKladow.Zbuduj(g);                            // the forest (owner 14:20 "więcej lasu")
         Trojkaty += BraxChampionsLasKladow.Trojkaty;
+        BraxChampionsOponyKladow.Zbuduj(g);                          // the tyres at the turns, the tyre walls, the tape (17:11)
+        Trojkaty += BraxChampionsOponyKladow.Trojkaty;
         W.Zapisz("mistrzowie_tor_kladow");
         Kolizje = W.Kolizje - k0;
         // the far land goes under the site too (with the villas' press)
@@ -463,7 +477,7 @@ public static class BraxChampionsTorKladow
         Debug.Log("MISTRZOWIE_TOR_KLADOW length=" + o.dlugosc.ToString("F0") + "m width=" + Szer + "m obstacles=" + Przeszkod + " quads=" + Klady +
                   " triangles=" + Trojkaty + " colliders=" + Kolizje + " paddockY=" + PaddockY.ToString("F2") + " timer=" + (czas ? czas.punkty.Length : 0) +
                   " race=" + (wyscig ? wyscig.punkty.Length : 0) + " rivals=" + Rywali + " mud=" + (pyl ? pyl.srodek.Length : 0) +
-                  " trees=" + BraxChampionsLasKladow.Drzew + " young=" + BraxChampionsLasKladow.Mlodych);
+                  " trees=" + BraxChampionsLasKladow.Drzew + " young=" + BraxChampionsLasKladow.Mlodych + " tyres=" + BraxChampionsOponyKladow.Opon);
         return g;
     }
 
@@ -715,18 +729,24 @@ public static class BraxChampionsTorKladow
     }
 
     // the track's markers: orange and white stakes either side every 8 m (no colliders - they bend under a quad)
+    /// <summary>The stakes along each side (left, right) in the order the track runs; a NaN where the row breaks (the
+    /// woods, the finish line, the paddock): the tape (BraxChampionsOponyKladow) runs between neighbours.</summary>
+    public static readonly List<Vector3>[] Paliki = { new List<Vector3>(), new List<Vector3>() };
     static void Tyczki(BraxChampionsMeshBatch b)
     {
-        var o = Linia(); float nast = 0f; int n = 0;
+        var o = Linia(); float nast = 0f; int n = 0; var przerwa = new Vector3(float.NaN, 0f, 0f);
+        Paliki[0].Clear(); Paliki[1].Clear();
         for (int i = 0; i < o.N; i++)
         {
             if (o.s[i] < nast) continue; nast = o.s[i] + 8f;
-            if (Mathf.Abs(o.x[i] - MetaX) < 6f && o.z[i] > 905f) continue;
-            if (o.w[i] < 6f) continue;                                    // in the woods the trees mark the trail
+            if (Mathf.Abs(o.x[i] - MetaX) < 6f && o.z[i] > 905f) { Paliki[0].Add(przerwa); Paliki[1].Add(przerwa); continue; }
+            if (o.w[i] < 6f) { Paliki[0].Add(przerwa); Paliki[1].Add(przerwa); continue; }      // in the woods the trees mark the trail
             foreach (float bok in new[] { 1f, -1f })
             {
                 float u = bok * (o.w[i] * .5f + Pobocze + .5f), x = o.x[i] - o.tz[i] * u, z = o.z[i] + o.tx[i] * u, y = Grunt(x, z);
-                if (DoPaddocku(x, z) < 1f) continue;
+                var lista = Paliki[bok > 0f ? 0 : 1];
+                if (DoPaddocku(x, z) < 1f) { lista.Add(przerwa); continue; }
+                lista.Add(new Vector3(x, y, z));
                 b.Box(n % 2 == 0 ? pomarancz : biel, new Vector3(x, y + .4f, z), new Vector3(.05f, .8f, .05f));
                 b.Box(n % 2 == 0 ? biel : pomarancz, new Vector3(x, y + .84f, z), new Vector3(.09f, .14f, .09f));                 // the cap 2 cm proud of the stake (no shared faces)
             }

@@ -8420,5 +8420,83 @@
         }
       }
     }
+  },
+  "old_tyre": {
+    "Diffuse": {
+      "4k": {
+        "jpg": {
+          "size": 10174570,
+          "md5": "1a44ed923fd252db5e3e98782919e57d",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/4k/old_tyre/old_tyre_diff_4k.jpg"
+        },
+        "png": {
+          "size": 21812125,
+          "md5": "50cdba2724c71d7b46350bdee7009eec",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/4k/old_tyre/old_tyre_diff_4k.png"
+        },
+        "exr": {
+          "size": 25908464,
+          "md5": "78160af22e0b823776eede3c681744ff",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/exr/4k/old_tyre/old_tyre_diff_4k.exr"
+        }
+      }
+    },
+    "nor_gl": {
+      "4k": {
+        "jpg": {
+          "size": 13258427,
+          "md5": "6157304d49360f940ac2d1762a1612ff",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/4k/old_tyre/old_tyre_nor_gl_4k.jpg"
+        },
+        "png": {
+          "size": 29714906,
+          "md5": "de7394e186c9630553642c57e6dae734",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/4k/old_tyre/old_tyre_nor_gl_4k.png"
+        },
+        "exr": {
+          "size": 30622998,
+          "md5": "5598d1ccc3f73ff87567635502afdd8e",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/exr/4k/old_tyre/old_tyre_nor_gl_4k.exr"
+        }
+      }
+    },
+    "Rough": {
+      "4k": {
+        "jpg": {
+          "size": 10158414,
+          "md5": "fbf5d8b301d9f14b7e1dbdea2ae0faa8",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/4k/old_tyre/old_tyre_rough_4k.jpg"
+        },
+        "png": {
+          "size": 14475370,
+          "md5": "0944f4c7fe69f0fbf8293f1e710eb984",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/4k/old_tyre/old_tyre_rough_4k.png"
+        },
+        "exr": {
+          "size": 9784748,
+          "md5": "946d6a712098657cc97e7eb7c21955bd",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/exr/4k/old_tyre/old_tyre_rough_4k.exr"
+        }
+      }
+    },
+    "arm": {
+      "4k": {
+        "jpg": {
+          "size": 12569483,
+          "md5": "c6e6435edb11b5bdc179540b51c7b0fb",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/4k/old_tyre/old_tyre_arm_4k.jpg"
+        },
+        "png": {
+          "size": 17694551,
+          "md5": "81ae04e175b7c46d62c6f08815f2bfdd",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/png/4k/old_tyre/old_tyre_arm_4k.png"
+        },
+        "exr": {
+          "size": 26093578,
+          "md5": "56b32030b33dd100f54f50f0047a3610",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/exr/4k/old_tyre/old_tyre_arm_4k.exr"
+        }
+      }
+    }
   }
 }

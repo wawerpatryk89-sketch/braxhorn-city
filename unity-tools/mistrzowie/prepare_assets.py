@@ -64,7 +64,10 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  # 24.11 14:20 owner ("lasy, górki", "więcej lasu"): the woods' logs across the trail (Pine Bark, 2 m) and the
                  # pine forest's floor under its trees - needles, cones, twigs (Forest Floor, 2.14 m); neither on his list
                  # (ZASADY 5.8: its terrain has rock, no woodland floor; its one bark is fir_tree_01's own)
-                 'pine_bark','forest_floor')
+                 'pine_bark','forest_floor',
+                 # 24.11 17:11 owner's pick "Opony na zakrętach" + "Ściany z opon": the scanned Old Tyre's own 4K maps (its UVs;
+                 # the geometry ships in Assets/Source/Mistrzowie/Opony/opona.bytes, unity-tools/mistrzowie/opony)
+                 'old_tyre')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
 # Owner 10.11 19:12 ("Nieba też brak", "I panorama realistyczną HDR 360"): the region's sky is a real 360 HDR panorama
 # (Poly Haven CC0), the original 4K Radiance .hdr checked against the provider's size and MD5 (BraxChampionsSky imports it

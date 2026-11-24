@@ -34,7 +34,7 @@ public static class TorMain
         }
         var root = new GameObject("preview tor").transform;
         BraxChampionsTorKladow.Zbuduj(root);
-        MeshDump.Write("tor_geometry.json", root, BraxClaudeOsiedle.K);
+        MeshDump.Write("tor_geometry.json", root, BraxClaudeOsiedle.K, go => go.name.EndsWith(" LOD1") || go.name.EndsWith(" LOD2"));   // the tyres' near level only
         foreach (var m in BraxChampionsKlady.Miejsca) Console.WriteLine("KLAD " + m.napis + " at " + F(m.p.x / BraxClaudeOsiedle.K) + "," + F(m.p.y / BraxClaudeOsiedle.K) + "," + F(m.p.z / BraxClaudeOsiedle.K) + " yaw " + m.yaw);
         Console.WriteLine("DUMP tor length=" + F(o.dlugosc) + " triangles=" + BraxChampionsTorKladow.Trojkaty + " colliders=" + BraxChampionsTorKladow.Kolizje + " fence=" + BraxChampionsTorKladow.Ogrodzenie + " quads=" + Rec.Quads.Count);
     }
