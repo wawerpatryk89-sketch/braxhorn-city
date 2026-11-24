@@ -72,6 +72,7 @@ Shader "Braxhorn/BoiskoLinie"
             // unity_4LightPos*; liczymy je tu PER PIKSEL (bez dodatkowych przebiegów ForwardAdd).
             #pragma multi_compile _ VERTEXLIGHT_ON
             #include "UnityCG.cginc"
+            #include "BraxSwiatlo.cginc"             // doba miasta R1 (noc i dzień)
 
             sampler2D _MainTex, _BumpMap, _ARM, _OcclusionMap, _EmissionMap;
             float4 _MainTex_ST, _BumpMap_ST, _ARM_ST, _OcclusionMap_ST, _EmissionMap_ST;
@@ -256,7 +257,7 @@ Shader "Braxhorn/BoiskoLinie"
                 #ifdef UNITY_COLORSPACE_GAMMA
                 colour = LinearToGammaSpace(max(colour,0));
                 #endif
-                return half4(colour, lerp(1,alpha,_Transparent));
+                return half4(BraxDoba(colour), lerp(1,alpha,_Transparent));
             }
             ENDCG
         }

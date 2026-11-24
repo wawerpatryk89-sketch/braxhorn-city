@@ -266,11 +266,21 @@ public static class BraxBydgoszcz
         int drzew = Bezpiecznie(przedrostek + " drzewa", () => Drzewa(root, Swiat, punkty));
         int modeli = Bezpiecznie(przedrostek + " modele właściciela", () => ModeleWlasciciela(root, Swiat, punkty));
         int muzyk = Bezpiecznie(przedrostek + " muzyka", () => Muzyka(root, Swiat, punkty, maty, katalogSiatek));
+        // 24.11 doba (noc i dzień): klosze latarni Rynku i lampy osiedla świecą nocą (BraxLampyNoc; poziom z BraxObrazRejonu)
+        int lamp = Bezpiecznie(przedrostek + " lampy nocą", () =>
+        {
+            var l = new List<Material>();
+            foreach (var nazwa in new[] { "klosz", "lampa" }) if (maty.TryGetValue(nazwa, out var lm) && lm) l.Add(lm);
+            if (l.Count == 0) return 0;
+            var ln = new GameObject("Bydgoszcz: lampy nocą").AddComponent<BraxLampyNoc>(); ln.transform.SetParent(root, false);
+            ln.materialy = l.ToArray();
+            return l.Count;
+        });
         int akcji = Bezpiecznie(przedrostek + " akcje", () => Akcje(root, Swiat, Obok(sciezka, przedrostek, "akcje.json")));
         Bezpiecznie(przedrostek + " maska trawy", () => { TrawaMaska(root, Obok(sciezka, przedrostek, "trawa_maska.bin"), katalogSiatek); return 1; });
         int lodow = Bezpiecznie(przedrostek + " LOD", () => Zasiegi(root));
         Debug.Log("BRAXHORN_BYDGOSZCZ_" + przedrostek.ToUpperInvariant() + " siatek=" + siatek + " trojkatow=" + trojkatow + " kolizji=" + kolizji + " materialow=" + maty.Count +
-                  " drzew=" + drzew + " modeli_wlasciciela=" + modeli + " muzyki=" + muzyk + " akcji=" + akcji + " barier=" + barier + " lod=" + lodow + " bledow_zapisu=" + bledowZapisu + " punkt_zerowy=(" + zero.x + "; " + zero.y + ")");
+                  " drzew=" + drzew + " modeli_wlasciciela=" + modeli + " muzyki=" + muzyk + " lamp_noca=" + lamp + " akcji=" + akcji + " barier=" + barier + " lod=" + lodow + " bledow_zapisu=" + bledowZapisu + " punkt_zerowy=(" + zero.x + "; " + zero.y + ")");
     }
 
     /// <summary>Niewidzialne ściany (punkty.json → "bariery": [x0, z0, x1, z1, y0, y1], metry): Brda ucięta granicą miasta —

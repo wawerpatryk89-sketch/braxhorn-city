@@ -31,6 +31,7 @@ Shader "Braxhorn/NabrzezePiana"
             #pragma fragment frag
             #pragma multi_compile_fog
             #include "UnityCG.cginc"
+            #include "BraxSwiatlo.cginc"             // doba miasta R1 (noc i dzień)
             sampler2D _Szum; fixed4 _Color; float _Okres, _Szer, _Moc, _Bieg, _Tryb;
             fixed4 _LightColor0;
             struct appdata { float4 vertex : POSITION; float2 uv : TEXCOORD0; fixed4 color : COLOR; };
@@ -69,7 +70,7 @@ Shader "Braxhorn/NabrzezePiana"
                     foam = saturate(smoothstep(.38, .72, n1 * .7 + n2 * .5) * (core * .6 + .4) * saturate(1.2 - y));
                 }
                 float sun = .78 + .22 * saturate(_LightColor0.r);
-                fixed4 c = fixed4(_Color.rgb * sun, foam * i.color.a * _Moc * _Color.a);
+                fixed4 c = fixed4(BraxDoba(_Color.rgb * sun), foam * i.color.a * _Moc * _Color.a);
                 UNITY_APPLY_FOG(i.fogCoord, c);
                 return c;
             }

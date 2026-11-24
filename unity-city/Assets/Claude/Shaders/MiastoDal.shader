@@ -68,6 +68,7 @@ Shader "Braxhorn/MiastoDal"
             #pragma target 3.0
             #include "UnityCG.cginc"
             #include "MiastoTlo.cginc"
+            #include "BraxSwiatlo.cginc"             // doba miasta R1 (noc i dzień)
             sampler2D _MainTex, _RockTex, _SoilTex;
             half4 _Color, _RockColor, _SoilColor, _FieldColor;
             float _Tile, _RockTile, _SoilTile, _Tryb, _MglaOd, _MglaDo;
@@ -162,7 +163,7 @@ Shader "Braxhorn/MiastoDal"
                 float koniec = min(_ProjectionParams.z * .95, _MglaDo), poczatek = koniec * _MglaOd;
                 half k = smoothstep(poczatek, koniec, d);
                 if (k > 0.001) c = lerp(c, MiastoTlo(_WorldSpaceCameraPos, dir, MT_KatPiksela()), k);
-                return half4(c, 1);
+                return half4(BraxDoba(c), 1);
             }
             ENDCG
         }

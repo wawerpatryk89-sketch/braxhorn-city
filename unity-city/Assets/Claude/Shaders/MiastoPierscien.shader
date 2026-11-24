@@ -27,6 +27,7 @@ Shader "Braxhorn/MiastoPierscien"
             #pragma fragment frag
             #pragma target 3.0
             #include "UnityCG.cginc"
+            #include "BraxSwiatlo.cginc"             // doba miasta R1 (noc i dzień)
             half4 _Mgla; float4 _Slonce; half _Jasnosc; half _Szczegol;
             struct appdata { float4 vertex : POSITION; float3 normal : NORMAL; fixed4 color : COLOR; };
             struct v2f { float4 pos : SV_POSITION; fixed4 color : COLOR; half3 n : TEXCOORD0; float3 op : TEXCOORD1; };
@@ -114,7 +115,7 @@ Shader "Braxhorn/MiastoPierscien"
                 c = lerp(baza, c, _Szczegol);
                 half3 col = c * (0.40 * sky + 0.70 * ndl) * _Jasnosc;
                 col = lerp(col, _Mgla.rgb, i.color.a);
-                return fixed4(col, 1);
+                return fixed4(BraxDoba(col), 1);
             }
             ENDCG
         }

@@ -68,6 +68,7 @@ Shader "Braxhorn/SzkloFasady"
             #pragma fragment frag
             #include "UnityCG.cginc"
             #include "MiastoTlo.cginc"
+            #include "BraxSwiatlo.cginc"             // doba miasta R1 (noc i dzień)
 
             half4 _Tint, _RamaKolor, _PasKolor, _FilarKolor;
             half _F0, _Odbicie, _Wnetrze, _Swiatla, _Typ, _Tafla, _SiatkaUV;
@@ -186,7 +187,7 @@ Shader "Braxhorn/SzkloFasady"
                     float odl = distance(_WorldSpaceCameraPos.xyz, i.wp);
                     kolor = lerp(kolor, _BraxMgielkaKolor.rgb, saturate(1.0 - exp(-odl * _BraxMgielkaGestosc)));
                 }
-                return half4(kolor, 1);
+                return half4(BraxDoba(kolor), 1);
             }
             ENDCG
         }

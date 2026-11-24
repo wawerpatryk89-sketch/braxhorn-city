@@ -291,3 +291,34 @@ def test_klucz_rejonu_bez_pokwitowan_pobierania(tmp_path):
     assert rb.klucz(uc, "miasto", "android", "6000.0.58f2") == k1
     (ph / "bricks/diffuse.jpg").write_bytes(b"jpg2")                      # prawdziwe wejście dalej zmienia klucz
     assert rb.klucz(uc, "miasto", "android", "6000.0.58f2") != k1
+
+
+def test_doba_noc_i_dzien():
+    """24.11, 16:31 (właściciel: „próbę, noc i dzień”): BraxObrazRejonu liczy dobę (dzień 12 min, noc 5 min, przejścia
+    po 1,5 min; start rano), ustawia ekspozycję miasta × poziom, globalne _BraxSwiatlo/_BraxSwiatloKolor, słońce, otoczenie
+    i odbicia; shadery bez świateł Unity (niebo, panorama, teren i las za granicą, szkło fasad, piana, linie boiska, woda)
+    mnożą barwę przez dobę; lampy Rynku świecą nocą; lasery balkonu odpalają nocą (słońce < 0,25)."""
+    import re
+    from pathlib import Path
+    R = Path(__file__).resolve().parents[2]
+    ob = (R / "unity-city/Assets/Claude/Runtime/BraxObrazRejonu.cs").read_text(encoding="utf-8")
+    for s in ("dzienMin = 12f, nocMin = 5f, przejscieMin = 1.5f, nocSwiatlo = .1f, startMin = 2f", "Shader.SetGlobalFloat(IdSwiatlo, s)",
+              "ekspozycja * s", "slonceZewnatrz * s", "RenderSettings.ambientSkyColor = otNiebo", "Time.time / 60f"):
+        assert s in ob, s
+    sh = R / "unity-city/Assets/Claude/Shaders"
+    assert "_BraxSwiatlo" in (sh / "BraxSwiatlo.cginc").read_text(encoding="utf-8")
+    for n in ("MiastoNiebo", "MiastoDal", "MiastoDalLas", "SzkloFasady", "MiastoPierscien", "BoiskoLinie", "NabrzezePiana"):
+        t = (sh / (n + ".shader")).read_text(encoding="utf-8")
+        assert '#include "BraxSwiatlo.cginc"' in t and "BraxDoba(" in t, n
+    w = (R / "unity-city/Assets/Editor/CityRebuild/Environment/Water/HarbourWater.shader.txt").read_text(encoding="utf-8")
+    assert len(re.findall(r"BraxDobaWody\(", w)) == 3                     # definicja + oba przebiegi (z góry i spod wody)
+    cs = (R / "unity-city/Assets/Editor/Claude/Region/BraxBydgoszcz.cs").read_text(encoding="utf-8")
+    assert "AddComponent<BraxLampyNoc>()" in cs and (R / "unity-city/Assets/Claude/Runtime/BraxLampyNoc.cs").exists()
+    # przebieg doby (ten sam wzór co Doba w C#): rano dzień, potem zmierzch, noc ok. 0,1, świt
+    def doba(t, P=1.5, D=12.0, N=5.0, noc=.1):
+        t %= D + N + 2 * P
+        d = t / P if t < P else 1.0 if t < P + D else 1 - (t - P - D) / P if t < 2 * P + D else 0.0
+        d = d * d * (3 - 2 * d)
+        return noc + (1 - noc) * d
+    assert doba(2.0) == 1.0 and abs(doba(16.0) - .1) < 1e-9 and .1 < doba(14.25) < 1 and abs(doba(22.0) - 1.0) < 1e-9
+    assert 1.24 * doba(16.0) < .25                                          # lasery: noc = słońce słabsze niż 0,25
