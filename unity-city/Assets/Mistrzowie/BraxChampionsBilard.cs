@@ -17,7 +17,14 @@ using FizLacz = UnityEngine.PhysicMaterialCombine;
 //     drops in; the cue ball in a pocket (or off the table) comes back on the head spot,
 //   - WBITE x/15 and UDERZENIA on the panel, flashes for every pot; all 15 down = the partie ends, AKCJA re-racks.
 // Only the table being played is live; the others sleep (kinematic). Nothing runs further than 60 m away.
-public sealed class BraxChampionsBilard : MonoBehaviour, IBraxInterakcja
+// Owner 24.11 01:32 ("Centrum rozrywki, żeby było można grać tak samo [jak w kasynie]. Gdzie bilard i kręgle"): played the
+// way the casino's games are (BraxChampionsStanowisko) and the mobile pool games: AKCJA at a table opens it - the camera
+// over the table, the player out of the picture, the walking controls rest:
+//   - a finger on the cloth aims (the cue ball goes toward it), ◀ ▶ turn the aim finely; the guide line runs from the cue
+//     ball to the first ball or cushion it meets and shows where the struck ball goes,
+//   - hold UDERZ: the power rises and falls (the cue draws back), let go = the shot,
+//   - NOWA PARTIA when all 15 are down; WSTAŃ walks on.
+public sealed class BraxChampionsBilard : MonoBehaviour, IBraxInterakcja, IBraxStanowisko
 {
     public Vector3[] stoly = new Vector3[0];         // centre of each table's cloth (world), y = cloth surface
     public float polX = .757f, polZ = 1.527f;        // half sizes of the playing field (world; the long side along z)
@@ -37,9 +44,11 @@ public sealed class BraxChampionsBilard : MonoBehaviour, IBraxInterakcja
     Vector3 cel; bool celuje;
     Collider[] kol; Renderer[][] widok;
     BraxGymPlayer gracz;
+    // the game at the table (BraxChampionsStanowisko): the aim (horizontal unit), the power held
+    Vector3 kierunek = Vector3.forward; bool trzymaSila; float silaOd, moc;
 
-    void OnEnable() { BraxInterakcje.Dodaj(this); BraxGymPlayer.OnCios += Cios; }
-    void OnDisable() { BraxInterakcje.Usun(this); BraxGymPlayer.OnCios -= Cios; }
+    void OnEnable() { BraxInterakcje.Dodaj(this); }
+    void OnDisable() { BraxInterakcje.Usun(this); }
 
     void Start()
     {
@@ -77,37 +86,34 @@ public sealed class BraxChampionsBilard : MonoBehaviour, IBraxInterakcja
         return best;
     }
     Rigidbody Biala(int t) => bile[t * Bil];
-    bool Zasieg(Vector3 p, int t)
-    {
-        var d = Biala(t).position - p; d.y = 0f;
-        return d.magnitude < zasieg;
-    }
 
     public string Kontekst(Vector3 p)
     {
-        if (!gotowe) return "";
+        if (!gotowe || BraxChampionsStanowisko.Aktywne) return "";
         int t = Stol(p); if (t < 0) return "";
-        if (t == stol && ruch) return "";
-        if (t == stol && wbite >= 15) return "BILARD · NOWA PARTIA";
-        if (!Zasieg(p, t)) return "BILARD · PODEJDŹ DO BIAŁEJ";
-        return t == stol && uderzenia > 0 ? "BILARD · UDERZ (CIOS = MOCNO)" : "BILARD · ROZBIJ (CIOS = MOCNO)";
+        return "GRAJ · BILARD · STÓŁ " + (t + 1);
     }
 
     public bool Wykonaj(Vector3 p)
     {
-        int t = Stol(p); if (t < 0 || (t == stol && ruch)) return false;
-        if (t == stol && wbite >= 15) { Rozstaw(t); return true; }
-        if (!Zasieg(p, t)) return false;
-        Uderz(t, p, sila);
+        int t = Stol(p); if (t < 0 || BraxChampionsStanowisko.Aktywne) return false;
+        Przejmij(t);
+        // the first aim: from the cue ball to the rack's apex
+        var d = bile[t * Bil + 1].position - Biala(t).position; d.y = 0f;
+        if (d.sqrMagnitude > 1e-6f && !(t == stol && uderzenia > 0)) kierunek = d.normalized;
+        trzymaSila = false; moc = 0f;
+        BraxChampionsStanowisko.Wejdz(this, t);
         return true;
     }
 
-    void Cios(Vector3 p, Vector3 przod, bool kopniecie)
+    // this table becomes the live one (a new partie racked, unless it is the one being played)
+    void Przejmij(int t)
     {
-        if (!gotowe || kopniecie) return;
-        int t = Stol(p); if (t < 0 || (t == stol && ruch) || !Zasieg(p, t)) return;
-        if (t == stol && wbite >= 15) return;
-        Uderz(t, p, silaMocna);
+        if (t == stol) return;
+        if (stol >= 0) Usypiaj(stol);
+        stol = t; wbite = 0; uderzenia = 0; ruch = false;
+        for (int i = 0; i < Bil; i++) { int k = t * Bil + i; if (wbita[k]) { Widac(k, true); wbita[k] = false; } }
+        Rozstaw(t);
     }
 
     void Rozstaw(int t)
@@ -124,15 +130,9 @@ public sealed class BraxChampionsBilard : MonoBehaviour, IBraxInterakcja
     }
     void Widac(int k, bool on) { if (kol[k]) kol[k].enabled = on; foreach (var w in widok[k]) if (w) w.enabled = on; }
 
-    void Uderz(int t, Vector3 p, float v)
+    void Uderz(int t, Vector3 d, float v)
     {
-        if (t != stol)
-        {
-            if (stol >= 0) Usypiaj(stol);
-            stol = t; wbite = 0; uderzenia = 0;
-            for (int i = 0; i < Bil; i++) { int k = t * Bil + i; if (wbita[k]) { Widac(k, true); wbita[k] = false; } }
-            Rozstaw(t);
-        }
+        Przejmij(t);
         gracz = BraxChampionsGry.Gracz;
         for (int i = 0; i < Bil; i++)
         {
@@ -141,12 +141,12 @@ public sealed class BraxChampionsBilard : MonoBehaviour, IBraxInterakcja
             b.linearDampingCompat(.6f); b.angularDampingCompat(.9f);
             if (gracz && gracz.body && kol[k]) Physics.IgnoreCollision(kol[k], gracz.body, true);
         }
-        var cue = Biala(t); var d = cue.position - p; d.y = 0f; d.Normalize();
+        var cue = Biala(t); d.y = 0f; d.Normalize();
         Predkosc(cue, d * v);
         cue.angularVelocity = Vector3.Cross(Vector3.up, d) * (v / r) * .2f;
         uderzenia++; ruch = true; spokojOd = 0f;
         cel = d; uderzenieDo = Time.time + .25f;
-        BraxChampionsGry.Pokaz(v > sila ? "MOCNE UDERZENIE" : "UDERZENIE " + uderzenia, .9f);
+        BraxChampionsGry.Pokaz(v > silaMocna * .85f ? "MOCNE UDERZENIE" : "UDERZENIE " + uderzenia, .9f);
     }
 
     void Usypiaj(int t)
@@ -170,26 +170,108 @@ public sealed class BraxChampionsBilard : MonoBehaviour, IBraxInterakcja
             aktywne = gracz && (gracz.transform.position - transform.position).sqrMagnitude < 60f * 60f;
         }
         if (!aktywne || !gracz) { if (kij && kij.gameObject.activeSelf) kij.gameObject.SetActive(false); return; }
-        var p = gracz.transform.position;
-        int t = Stol(p);
-        // the cue: behind the cue ball, pointing away from the player through it (or striking right after a shot)
-        celuje = t >= 0 && !(t == stol && ruch) && Zasieg(p, t) && !(t == stol && wbite >= 15);
+        bool gra = stol >= 0 && BraxChampionsStanowisko.Gra(this, stol);
+        // the cue: behind the cue ball along the aim, drawn back by the power held (or striking right after a shot)
+        celuje = gra && !ruch && wbite < 15;
+        if (trzymaSila) moc = Mathf.PingPong((Time.unscaledTime - silaOd) / 1.3f, 1f);
         if (kij)
         {
             bool uderza = Time.time < uderzenieDo && stol >= 0;
             if (celuje || uderza)
             {
-                var cue = Biala(uderza ? stol : t).position;
-                var d = uderza ? cel : cue - p; d.y = 0f; if (d.sqrMagnitude < 1e-6f) d = Vector3.forward; d.Normalize();
-                float cofniecie = uderza ? Mathf.Lerp(.02f, .16f, (uderzenieDo - Time.time) / .25f) : .16f + .04f * Mathf.Sin(Time.time * 3f);
+                var cue = Biala(stol).position;
+                var d = uderza ? cel : kierunek; d.y = 0f; if (d.sqrMagnitude < 1e-6f) d = Vector3.forward; d.Normalize();
+                float cofniecie = uderza ? Mathf.Lerp(.02f, .06f + .30f * moc, (uderzenieDo - Time.time) / .25f) : .06f + (trzymaSila ? .30f * moc : .02f * Mathf.Sin(Time.time * 3f) + .02f);
                 var tip = cue - d * (r + cofniecie) + Vector3.up * .01f;
                 kij.SetPositionAndRotation(tip, Quaternion.LookRotation(Quaternion.AngleAxis(6f, Vector3.Cross(Vector3.up, d)) * d));
                 if (!kij.gameObject.activeSelf) kij.gameObject.SetActive(true);
             }
             else if (kij.gameObject.activeSelf) kij.gameObject.SetActive(false);
         }
-        if (stol >= 0 && (gracz.transform.position - stoly[stol]).sqrMagnitude < 9f * 9f)
-            BraxChampionsGry.Ustaw("BILARD · STÓŁ " + (stol + 1) + " · WBITE " + wbite + "/15 · UDERZENIA " + uderzenia);
+    }
+
+    // ---------------- the game at the table (BraxChampionsStanowisko) ----------------
+    public string Tytul(int t) => "E1 · BILARD · STÓŁ " + (t + 1);
+    // over the table, its long side across the screen, tilted a little toward the player's side
+    public void Kadr(int t, Camera cam, out Vector3 oko, out Quaternion obrot)
+    {
+        var c = stoly[t]; float a = 14f * Mathf.Deg2Rad;
+        var n = Vector3.up * Mathf.Cos(a) + Vector3.left * Mathf.Sin(a);
+        BraxChampionsStanowisko.Kadruj(cam, c, n, Vector3.right, 2f * polZ + .55f, 2f * polX + .45f, out oko, out obrot);
+    }
+    public void Wstal(int t) { trzymaSila = false; moc = 0f; if (kij) kij.gameObject.SetActive(false); }
+
+    public void Panel(int t, BraxChampionsStanowisko.Ui ui)
+    {
+        if (t != stol) return;
+        var e = Event.current; var dolR = ui.dol; float p = ui.m, h = dolR.height - 2f * p, y = dolR.y + p;
+        bool moze = !ruch && wbite < 15;
+        var wynR = new Rect(dolR.x + p, y, dolR.width * .17f, h);
+        var udR = new Rect(wynR.xMax + p, y, dolR.width * .15f, h);
+        var silaR = new Rect(dolR.xMax - p - dolR.width * .30f, y, dolR.width * .30f, h);
+        var lewoR = new Rect(udR.xMax + p * 2f, y + h * .12f, h * .76f, h * .76f);
+        var prawoR = new Rect(lewoR.xMax + p, lewoR.y, lewoR.width, lewoR.height);
+        var info = new Rect(prawoR.xMax + p, y, silaR.x - prawoR.xMax - 2f * p, h);
+        ui.Pole(wynR, "WBITE", wbite + " / 15", wbite >= 15 ? BraxChampionsStanowisko.Ui.Zloto : BraxChampionsStanowisko.Ui.Krem);
+        ui.Pole(udR, "UDERZENIA", uderzenia.ToString(), BraxChampionsStanowisko.Ui.Krem);
+        if (ui.Przycisk(lewoR, "◀", BraxChampionsStanowisko.Ui.Szary, BraxChampionsStanowisko.Ui.Krem, moze)) kierunek = Quaternion.Euler(0f, -.6f, 0f) * kierunek;
+        if (ui.Przycisk(prawoR, "▶", BraxChampionsStanowisko.Ui.Szary, BraxChampionsStanowisko.Ui.Krem, moze)) kierunek = Quaternion.Euler(0f, .6f, 0f) * kierunek;
+        ui.Tekst(info, ruch ? "BILE W RUCHU" : wbite >= 15 ? "WSZYSTKIE WBITE · " + uderzenia + " UDERZEŃ" : "PALEC NA STOLE = CELUJ", .024f, BraxChampionsStanowisko.Ui.Krem);
+        if (wbite >= 15)
+        {
+            if (ui.Przycisk(silaR, "NOWA PARTIA", BraxChampionsStanowisko.Ui.Zielen, BraxChampionsStanowisko.Ui.Krem, !ruch, true)) { Rozstaw(t); var d0 = bile[t * Bil + 1].position - Biala(t).position; d0.y = 0f; if (d0.sqrMagnitude > 1e-6f) kierunek = d0.normalized; }
+        }
+        else
+        {
+            // hold: the power rises and falls; let go: the shot
+            if (e.type == EventType.MouseDown && silaR.Contains(e.mousePosition) && moze && BraxChampionsStanowisko.OdWejscia > .45f) { trzymaSila = true; silaOd = Time.unscaledTime; moc = 0f; }
+            if (e.type == EventType.MouseUp && trzymaSila)
+            {
+                trzymaSila = false;
+                if (moze) Uderz(t, kierunek, Mathf.Lerp(.5f, silaMocna * 1.15f, Mathf.Pow(Mathf.Max(moc, .04f), 1.4f)));
+                moc = 0f;
+            }
+            if (e.type == EventType.Repaint)
+            {
+                BraxGui.Zaokraglony(silaR, h * .2f, moze ? BraxChampionsStanowisko.Ui.Czerwien : BraxChampionsStanowisko.Ui.Szary);
+                if (trzymaSila) BraxGui.Zaokraglony(new Rect(silaR.x, silaR.y, Mathf.Max(h * .4f, silaR.width * moc), silaR.height), h * .2f, BraxChampionsStanowisko.Ui.Zloto);
+                BraxGui.ObrysZaokraglony(silaR, h * .2f, BraxChampionsStanowisko.Ui.Zloto);
+                ui.Tekst(silaR, trzymaSila ? "PUŚĆ = UDERZ · " + Mathf.RoundToInt(moc * 100f) + "%" : moze ? "PRZYTRZYMAJ · UDERZ" : "CZEKAJ", .028f, trzymaSila ? Color.black : BraxChampionsStanowisko.Ui.Krem);
+            }
+        }
+        if (!moze) return;
+        // a finger on the cloth: the cue ball goes toward it
+        if ((e.type == EventType.MouseDown || e.type == EventType.MouseDrag) && !trzymaSila && ui.kam && !ui.dol.Contains(e.mousePosition) && !ui.gora.Contains(e.mousePosition))
+        {
+            var ray = ui.kam.ScreenPointToRay(new Vector3(e.mousePosition.x, Screen.height - e.mousePosition.y, 0f));
+            var pl = new Plane(Vector3.up, Biala(t).position);
+            if (pl.Raycast(ray, out float dist))
+            {
+                var d = ray.GetPoint(dist) - Biala(t).position; d.y = 0f;
+                if (d.sqrMagnitude > r * r) kierunek = d.normalized;
+            }
+        }
+        // the guide: to the first ball or cushion; from a ball the line it takes
+        if (e.type == EventType.Repaint)
+        {
+            var c0 = Biala(t).position; var gold = new Color(1f, 1f, 1f, .85f);
+            float daleko = 2f * (polX + polZ);
+            Vector3 c1 = c0 + kierunek * daleko; Rigidbody trafiona = null;
+            if (Physics.SphereCast(c0, r * .98f, kierunek, out var hit, daleko, ~0, QueryTriggerInteraction.Ignore))
+            {
+                c1 = c0 + kierunek * hit.distance;
+                if (hit.rigidbody && hit.rigidbody != Biala(t)) trafiona = hit.rigidbody;
+            }
+            if (ui.Rzut(c0, out var A) && ui.Rzut(c1, out var B))
+            {
+                BraxChampionsStanowisko.Ui.Linia(A, B, gold, ui.s * .004f);
+                if (trafiona)
+                {
+                    var bc = trafiona.position; var od = bc - c1; od.y = 0f;
+                    if (od.sqrMagnitude > 1e-6f && ui.Rzut(bc, out var C) && ui.Rzut(bc + od.normalized * .35f, out var D)) BraxChampionsStanowisko.Ui.Linia(C, D, BraxChampionsStanowisko.Ui.Zloto, ui.s * .005f);
+                }
+            }
+        }
     }
 
     void FixedUpdate()

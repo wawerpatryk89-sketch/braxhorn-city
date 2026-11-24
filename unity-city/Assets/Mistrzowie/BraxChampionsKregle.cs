@@ -20,7 +20,14 @@ using FizLacz = UnityEngine.PhysicMaterialCombine;
 //     painted on the lane's own overhead screen, the panel at the top of the screen, STRIKE! / SPARE! / RYNNA flashes.
 // Only the lane being played has live physics; all the other pins are kinematic and asleep. Nothing runs when the
 // player is further than 70 m from the bowling centre.
-public sealed class BraxChampionsKregle : MonoBehaviour, IBraxInterakcja
+// Owner 24.11 01:32 ("Centrum rozrywki, żeby było można grać tak samo [jak w kasynie]. Gdzie bilard i kręgle"): played the
+// way the casino's games are (BraxChampionsStanowisko) and the mobile bowling games: AKCJA at a lane's ball return or on
+// its approach opens the lane - the camera low behind the ball on the foul line, the player out of the picture:
+//   - a finger near the ball moves it along the foul line; a finger down the lane aims (at most maxKat off the lane),
+//     the aim drawn on the lane; PODKRĘĆ ◀ ▶ the hook (the ball curls in the back third of the lane, as a real hook),
+//   - hold RZUĆ: the speed rises and falls; let go = the ball rolls; the camera rides behind it to the pins, watches the
+//     pinsetter, comes back for the next ball; the scorecard in the panel and on the lane's screens; NOWA GRA at the end.
+public sealed class BraxChampionsKregle : MonoBehaviour, IBraxInterakcja, IBraxStanowisko
 {
     // ---- configuration (BraxChampionsE1, world space; lanes run along +z)
     public Vector3[] faul = new Vector3[0];          // foul-line centre of every lane, y = lane surface
@@ -43,6 +50,10 @@ public sealed class BraxChampionsKregle : MonoBehaviour, IBraxInterakcja
     bool[] stoiPrzed = new bool[Pinow]; bool pelny = true, gotowe, aktywne; float sprawdz;
     Collider kulaKol; Renderer kulaWidok; Vector3 rynnaPoz; float rynnaV;
     BraxGymPlayer gracz;
+    // the game at the lane (BraxChampionsStanowisko): the ball's place on the foul line, the aim, the hook, the speed held
+    float startX, hakRzutu; int hak; Vector3 kier = Vector3.forward; bool trzymaSila; float silaOd, moc;
+    public float hakSila = .35f;                      // the hook's sideways pull per step (world m/s2, back third of the lane)
+    public float predkoscMin = 6.2f, predkoscMax = 11.6f;
 
     sealed class Gra { public int[] rzuty = new int[21]; public int n; public Texture2D tex; public Color32[] px; }
     Gra[] gry;
@@ -98,37 +109,45 @@ public sealed class BraxChampionsKregle : MonoBehaviour, IBraxInterakcja
         return Mathf.Abs(d.x) < polowaToru + rynna && d.z < .05f && d.z > -rozbieg - .6f && Mathf.Abs(d.y) < 2.5f;
     }
 
+    // the lane the player is at: its ball return (the lane on his side of it) or its approach
+    int TorPrzy(Vector3 p)
+    {
+        if (Zwrotnica(p, out int lane) >= 0) return lane;
+        for (int l = 0; l < faul.Length; l++) if (NaRozbiegu(p, l)) return l;
+        return -1;
+    }
+
     public string Kontekst(Vector3 p)
     {
-        if (!gotowe || faul.Length == 0) return "";
-        switch (faza)
-        {
-            case Faza.Wolne:
-                if (Zwrotnica(p, out int lane) < 0) return "";
-                return "KRĘGLE · WEŹ KULĘ · TOR " + (lane + 1) + (lane != tor || Koniec(lane) ? " · NOWA GRA" : "");
-            case Faza.Trzyma:
-                if (NaRozbiegu(p, tor)) return "KRĘGLE · RZUĆ KULĘ";
-                if (Zwrotnica(p, out _) >= 0) return "KRĘGLE · ODŁÓŻ KULĘ";
-                return "";
-            default: return "";
-        }
+        if (!gotowe || faul.Length == 0 || BraxChampionsStanowisko.Aktywne || faza != Faza.Wolne) return "";
+        int lane = TorPrzy(p); if (lane < 0) return "";
+        return "GRAJ · KRĘGLE · TOR " + (lane + 1) + (lane != tor || Koniec(lane) ? " · NOWA GRA" : "");
     }
 
     public bool Wykonaj(Vector3 p)
     {
-        if (faza == Faza.Wolne)
-        {
-            if (Zwrotnica(p, out int lane) < 0) return false;
-            if (lane != tor || Koniec(lane)) NowaGra(lane);
-            faza = Faza.Trzyma; Pokaz(kula, true); kula.isKinematic = true;
-            return true;
-        }
-        if (faza == Faza.Trzyma)
-        {
-            if (NaRozbiegu(p, tor)) { Rzut(p); return true; }
-            if (Zwrotnica(p, out _) >= 0) { NaZwrotnice(); faza = Faza.Wolne; return true; }
-        }
-        return false;
+        if (faza != Faza.Wolne || BraxChampionsStanowisko.Aktywne) return false;
+        int lane = TorPrzy(p); if (lane < 0) return false;
+        if (lane != tor || Koniec(lane)) NowaGra(lane);
+        startX = 0f; kier = Vector3.forward; hak = 0; trzymaSila = false; moc = 0f;
+        NaRozbieg();
+        BraxChampionsStanowisko.Wejdz(this, lane);
+        return true;
+    }
+
+    // the ball waits on the foul line where the player put it (the aim phase)
+    void NaRozbieg()
+    {
+        if (!kula || tor < 0) return;
+        if (!kula.isKinematic) { Predkosc(kula, Vector3.zero); kula.angularVelocity = Vector3.zero; }
+        kula.isKinematic = true; Pokaz(kula, true);
+        var at = StartRzutu(); kula.position = at; kula.transform.position = at;
+        faza = Faza.Trzyma;
+    }
+    Vector3 StartRzutu()
+    {
+        var f = faul[tor]; float lim = polowaToru - promien - .02f;
+        return new Vector3(f.x + Mathf.Clamp(startX, -lim, lim), f.y + promien + .003f, f.z - .35f);
     }
 
     void NowaGra(int lane)
@@ -169,18 +188,12 @@ public sealed class BraxChampionsKregle : MonoBehaviour, IBraxInterakcja
         Pokaz(kula, true);
     }
 
-    void Rzut(Vector3 p)
+    void Rzut(Vector3 dir, float v)
     {
         gracz = BraxChampionsGry.Gracz;
-        var f = faul[tor];
-        var przod = gracz ? BraxChampionsGry.Przod(gracz) : Vector3.forward;
-        float kat = Vector3.SignedAngle(Vector3.forward, przod, Vector3.up);
-        if (Mathf.Abs(kat) > 90f) kat = 0f;
-        kat = Mathf.Clamp(kat, -maxKat, maxKat);
-        var dir = Quaternion.Euler(0, kat, 0) * Vector3.forward;
-        float x = Mathf.Clamp(p.x - f.x, -(polowaToru - promien - .02f), polowaToru - promien - .02f);
-        float z = Mathf.Clamp(p.z - f.z, -rozbieg + .3f, -.25f);
-        var start = new Vector3(f.x + x, f.y + promien + .003f, f.z + z);
+        float kat = Mathf.Clamp(Vector3.SignedAngle(Vector3.forward, dir, Vector3.up), -maxKat, maxKat);
+        dir = Quaternion.Euler(0, kat, 0) * Vector3.forward;
+        var start = StartRzutu(); hakRzutu = hak * hakSila;
         for (int i = 0; i < Pinow; i++)
         {
             int k = tor * Pinow + i; stoiPrzed[i] = kol[k] && kol[k].enabled;
@@ -188,8 +201,8 @@ public sealed class BraxChampionsKregle : MonoBehaviour, IBraxInterakcja
         }
         kula.isKinematic = false; Pokaz(kula, true);
         kula.position = start; kula.transform.position = start;
-        Predkosc(kula, dir * predkosc);
-        kula.angularVelocity = Vector3.Cross(Vector3.up, dir) * (predkosc / promien) * .35f;
+        Predkosc(kula, dir * v);
+        kula.angularVelocity = Vector3.Cross(Vector3.up, dir) * (v / promien) * .35f;
         if (gracz && gracz.body && kulaKol) Physics.IgnoreCollision(kulaKol, gracz.body, true);
         faza = Faza.Toczy; t0 = Time.time;
         BraxDzwiekKul(start);
@@ -208,7 +221,7 @@ public sealed class BraxChampionsKregle : MonoBehaviour, IBraxInterakcja
             if (aktywne && gracz.body) foreach (var c in kol) if (c && c.enabled) Physics.IgnoreCollision(c, gracz.body, true);
         }
         if (!aktywne) { if (faza == Faza.Trzyma) { NaZwrotnice(); faza = Faza.Wolne; } return; }
-        if (tor >= 0) Panel();
+        if (tor >= 0 && !BraxChampionsStanowisko.Aktywne) Status();
         switch (faza)
         {
             case Faza.Liczy:
@@ -218,18 +231,15 @@ public sealed class BraxChampionsKregle : MonoBehaviour, IBraxInterakcja
                 Maszyna(Time.time - t0);
                 break;
             case Faza.Powrot:
-                if (Time.time >= czekaj) { NaZwrotnice(); faza = Faza.Wolne; }
+                if (Time.time >= czekaj)
+                {
+                    if (BraxChampionsStanowisko.Gra(this, tor) && !Koniec(tor)) NaRozbieg();
+                    else { NaZwrotnice(); faza = Faza.Wolne; }
+                }
                 break;
         }
     }
 
-    void LateUpdate()
-    {
-        if (faza != Faza.Trzyma || !kula || !gracz) return;
-        var f = BraxChampionsGry.Przod(gracz); var r = Vector3.Cross(Vector3.up, f);
-        var at = gracz.transform.position + r * .40f + f * .12f + Vector3.up * .98f;
-        kula.position = at; kula.transform.position = at;
-    }
 
     void FixedUpdate()
     {
@@ -238,6 +248,8 @@ public sealed class BraxChampionsKregle : MonoBehaviour, IBraxInterakcja
         if (faza == Faza.Toczy)
         {
             var p = kula.position; float u = p.z - f.z, v = p.x - f.x;
+            // the hook: the ball grips the dry back end of the lane and curls (from about 2/3 of the way to the pins)
+            if (hakRzutu != 0f && u > glowa * .6f && u < glowa) kula.AddForce(Vector3.right * hakRzutu, ForceMode.Acceleration);
             if (u > -.1f && u < glowa - .45f && Mathf.Abs(v) > polowaToru - promien * .25f)
             {
                 // into the gutter: the channel runs beside the lane bed to the pit
@@ -337,6 +349,112 @@ public sealed class BraxChampionsKregle : MonoBehaviour, IBraxInterakcja
         }
     }
 
+    // ---------------- the game at the lane (BraxChampionsStanowisko) ----------------
+    public string Tytul(int lane)
+    {
+        var g = gry != null && lane >= 0 && lane < gry.Length ? gry[lane] : null;
+        if (g == null) return "E1 · KRĘGLE · TOR " + (lane + 1);
+        Pozycja(g.rzuty, g.n, out int ramka, out int wRamce, out _, out bool koniec);
+        return "E1 · KRĘGLE · TOR " + (lane + 1) + (koniec ? " · KONIEC" : " · RAMKA " + (ramka + 1) + " · RZUT " + (wRamce + 1));
+    }
+    // aiming: low behind the ball, the lane ahead; rolling: riding behind the ball, stopping short of the pins; the pins
+    // falling and the pinsetter: over the pin deck
+    public void Kadr(int lane, Camera cam, out Vector3 oko, out Quaternion obrot)
+    {
+        var f = faul[lane]; var talia = new Vector3(f.x, f.y, f.z + glowa + .45f);
+        if (lane == tor && (faza == Faza.Toczy || faza == Faza.Rynna) && kula)
+        {
+            var b = kula.position; float z = Mathf.Min(b.z - 2.6f, talia.z - 4.2f);
+            oko = new Vector3(Mathf.Lerp(f.x, b.x, .6f), f.y + 1.05f, z);
+            obrot = Quaternion.LookRotation(new Vector3(b.x, f.y + .15f, Mathf.Max(b.z + 3f, talia.z)) - oko);
+            return;
+        }
+        if (lane == tor && (faza == Faza.Liczy || faza == Faza.Maszyna))
+        {
+            oko = new Vector3(f.x, f.y + 1.25f, talia.z - 4.2f);
+            obrot = Quaternion.LookRotation(talia + Vector3.up * .2f - oko);
+            return;
+        }
+        oko = new Vector3(f.x, f.y + 1.55f, f.z - 3.4f);
+        obrot = Quaternion.LookRotation(new Vector3(f.x, f.y, f.z + glowa * .55f) - oko);
+    }
+    public void Wstal(int lane)
+    {
+        trzymaSila = false; moc = 0f;
+        if (lane == tor && faza == Faza.Trzyma) { NaZwrotnice(); faza = Faza.Wolne; }
+    }
+
+    public void Panel(int lane, BraxChampionsStanowisko.Ui ui)
+    {
+        if (lane != tor) return;
+        var g = gry[lane]; var e = Event.current; var r = ui.dol; float p = ui.m, h = r.height - 2f * p, y = r.y + p;
+        Pozycja(g.rzuty, g.n, out _, out _, out _, out bool koniec);
+        bool moze = faza == Faza.Trzyma && !koniec;
+        var wynR = new Rect(r.x + p, y, r.width * .15f, h);
+        var hakL = new Rect(wynR.xMax + p * 2f, y + h * .12f, h * .76f, h * .76f);
+        var hakP = new Rect(hakL.xMax + p * .5f + r.width * .13f, hakL.y, hakL.width, hakL.height);
+        var hakPole = new Rect(hakL.xMax + p * .25f, y, hakP.x - hakL.xMax - p * .5f, h);
+        var silaR = new Rect(r.xMax - p - r.width * .30f, y, r.width * .30f, h);
+        var info = new Rect(hakP.xMax + p, y, silaR.x - hakP.xMax - 2f * p, h);
+        ui.Pole(wynR, "WYNIK", Suma(g) + " PKT", koniec ? BraxChampionsStanowisko.Ui.Zloto : BraxChampionsStanowisko.Ui.Krem);
+        if (ui.Przycisk(hakL, "◀", BraxChampionsStanowisko.Ui.Szary, BraxChampionsStanowisko.Ui.Krem, moze && hak > -3)) hak--;
+        if (ui.Przycisk(hakP, "▶", BraxChampionsStanowisko.Ui.Szary, BraxChampionsStanowisko.Ui.Krem, moze && hak < 3)) hak++;
+        ui.Pole(hakPole, "PODKRĘCENIE", hak == 0 ? "PROSTO" : (hak < 0 ? "W LEWO " : "W PRAWO ") + Mathf.Abs(hak), BraxChampionsStanowisko.Ui.Krem);
+        string stan = faza == Faza.Toczy ? "KULA TOCZY SIĘ" : faza == Faza.Rynna ? "RYNNA" : faza == Faza.Liczy || faza == Faza.Maszyna || faza == Faza.Powrot ? "MASZYNA STAWIA KRĘGLE" :
+            koniec ? "KONIEC GRY · " + Suma(g) + " PKT" : "PALEC PRZY KULI = MIEJSCE · NA TORZE = CEL";
+        ui.Tekst(info, stan, .022f, BraxChampionsStanowisko.Ui.Krem);
+        if (koniec)
+        {
+            if (ui.Przycisk(silaR, "NOWA GRA", BraxChampionsStanowisko.Ui.Zielen, BraxChampionsStanowisko.Ui.Krem, faza == Faza.Wolne || faza == Faza.Trzyma, true)) { NowaGra(lane); NaRozbieg(); }
+            return;
+        }
+        // hold: the speed rises and falls; let go: the ball rolls
+        if (e.type == EventType.MouseDown && silaR.Contains(e.mousePosition) && moze && BraxChampionsStanowisko.OdWejscia > .45f) { trzymaSila = true; silaOd = Time.unscaledTime; moc = 0f; }
+        if (trzymaSila) moc = Mathf.PingPong((Time.unscaledTime - silaOd) / 1.2f, 1f);
+        if (e.type == EventType.MouseUp && trzymaSila)
+        {
+            trzymaSila = false;
+            if (moze) Rzut(kier, Mathf.Lerp(predkoscMin, predkoscMax, moc));
+            moc = 0f;
+        }
+        if (e.type == EventType.Repaint)
+        {
+            BraxGui.Zaokraglony(silaR, h * .2f, moze ? BraxChampionsStanowisko.Ui.Czerwien : BraxChampionsStanowisko.Ui.Szary);
+            if (trzymaSila) BraxGui.Zaokraglony(new Rect(silaR.x, silaR.y, Mathf.Max(h * .4f, silaR.width * moc), silaR.height), h * .2f, BraxChampionsStanowisko.Ui.Zloto);
+            BraxGui.ObrysZaokraglony(silaR, h * .2f, BraxChampionsStanowisko.Ui.Zloto);
+            ui.Tekst(silaR, trzymaSila ? "PUŚĆ = RZUĆ · " + Mathf.RoundToInt(Mathf.Lerp(predkoscMin, predkoscMax, moc) / 1.2944f * 3.6f) + " KM/H" : moze ? "PRZYTRZYMAJ · RZUĆ" : "CZEKAJ", .028f, trzymaSila ? Color.black : BraxChampionsStanowisko.Ui.Krem);
+        }
+        if (!moze) return;
+        var f = faul[lane]; var start = StartRzutu();
+        // a finger near the ball moves it along the foul line; down the lane it aims
+        if ((e.type == EventType.MouseDown || e.type == EventType.MouseDrag) && !trzymaSila && ui.kam && !ui.dol.Contains(e.mousePosition) && !ui.gora.Contains(e.mousePosition))
+        {
+            var ray = ui.kam.ScreenPointToRay(new Vector3(e.mousePosition.x, Screen.height - e.mousePosition.y, 0f));
+            if (new Plane(Vector3.up, f).Raycast(ray, out float dist))
+            {
+                var w = ray.GetPoint(dist); float u = w.z - f.z;
+                if (u < 2.2f) { startX = w.x - f.x; var at = StartRzutu(); kula.position = at; kula.transform.position = at; }
+                else
+                {
+                    var d = w - start; d.y = 0f;
+                    float kat = Mathf.Clamp(Vector3.SignedAngle(Vector3.forward, d, Vector3.up), -maxKat, maxKat);
+                    kier = Quaternion.Euler(0f, kat, 0f) * Vector3.forward;
+                }
+            }
+        }
+        // the aim on the lane: from the ball to the pins (straight; the hook bends it in the back third)
+        if (e.type == EventType.Repaint)
+        {
+            var a0 = new Vector3(start.x, f.y + .01f, start.z); var a1 = a0 + kier * (glowa + .35f - (start.z - f.z));
+            if (ui.Rzut(a0, out var A) && ui.Rzut(a1, out var B)) BraxChampionsStanowisko.Ui.Linia(A, B, new Color(1f, 1f, 1f, .75f), ui.s * .004f);
+            if (hak != 0)
+            {
+                var a2 = a0 + kier * (glowa * .6f); var a3 = a1 + Vector3.right * hak * .08f;
+                if (ui.Rzut(a2, out var C) && ui.Rzut(a3, out var D)) BraxChampionsStanowisko.Ui.Linia(C, D, BraxChampionsStanowisko.Ui.Zloto, ui.s * .004f);
+            }
+        }
+    }
+
     // ---------------- punktacja: real ten-pin scoring (BraxChampionsPiksele) ----------------
     bool Koniec(int lane) => gry != null && lane >= 0 && lane < gry.Length && gry[lane] != null && BraxChampionsPiksele.Koniec(gry[lane].rzuty, gry[lane].n);
     static int Suma(Gra g) => BraxChampionsPiksele.Suma(g.rzuty, g.n);
@@ -346,7 +464,7 @@ public sealed class BraxChampionsKregle : MonoBehaviour, IBraxInterakcja
     public bool Skonczona(int lane) => Koniec(lane);
     public int Tory => faul.Length;
 
-    void Panel()
+    void Status()
     {
         var g = tor >= 0 ? gry[tor] : null; if (g == null) return;
         if (!gracz || (gracz.transform.position - faul[tor]).sqrMagnitude > 18f * 18f) return;
