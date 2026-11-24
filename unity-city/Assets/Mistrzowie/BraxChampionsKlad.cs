@@ -76,8 +76,24 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
     readonly Vector3[] normalnaKontaktu = new Vector3[4];
     readonly RaycastHit[] trafienia = new RaycastHit[12];
     AudioSource wolne, jazda;
-    Camera kam; Vector3 kamPoz; bool kamOk;
+    Camera kam; Vector3 kamPoz, kamKier; bool kamOk;
     const int WarstwaGracza = 8;
+
+    // ---------------------------------------------------------------- freestyle (owner 24.11 12:57: "rampy po bokach")
+    // In the air (a jump of the track or a kicker of the freestyle zone) OBRÓT turns the quad a flat 360 and SALTO a backflip
+    // (the FMX quad riders' trick); a clean landing (on its wheels, under 44 degrees of tilt) scores, a trick still turning
+    // when the wheels or the body meet the ground is a crash and the jump scores nothing.
+    enum Trik { Brak, Obrot, Salto }
+    public const int PunktyObrot = 150, PunktySalto = 400;
+    public const float CzasObrotu = .9f, CzasSalta = 1.05f, Kombo = 1.5f, PunktyZaSekunde = 40f;
+    const string KluczRekordu = "BRAX_KLAD_REKORD_SKOKU";
+    Trik trik; float trikKat, trikW, lot, vKol; int trikKroki, trikiSkoku, punktySkoku; Vector3 trikOs;
+    bool chceObrot, chceSalto, rozbity; string nazwyTrikow = "";
+    string napis = ""; float napisDo; Color napisKolor = Color.white;
+    public int Punkty { get; private set; }                          // this ride's points
+    static int rekordSkoku = -1;                                      // the best single jump, kept on the phone
+    public static int RekordSkoku { get { if (rekordSkoku < 0) { try { rekordSkoku = PlayerPrefs.GetInt(KluczRekordu, 0); } catch { rekordSkoku = 0; } } return rekordSkoku; } }
+    bool MozeTrik => rb && !rb.isKinematic && lot > .15f && trik == Trik.Brak && !rozbity;
 
     // ---------------------------------------------------------------- life
     void Awake()
@@ -187,6 +203,7 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
         Vel = Vector3.zero; rb.angularVelocity = Vector3.zero; rb.isKinematic = true;
         if (wolne) wolne.Stop(); if (jazda) jazda.Stop();
         gaz = hamulec = skretWej = 0f;
+        trik = Trik.Brak; lot = 0f; Zeruj(); Punkty = 0;
         Debug.Log("BRAX_KLAD zsiada " + nazwa);
         return true;
     }
@@ -199,6 +216,7 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
         rb.position = transform.position + Vector3.up * .8f * K;
         rb.rotation = Quaternion.LookRotation(f, Vector3.up);
         doGory = stoi = 0f;
+        trik = Trik.Brak; lot = 0f; Zeruj();
         Debug.Log("BRAX_KLAD postawiony " + nazwa);
     }
 
@@ -206,7 +224,7 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
 
     // ---------------------------------------------------------------- input (touch, mouse, keys)
     int palecSkretu = -99, palecGazu = -99, palecHamulca = -99; float skretX0;
-    Rect rGaz, rHamulec, rZsiadz, rPostaw, rSkret;
+    Rect rGaz, rHamulec, rZsiadz, rPostaw, rSkret, rObrot, rSalto;
     float jednostka => Mathf.Max(1f, Screen.height / 720f);
 
     void Uklad()
@@ -217,6 +235,9 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
         rZsiadz = new Rect(20f * u, 20f * u, 190f * u, 70f * u);
         rPostaw = new Rect(w * .5f - 130f * u, 110f * u, 260f * u, 70f * u);
         rSkret = new Rect(0f, h * .35f, w * .5f, h * .65f);
+        // the tricks over the right thumb's pedals, shown in the air only
+        rSalto = new Rect(w - 210f * u, h - 420f * u, 180f * u, 150f * u);
+        rObrot = new Rect(w - 400f * u, h - 340f * u, 160f * u, 150f * u);
     }
     static Vector2 Gui(Vector2 ekran) => new Vector2(ekran.x, Screen.height - ekran.y);
 
@@ -241,6 +262,8 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
             {
                 if (rZsiadz.Contains(p)) { zsiadz = true; continue; }
                 if (rPostaw.Contains(p) && Przewrocony) { postaw = true; continue; }
+                if (MozeTrik && rSalto.Contains(p)) { chceSalto = true; continue; }
+                if (MozeTrik && rObrot.Contains(p)) { chceObrot = true; continue; }
                 if (rGaz.Contains(p)) palecGazu = id;
                 else if (rHamulec.Contains(p)) palecHamulca = id;
                 else if (rSkret.Contains(p)) { palecSkretu = id; skretX0 = p.x; }
@@ -259,12 +282,14 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
         if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) { s = 1f; trzymaSkret = true; }
         if (Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.F) || Input.GetKeyDown(KeyCode.Escape)) zsiadz = true;
         if (Input.GetKeyDown(KeyCode.R)) postaw = true;
+        if (MozeTrik && Input.GetKeyDown(KeyCode.Q)) chceObrot = true;
+        if (MozeTrik && Input.GetKeyDown(KeyCode.Space)) chceSalto = true;
         gaz = g; hamulec = b; skretWej = trzymaSkret ? s : 0f;
         if (zsiadz && Time.time - odWsiadania > .5f) Zsiadz();
         if (postaw) Postaw();
     }
 
-    bool Przewrocony => transform.up.y < .35f;
+    bool Przewrocony => transform.up.y < .35f && trik == Trik.Brak;
 
     // ---------------------------------------------------------------- the ride
     void Update()
@@ -354,21 +379,103 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
             float roll = Vector3.SignedAngle(Vector3.ProjectOnPlane(up, fwd), Vector3.ProjectOnPlane(Vector3.up, fwd), fwd);
             if (Mathf.Abs(roll) > 28f) rb.AddTorque(fwd * Mathf.Sign(roll) * (Mathf.Abs(roll) - 28f) * masa * .12f * K, ForceMode.Force);
         }
-        else
+        else if (trik == Trik.Brak)
         {
-            // in the air: the throttle lifts the nose, the brake drops it (the rider's weight and the wheels' gyro), the thumb
-            // yaws a little; the roll settles
+            // in the air: the nose follows the flight (the rider's body, the way he lands a jump), the throttle lifts it and
+            // the brake drops it on top (the wheels' gyro), the thumb yaws a little; the roll settles
             var right = transform.right;
+            var tor3 = Vector3.ProjectOnPlane(Vel, right);
+            if (lot > .25f && tor3.sqrMagnitude > 9f * K * K && Vector3.Dot(tor3, fwd) > 0f)
+            {
+                float blad = Mathf.Clamp(Vector3.SignedAngle(fwd, tor3, right), -60f, 60f) * Mathf.Deg2Rad;
+                rb.AddTorque(right * (blad * 5f - Vector3.Dot(rb.angularVelocity, right) * 3f), ForceMode.Acceleration);
+            }
             rb.AddTorque(right * (hamulec - gaz) * 2.4f, ForceMode.Acceleration);
             rb.AddTorque(up * skretWej * .9f, ForceMode.Acceleration);
             float roll = Vector3.SignedAngle(Vector3.ProjectOnPlane(up, fwd), Vector3.ProjectOnPlane(Vector3.up, fwd), fwd);
             rb.AddTorque(fwd * roll * .02f, ForceMode.Acceleration);
         }
+        Freestyle(dt, ileNaZiemi);
         // stuck on its belly (a mound between the wheels): it slides on, as a real quad rocks off
-        stoi = ileNaZiemi == 0 && Vel.sqrMagnitude < .3f * K * K && gaz > 0f ? stoi + dt : 0f;
+        stoi = ileNaZiemi == 0 && trik == Trik.Brak && Vel.sqrMagnitude < .3f * K * K && gaz > 0f ? stoi + dt : 0f;
         if (stoi > 2.5f) Postaw();
-        Kola(dt, vNaprzod);
+        // the wheels keep the speed they left the ground with (a flip turns the quad, not its tyres)
+        vKol = ileNaZiemi > 0 ? vNaprzod : vKol * (1f - .3f * dt);
+        Kola(dt, vKol);
     }
+
+    // ---------------------------------------------------------------- freestyle: the time in the air, the tricks, the landing
+    void Freestyle(float dt, int ileNaZiemi)
+    {
+        if (ileNaZiemi == 0)
+        {
+            lot += dt;
+            if (trik == Trik.Brak && (chceSalto || chceObrot)) TrikStart(chceSalto ? Trik.Salto : Trik.Obrot);
+        }
+        else
+        {
+            if (trik != Trik.Brak) Wywrotka();                 // a wheel down mid-trick
+            else if (!rozbity && lot >= .45f) Ladowanie();
+            lot = 0f; rozbity = false;
+        }
+        chceObrot = chceSalto = false;
+        if (trik == Trik.Brak) return;
+        // the angle the last physics step turned (read back: the damping and the step are the engine's own)
+        if (trikKroki++ > 0) trikKat += Mathf.Abs(Vector3.Dot(rb.angularVelocity, trikOs)) * Mathf.Rad2Deg * dt;
+        if (trikKat >= 360f - trikW * dt * .5f)
+        {
+            rb.angularVelocity = Vector3.zero;                 // out of it as it went in
+            trikiSkoku++; punktySkoku += trik == Trik.Salto ? PunktySalto : PunktyObrot;
+            nazwyTrikow += (nazwyTrikow.Length > 0 ? " + " : "") + (trik == Trik.Salto ? "SALTO" : "OBRÓT 360");
+            Debug.Log("BRAX_KLAD_TRIK " + trik + " air=" + lot.ToString("F2"));
+            trik = Trik.Brak;
+            return;
+        }
+        float w = Mathf.Min(trikW, (360f - trikKat) / dt);
+        rb.angularVelocity = trikOs * (w * Mathf.Deg2Rad / (1f - .6f * dt));   // the angular damping (.6) made good
+    }
+
+    void TrikStart(Trik t)
+    {
+        trik = t; trikKat = 0f; trikKroki = 0;
+        // the backflip: the nose up and over, about the quad's own axle line; the 360: about the vertical, the way the thumb leans
+        trikOs = t == Trik.Salto ? -transform.right : Vector3.up * (skretWej < 0f ? -1f : 1f);
+        trikW = 360f / (t == Trik.Salto ? CzasSalta : CzasObrotu);
+    }
+
+    void Ladowanie()
+    {
+        if (transform.up.y <= .72f)
+        {
+            if (trikiSkoku > 0 || lot >= .8f) Napis("WYWROTKA!", new Color(1f, .35f, .3f), 2.2f);
+            Zeruj(); return;
+        }
+        int pkt = trikiSkoku >= 2 ? Mathf.RoundToInt(punktySkoku * Kombo) : punktySkoku;
+        if (lot >= .8f) pkt += Mathf.RoundToInt(lot * PunktyZaSekunde);
+        if (pkt > 0)
+        {
+            Punkty += pkt;
+            bool rekord = pkt > RekordSkoku;
+            if (rekord) { rekordSkoku = pkt; try { PlayerPrefs.SetInt(KluczRekordu, pkt); PlayerPrefs.Save(); } catch { } }
+            string co = trikiSkoku > 0 ? (trikiSkoku >= 2 ? "KOMBO! " : "") + nazwyTrikow + "!" : "SKOK " + lot.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + " s";
+            Napis(co + "  +" + pkt + (rekord ? "\nREKORD SKOKU!" : ""), new Color(.93f, .76f, .36f), 2.6f);
+            Debug.Log("BRAX_KLAD_SKOK pkt=" + pkt + " triki=" + trikiSkoku + " air=" + lot.ToString("F2") + " razem=" + Punkty);
+        }
+        Zeruj();
+    }
+
+    void Wywrotka()
+    {
+        trik = Trik.Brak; rozbity = true;                       // nothing more scores until it is down
+        Napis("WYWROTKA!", new Color(1f, .35f, .3f), 2.2f);
+        Debug.Log("BRAX_KLAD_SKOK wywrotka air=" + lot.ToString("F2"));
+        Zeruj();
+    }
+    void Zeruj() { trikiSkoku = punktySkoku = 0; nazwyTrikow = ""; }
+    void Napis(string t, Color c, float s) { napis = t; napisKolor = c; napisDo = Time.time + s; }
+
+    // the body meets something while a trick still turns: the crash
+    void OnCollisionEnter(Collision c) { if (gracz && trik != Trik.Brak) Wywrotka(); }
 
     // the wheels: roll at the ground's speed, the front ones turn with the bars, the hubs ride the suspension
     void Kola(float dt, float vNaprzod)
@@ -394,6 +501,11 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
         float dt = Mathf.Min(Time.unscaledDeltaTime, .1f);
         var v = Vel; var kier = Flat(transform.forward);
         var fv = Flat(v); if (v.sqrMagnitude > 4f * K * K && Vector3.Dot(fv, kier) > 0f) kier = Flat(Vector3.Slerp(kier, fv, .5f));
+        // in the air the camera follows the flight, not the quad (a backflip or a 360 turns under a still camera)
+        if (lot > .1f || trik != Trik.Brak) kier = fv.sqrMagnitude > .5f && new Vector2(v.x, v.z).sqrMagnitude > 4f * K * K ? fv : kamKier;
+        if (kier.sqrMagnitude < .5f) kier = kamKier.sqrMagnitude > .5f ? kamKier : Vector3.forward;
+        kamKier = kamOk && kamKier.sqrMagnitude > .5f ? Flat(Vector3.Slerp(kamKier, kier, 1f - Mathf.Exp(-dt * 6f))) : kier;
+        kier = kamKier;
         float szybko = Mathf.Clamp01(Mathf.Abs(PredkoscKmh) / Mathf.Max(1f, vMaxKmh));
         var cel = transform.position + Vector3.up * 1.25f * K;
         var chce = cel - kier * (4.6f + 1.6f * szybko) * K + Vector3.up * (1.55f + .3f * szybko) * K;
@@ -440,6 +552,12 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
         bool moze = Mathf.Abs(PredkoscKmh) <= 8f;
         Pole(rZsiadz, szklo); Tekst(rZsiadz, moze ? "ZSIĄDŹ" : "ZWOLNIJ", styl, moze ? zloto : new Color(.8f, .8f, .8f));
         if (Przewrocony) { Pole(rPostaw, new Color(.75f, .45f, .05f, .85f)); Tekst(rPostaw, "POSTAW KŁAD", styl, Color.white); }
+        // the tricks, in the air only
+        if (MozeTrik)
+        {
+            Pole(rSalto, new Color(.85f, .35f, .05f, .85f)); Tekst(rSalto, "SALTO\n+" + PunktySalto, styl, Color.white);
+            Pole(rObrot, new Color(.15f, .4f, .8f, .85f)); Tekst(rObrot, "OBRÓT\n+" + PunktyObrot, stylMaly, Color.white);
+        }
         // the steering thumb: where it went down and how far it is pushed
         if (palecSkretu != -99)
         {
@@ -450,18 +568,27 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
         }
         else Tekst(new Rect(20f * u, Screen.height - 90f * u, Screen.width * .45f, 60f * u), "◀  PRZESUŃ KCIUK  ▶", stylMaly, new Color(1f, 1f, 1f, .7f));
         // the speed and the lap
-        var info = new Rect(Screen.width - 330f * u, 20f * u, 310f * u, tor ? 150f * u : 70f * u);
+        var info = new Rect(Screen.width - 330f * u, 20f * u, 310f * u, tor ? 190f * u : 110f * u);
         Pole(info, szklo);
         Tekst(new Rect(info.x, info.y, info.width, 70f * u), Mathf.RoundToInt(Mathf.Abs(PredkoscKmh)) + " km/h", styl, Color.white);
+        float yi = info.y + 62f * u;
         if (tor)
         {
-            Tekst(new Rect(info.x, info.y + 62f * u, info.width, 40f * u), "OKRĄŻENIE " + BraxChampionsTorCzas.Czas(tor.Biezace), stylMaly, zloto);
-            Tekst(new Rect(info.x, info.y + 100f * u, info.width, 40f * u), "REKORD " + (tor.Najlepsze > 0f ? BraxChampionsTorCzas.Czas(tor.Najlepsze) : "—"), stylMaly, Color.white);
+            Tekst(new Rect(info.x, yi, info.width, 40f * u), "OKRĄŻENIE " + BraxChampionsTorCzas.Czas(tor.Biezace), stylMaly, zloto);
+            Tekst(new Rect(info.x, yi + 38f * u, info.width, 40f * u), "REKORD " + (tor.Najlepsze > 0f ? BraxChampionsTorCzas.Czas(tor.Najlepsze) : "—"), stylMaly, Color.white);
+            yi += 76f * u;
         }
+        Tekst(new Rect(info.x, yi, info.width, 40f * u), "PUNKTY " + Punkty + " · SKOK MAX " + RekordSkoku, stylMaly, Color.white);
         if (tor && Time.time < tor.KomunikatDo)
         {
             var r = new Rect(Screen.width * .5f - 260f * u, Screen.height * .28f, 520f * u, 80f * u);
             Pole(r, new Color(0f, 0f, 0f, .6f)); Tekst(r, tor.Komunikat, styl, zloto);
+        }
+        // the jump's score or the crash
+        if (Time.time < napisDo && napis.Length > 0)
+        {
+            var r = new Rect(Screen.width * .5f - 300f * u, Screen.height * .40f, 600f * u, 110f * u);
+            Pole(r, new Color(0f, 0f, 0f, .6f)); Tekst(r, napis, styl, napisKolor);
         }
     }
     static void Pole(Rect r, Color c) { var o = GUI.color; GUI.color = c; GUI.DrawTexture(r, biel); GUI.color = o; }

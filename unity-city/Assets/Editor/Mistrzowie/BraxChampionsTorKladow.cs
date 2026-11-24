@@ -69,6 +69,28 @@ public static class BraxChampionsTorKladow
     };
     public const float WodaGlebokosc = .42f;
 
+    // ---------------------------------------------------------------- the freestyle zone (owner 24.11 12:57: "rampy po bokach")
+    // In the infield north-west (clear of every section by 25 m+): three lanes running east, each a steel kicker (a circular
+    // transition to its lip, the way FMX ramps are built) and an earth landing (a 1:1 face, a 4 m knuckle deck, a 26 deg
+    // landing slope). The gaps from the ballistics (v at the lip, the lip's angle, gravity): the small one is cleared from
+    // ~39 km/h at the lip, the medium from ~47, the big (the steepest, the longest flight: 1.6 s) from ~47 - both quads get
+    // there on the 70 m run-up with the climb up the kicker taken off (the utility Rancher with ~20 % to spare).
+    public const float FX0 = -460f, FX1 = -315f, FZ0 = 878f, FZ1 = 985f, FLip = -382f, FBieg = 70f;
+    public struct Wyrzutnia { public float z, h, kat, luka, ladowanie; public Wyrzutnia(float z, float h, float kat, float luka, float ladowanie) { this.z = z; this.h = h; this.kat = kat; this.luka = luka; this.ladowanie = ladowanie; } }
+    public static readonly Wyrzutnia[] Rampy = { new Wyrzutnia(905f, 1.6f, 30f, 10f, 1.8f), new Wyrzutnia(935f, 2.2f, 35f, 15f, 3.0f), new Wyrzutnia(965f, 2.6f, 40f, 16f, 3.2f) };
+    public const float RampaSzer = 4.5f, LadowanieSzer = 9f, LadowanieDeck = 4f, LadowanieKat = 26f;
+    /// <summary>The kicker's length (the circular transition: radius h / (1 - cos a), length R sin a).</summary>
+    public static float RampaDl(Wyrzutnia r) { float a = r.kat * Mathf.Deg2Rad, R = r.h / (1f - Mathf.Cos(a)); return R * Mathf.Sin(a); }
+    /// <summary>The slowest speed at the lip (real m/s) that reaches the landing's knuckle.</summary>
+    public static float VMin(Wyrzutnia r)
+    {
+        float a = r.kat * Mathf.Deg2Rad, dh = r.h + r.luka * Mathf.Tan(a) - r.ladowanie;
+        return Mathf.Sqrt(9.81f * r.luka * r.luka / (2f * Mathf.Cos(a) * Mathf.Cos(a) * Mathf.Max(.01f, dh)));
+    }
+    static float freestyleY = float.NaN;
+    public static float FreestyleY { get { if (float.IsNaN(freestyleY)) freestyleY = BraxChampionsHorizon.FarHeight((FX0 + FX1) * .5f, (FZ0 + FZ1) * .5f); return freestyleY; } }
+    static float DoFreestyle(float x, float z) { float dx = Mathf.Max(Mathf.Max(FX0 - x, x - FX1), 0f), dz = Mathf.Max(Mathf.Max(FZ0 - z, z - FZ1), 0f); return Mathf.Sqrt(dx * dx + dz * dz); }
+
     // ---------------------------------------------------------------- the centre line: fillets, sampled every 0.5 m
     public sealed class Os
     {
@@ -282,6 +304,11 @@ public static class BraxChampionsTorKladow
         ziemia = -1f;
         float dp = DoPaddocku(x, z);
         if (dp < 14f) h = Mathf.Lerp(PaddockY - .3f, h, Smooth(0f, 14f, dp));
+        // the freestyle zone flat (its ramps' gaps are worked out on level ground), its run-up lanes bare earth
+        float df = DoFreestyle(x, z);
+        if (df < 15f) h = Mathf.Lerp(FreestyleY, h, Smooth(0f, 15f, df));
+        if (df <= 0f) foreach (var r in Rampy) if (x > FLip - RampaDl(r) - FBieg && x < FLip + r.luka + LadowanieDeck + r.ladowanie / Mathf.Tan(LadowanieKat * Mathf.Deg2Rad) + 18f)
+                    ziemia = Mathf.Max(ziemia, 3.5f - Mathf.Abs(z - r.z));
         float y = Droga(x, z, out float dr);
         if (dr < DrogaPol + 1f + 8f) h = Mathf.Lerp(y - .3f, h, Smooth(0f, 8f, dr - DrogaPol - 1f));
         // at the city's edge (x 0) down to its grass, where the far land is pressed (along the road): no step, no gap
@@ -354,6 +381,7 @@ public static class BraxChampionsTorKladow
         var b = new BraxChampionsMeshBatch();
         Tyczki(b);
         Plot(b);
+        Freestyle(g, b);
         var czas = Paddock(g, b);
         b.Build(g, "TOR DO KŁADÓW | detale", Folder, true, K);
         Trojkaty += b.Triangles;
@@ -619,6 +647,77 @@ public static class BraxChampionsTorKladow
         }
     }
 
+    // the freestyle zone: per lane the steel kicker (its deck a collider, side plates, a frame under it, the lip's back plate)
+    // and the earth landing (one mesh with its 1:1 sides sunk into the ground, its collider); a sign over the zone
+    static void Freestyle(Transform g, BraxChampionsMeshBatch b)
+    {
+        float y0 = FreestyleY; int nr = 0;
+        foreach (var r in Rampy)
+        {
+            nr++;
+            float a = r.kat * Mathf.Deg2Rad, R = r.h / (1f - Mathf.Cos(a)), L = RampaDl(r), x0 = FLip - L, hw = RampaSzer * .5f;
+            float Prof(float t) => R - Mathf.Sqrt(Mathf.Max(0f, R * R - t * t));     // t from the kicker's foot
+            // the deck: 0.25 m steps along, a mesh with its collider
+            var v = new List<Vector3>(); var n = new List<Vector3>(); var uv = new List<Vector2>(); var t = new List<int>();
+            int m = Mathf.CeilToInt(L / .25f);
+            for (int i = 0; i <= m; i++)
+            {
+                float tt = L * i / m, yy = y0 + Prof(tt), sl = tt / Mathf.Sqrt(Mathf.Max(1e-4f, R * R - tt * tt));
+                var nn = new Vector3(-sl, 1f, 0f).normalized;
+                foreach (float zz in new[] { r.z - hw, r.z + hw }) { v.Add(new Vector3(x0 + tt, yy + .02f, zz) * K); n.Add(nn); uv.Add(new Vector2(tt / 1.5f, (zz - r.z) / 1.5f)); }
+            }
+            for (int i = 0; i < m; i++) { int q = i * 2; t.AddRange(new[] { q, q + 1, q + 2, q + 1, q + 3, q + 2 }); }
+            Zapisz(g, "TOR DO KŁADÓW | freestyle rampa " + nr + " | kolizja", "tor_kladow_rampa_" + nr, v.ToArray(), n.ToArray(), uv.ToArray(), t, stal, true);
+            // the side plates and the frame: black steel, a post every 1.5 m, the back plate at the lip
+            for (int i = 0; i < m; i++)
+            {
+                float t0 = L * i / m, t1 = L * (i + 1) / m;
+                Vector3 A(float tt, float zz, bool gora) => new Vector3(x0 + tt, gora ? y0 + Prof(tt) + .06f : y0 - .1f, zz);
+                float zl = r.z - hw - .03f, zr = r.z + hw + .03f;
+                b.Quad(czern, A(t0, zl, false), A(t0, zl, true), A(t1, zl, true), A(t1, zl, false));   // facing -z (outward)
+                b.Quad(czern, A(t1, zr, false), A(t1, zr, true), A(t0, zr, true), A(t0, zr, false));   // facing +z (outward)
+            }
+            b.BoxMinMax(czern, FLip - .06f, FLip + .06f, y0 - .1f, y0 + r.h + .04f, r.z - hw, r.z + hw);
+            for (float tt = .8f; tt < L; tt += 1.5f)
+                foreach (float zz in new[] { r.z - hw + .2f, r.z + hw - .2f }) b.BoxMinMax(czern, x0 + tt - .05f, x0 + tt + .05f, y0, y0 + Prof(tt), zz - .05f, zz + .05f);
+            W.Kolizja(new Vector3(x0 + L * .5f, y0 + r.h * .3f, r.z) * K, new Vector3(L * .7f, r.h * .6f, RampaSzer) * K, Quaternion.identity);
+            BraxChampionsLetters3D.Text(b, zloto, czern, nr.ToString(), new Vector3(FLip - .3f, y0 + r.h * .45f, r.z - hw - .06f), 180f, .6f, .05f, .12f, 0f);
+            // the landing: profile along x from its 1:1 face, the knuckle deck, the 26 deg slope; 1:1 sides; under the ground
+            // past its foot
+            float lx0 = FLip + r.luka - r.ladowanie, lx1 = FLip + r.luka, lx2 = lx1 + LadowanieDeck, lx3 = lx2 + r.ladowanie / Mathf.Tan(LadowanieKat * Mathf.Deg2Rad);
+            float Ld(float x)
+            {
+                if (x < lx0 || x > lx3) return -.3f;
+                if (x < lx1) return r.ladowanie * Esa((x - lx0) / (lx1 - lx0)) * .98f + .02f;
+                if (x < lx2) return r.ladowanie;
+                return r.ladowanie * (1f - Esa((x - lx2) / (lx3 - lx2)));
+            }
+            var lv = new List<Vector3>(); var ln = new List<Vector3>(); var lu = new List<Vector2>(); var lt = new List<int>();
+            float hl = LadowanieSzer * .5f, side = r.ladowanie + 1f; int nxL = Mathf.CeilToInt((lx3 - lx0 + 2f) / .5f), nu = Mathf.CeilToInt((2f * (hl + side)) / .5f);
+            float H(float x, float zz) => Mathf.Max(-.3f, Ld(x) - Mathf.Max(0f, Mathf.Abs(zz - r.z) - hl));
+            for (int i = 0; i <= nxL; i++)
+                for (int j = 0; j <= nu; j++)
+                {
+                    float x = lx0 - 1f + i * .5f, zz = r.z - hl - side + j * .5f, yy = H(x, zz);
+                    float gx = H(x + .25f, zz) - H(x - .25f, zz), gz = H(x, zz + .25f) - H(x, zz - .25f);
+                    lv.Add(new Vector3(x, y0 + yy, zz) * K); ln.Add(new Vector3(-gx * 2f, 1f, -gz * 2f).normalized); lu.Add(new Vector2(x / 1.3f, zz / 1.3f));
+                }
+            for (int i = 0; i < nxL; i++)
+                for (int j = 0; j < nu; j++)
+                {
+                    int q = i * (nu + 1) + j, qa = (i + 1) * (nu + 1) + j;
+                    if (lv[q].y < (y0 - .29f) * K && lv[q + 1].y < (y0 - .29f) * K && lv[qa].y < (y0 - .29f) * K && lv[qa + 1].y < (y0 - .29f) * K) continue;
+                    lt.AddRange(new[] { q, q + 1, qa, q + 1, qa + 1, qa });           // (x rising, z rising): the villas' winding, facing up
+                }
+            Zapisz(g, "TOR DO KŁADÓW | freestyle lądowisko " + nr + " | kolizja", "tor_kladow_ladowisko_" + nr, lv.ToArray(), ln.ToArray(), lu.ToArray(), lt, pobocze, true);
+        }
+        // the sign: BRAXHORN FREESTYLE on a black board on two posts at the zone's north side, facing the lanes
+        float sx = (FLip + FX0) * .5f + 10f, sz = FZ1 - 8f;
+        foreach (float px in new[] { sx - 5.5f, sx + 5.5f }) { b.Cylinder(stal, new Vector3(px, y0, sz), .09f, 4.75f, 10); W.Kolizja(new Vector3(px, y0 + 2.375f, sz) * K, new Vector3(.25f, 4.75f, .25f) * K, Quaternion.identity); }   // the posts' tops over the board
+        b.BoxMinMax(czern, sx - 6f, sx + 6f, y0 + 3f, y0 + 4.6f, sz - .06f, sz + .06f);
+        BraxChampionsLetters3D.Text(b, zloto, czern, "BRAXHORN FREESTYLE", new Vector3(sx, y0 + 3.45f, sz - .08f), 180f, .7f, .06f, .12f, 11f);
+    }
+
     // ---------------------------------------------------------------- the paddock: the rental booth, the quads, the grandstand,
     // the start gate, the START / META arch, the light masts, the banners; the lap timer
     static BraxChampionsTorCzas Paddock(Transform g, BraxChampionsMeshBatch b)
@@ -669,7 +768,7 @@ public static class BraxChampionsTorKladow
         foreach (float fx in new[] { bx - bw * .5f - 3.2f, bx + bw * .5f + 3.2f })
         {
             b.Cylinder(stal, new Vector3(fx, y, fz - 2f), .03f, 4.2f, 8);
-            b.BoxMinMax(czern, fx, fx + .75f, y + 1.2f, y + 4.1f, fz - 2.02f, fz - 1.98f);
+            b.BoxMinMax(czern, fx, fx + .75f, y + 1.45f, y + 4.1f, fz - 2.02f, fz - 1.98f);                          // over the orange band (no shared faces)
             b.BoxMinMax(zloto, fx + .75f, fx + .82f, y + 1.2f, y + 4.1f, fz - 2.03f, fz - 1.97f);
             b.BoxMinMax(pomarancz, fx, fx + .75f, y + 1.2f, y + 1.45f, fz - 2.03f, fz - 1.97f);
         }

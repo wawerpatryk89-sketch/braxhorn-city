@@ -18,6 +18,8 @@ public static class TorMain
             for (int i = 0; i < o.N; i++) w.WriteLine(F(o.s[i]) + "," + F(o.x[i]) + "," + F(o.z[i]) + "," + F(BraxChampionsTorKladow.Tor(i, 0f)) + "," + o.kr[i].ToString("0.0000", CultureInfo.InvariantCulture));
             foreach (var p in BraxChampionsTorKladow.Ulozone) Console.WriteLine("PRZESZKODA " + p.typ + " prosta=" + p.prosta + " s0=" + F(p.s0) + " h=" + p.h + " dl=" + F(p.dl));
             Console.WriteLine("TOR length=" + F(o.dlugosc) + " samples=" + o.N);
+            Console.WriteLine("FREESTYLE y=" + F(BraxChampionsTorKladow.FreestyleY));
+            foreach (var r in BraxChampionsTorKladow.Rampy) Console.WriteLine("RAMPA z=" + r.z + " h=" + r.h + " kat=" + r.kat + " luka=" + r.luka + " dl=" + F(BraxChampionsTorKladow.RampaDl(r)) + " vmin=" + F(BraxChampionsTorKladow.VMin(r) * 3.6f) + "km/h");
             return;
         }
         var root = new GameObject("preview tor").transform;

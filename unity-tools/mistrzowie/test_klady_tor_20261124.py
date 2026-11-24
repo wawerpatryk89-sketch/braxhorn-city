@@ -233,5 +233,105 @@ class Tor(unittest.TestCase):
         self.assertIn('"dark_paneled_wood"', TOR)
 
 
+def linia(krok=1.0):
+    """the centre line as the C# lays it out: the straights between the fillets' tangent points and the fillet arcs"""
+    C = rogi(); n = len(C); P = [(x, z) for x, z, _ in C]; pts = []
+    for i in range(n):
+        a, b, c = P[i - 1], P[i], P[(i + 1) % n]; R = C[i][2]
+        d1 = ((b[0] - a[0]), (b[1] - a[1])); l1 = math.hypot(*d1); d1 = (d1[0] / l1, d1[1] / l1)
+        d2 = ((c[0] - b[0]), (c[1] - b[1])); l2 = math.hypot(*d2); d2 = (d2[0] / l2, d2[1] / l2)
+        ang = math.acos(max(-1, min(1, d1[0] * d2[0] + d1[1] * d2[1]))); t = R * math.tan(ang / 2)
+        sgn = math.copysign(1, d1[0] * d2[1] - d1[1] * d2[0])
+        p1 = (b[0] - d1[0] * t, b[1] - d1[1] * t); p2 = (b[0] + d2[0] * t, b[1] + d2[1] * t)
+        o = (p1[0] - d1[1] * sgn * R, p1[1] + d1[0] * sgn * R)
+        a1 = math.atan2(p1[1] - o[1], p1[0] - o[0]); a2 = math.atan2(p2[1] - o[1], p2[0] - o[0])
+        da = (a2 - a1 + math.pi) % (2 * math.pi) - math.pi
+        m = max(2, int(abs(da) * R / krok))
+        pts += [(o[0] + R * math.cos(a1 + da * k / m), o[1] + R * math.sin(a1 + da * k / m)) for k in range(m + 1)]
+        # the straight on to the next corner's fillet
+        e, f2 = c, P[(i + 2) % n]; R2 = C[(i + 1) % n][2]
+        g1 = (e[0] - b[0], e[1] - b[1]); lg = math.hypot(*g1); g1 = (g1[0] / lg, g1[1] / lg)
+        g2 = (f2[0] - e[0], f2[1] - e[1]); lh = math.hypot(*g2); g2 = (g2[0] / lh, g2[1] / lh)
+        t2 = R2 * math.tan(math.acos(max(-1, min(1, g1[0] * g2[0] + g1[1] * g2[1]))) / 2)
+        q = (e[0] - g1[0] * t2, e[1] - g1[1] * t2); L = math.dist(p2, q); m = max(1, int(L / krok))
+        pts += [(p2[0] + (q[0] - p2[0]) * k / m, p2[1] + (q[1] - p2[1]) * k / m) for k in range(m + 1)]
+    return pts
+
+
+def rampy():
+    blok = TOR.split("public static readonly Wyrzutnia[] Rampy =")[1].split("};")[0]
+    return [tuple(float(v) for v in w) for w in re.findall(r"new Wyrzutnia\(([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f\)", blok)]
+
+
+class Freestyle(unittest.TestCase):
+    """owner 24.11 12:57: "rampy po bokach" - the freestyle zone, its kickers and the tricks in the air"""
+
+    def test_zone_clear_of_the_track(self):
+        X0, X1, Z0, Z1 = const("FX0"), const("FX1"), const("FZ0"), const("FZ1")
+        lip, bieg = const("FLip"), const("FBieg")
+        deck, kat_l = const("LadowanieDeck"), const("LadowanieKat")
+        pts = linia()
+        def odl(x, z):
+            dx = max(X0 - x, x - X1, 0.0); dz = max(Z0 - z, z - Z1, 0.0); return math.hypot(dx, dz)
+        self.assertGreaterEqual(min(odl(x, z) for x, z in pts), 25.0)                           # no section within 25 m
+        for z, h, kat, luka, lad in rampy():
+            a = math.radians(kat); L = h / (1 - math.cos(a)) * math.sin(a)
+            start, koniec = lip - L - bieg, lip + luka + deck + lad / math.tan(math.radians(kat_l))
+            self.assertGreater(koniec, lip + luka); self.assertLess(koniec + 18, X1)            # the run-out inside the zone
+            # the run-up's lane is clear of the track too (the west straight)
+            for x in (start, start + 10):
+                self.assertGreater(min(math.hypot(x - px, z - pz) for px, pz in pts), 20.0)
+            self.assertTrue(Z0 < z < Z1)
+
+    def test_ballistics_reachable_and_long_enough(self):
+        vmax_wolny, a0 = 75 / 3.6, 3.4                                                          # the rancher, the slower one
+        bieg = const("FBieg")
+        for z, h, kat, luka, lad in rampy():
+            a = math.radians(kat)
+            dh = h + luka * math.tan(a) - lad
+            vmin = math.sqrt(9.81 * luka * luka / (2 * math.cos(a) ** 2 * dh))                   # as VMin() in the C#
+            # the rancher gets there on the run-up (its acceleration falls with v^2 to its top speed), with 10 % to spare
+            v, s = 0.0, 0.0
+            while s < bieg:
+                v += a0 * (1 - (v / vmax_wolny) ** 2) * .01; s += v * .01
+            v_lip = math.sqrt(v * v - 2 * 9.81 * h)                                             # the climb up the kicker
+            self.assertGreater(v_lip, vmin * 1.15, "rampa z=%s" % z)
+            # in the air long enough for the trick it is meant for (the button shows after .15 s): a 360 on every
+            # kicker, the backflip on the medium and the big one
+            t = luka / (vmin * math.cos(a))
+            self.assertGreater(t, const("CzasObrotu", KLAD) + .15, "rampa z=%s t=%.2f" % (z, t))
+            if h >= 2.0:
+                self.assertGreater(t, const("CzasSalta", KLAD) + .15, "rampa z=%s t=%.2f" % (z, t))
+            # the landing: the flight path at the knuckle within the clean-landing tilt (cos > .72 -> under 44 deg)
+            vy = vmin * math.sin(a) - 9.81 * t
+            self.assertLess(abs(math.degrees(math.atan2(vy, vmin * math.cos(a)))), 44.0)
+
+    def test_tricks(self):
+        self.assertIn("public const int PunktyObrot = 150, PunktySalto = 400;", KLAD)
+        self.assertIn("trikOs = t == Trik.Salto ? -transform.right : Vector3.up * (skretWej < 0f ? -1f : 1f);", KLAD)
+        # turned by the engine's own physics (the angular velocity), never faster than the body may spin
+        for nazwa in ("CzasObrotu", "CzasSalta"):
+            w = math.radians(360 / const(nazwa, KLAD)) / (1 - .6 * .02)
+            self.assertLess(w, 9.0)
+        self.assertIn("rb.maxAngularVelocity = 9f;", KLAD)
+        self.assertIn("rb.angularVelocity = trikOs * (w * Mathf.Deg2Rad / (1f - .6f * dt));", KLAD)
+        # the landing: clean on its wheels, a crash mid-trick (a wheel or the body down) scores nothing
+        self.assertIn("if (transform.up.y <= .72f)", KLAD)
+        self.assertIn("if (trik != Trik.Brak) Wywrotka();                 // a wheel down mid-trick", KLAD)
+        self.assertIn("void OnCollisionEnter(Collision c) { if (gracz && trik != Trik.Brak) Wywrotka(); }", KLAD)
+        self.assertIn("else if (!rozbity && lot >= .45f) Ladowanie();", KLAD)
+        # the buttons in the air only, the keys Q / Space on a desktop; the best jump kept on the phone
+        self.assertIn("if (MozeTrik && rSalto.Contains(p)) { chceSalto = true; continue; }", KLAD)
+        self.assertIn("if (MozeTrik && Input.GetKeyDown(KeyCode.Space)) chceSalto = true;", KLAD)
+        self.assertIn('const string KluczRekordu = "BRAX_KLAD_REKORD_SKOKU";', KLAD)
+        # the camera keeps the flight's direction in the air (no whip in a backflip)
+        self.assertIn("if (lot > .1f || trik != Trik.Brak) kier =", KLAD)
+        # the zone is built by the track's builder
+        self.assertIn("Freestyle(g, b);", TOR)
+        for nr in (1, 2, 3):
+            self.assertIn("tor_kladow_rampa_", TOR); self.assertIn("tor_kladow_ladowisko_", TOR)
+        self.assertIn('"BRAXHORN FREESTYLE"', TOR)
+
+
 if __name__ == "__main__":
     unittest.main()
