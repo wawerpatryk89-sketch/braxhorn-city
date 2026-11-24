@@ -290,7 +290,10 @@ def teren(d, bud, W):
                 if q.buffer(.001).contains(Point(*(((a + b_) / 2 + n * .05)[[0, 2]]))): n = -n
                 if not JEZ.buffer(.02).contains(Point(*(((a + b_) / 2 + n * .05)[[0, 2]]))): continue   # tylko od jezdni
                 S.quad("teren", "krawoznik", a, b_, b_ + UP * .14, a + UP * .14, kier=n)
-    # mur nabrzeża: od wody (−1,6) do bulwaru (+0,15), granitowy, po obwodzie wody (bez odcinków na krawędzi okna)
+    # mur nabrzeża: od wody (−1,6) do bulwaru (+0,15), granitowy, po obwodzie wody (bez odcinków na krawędzi okna).
+    # 24.11, 11:24 (właściciel, zdjęcie z Mostowej: „zabarykadowana droga?”): pod mostami i przy ich przyczółkach bez
+    # granitowej krawędzi, balustrady i pochwytu — inaczej przegradzały jezdnię mostu w poprzek (a pochwyt z kolizją w grze)
+    POD_MOSTEM = unary_union([ln.buffer(w / 2 + 1.0 + 1.2, cap_style=2, join_style=2) for (ln, w, u) in mosty]) if mosty else Polygon()
     for q in getattr(W, "geoms", [W]):
         if q.is_empty: continue
         for ring in [q.exterior] + list(q.interiors):
@@ -301,14 +304,19 @@ def teren(d, bud, W):
                 t = (b_ - a) / L; n = nrm(np.cross(UP, t)); m = (a + b_) / 2 + n * .3
                 if not W.contains(Point(m[0], m[2])): n = -n                       # ściana patrzy na wodę
                 S.quad("teren", "mur_nabrzeza", a + UP * (POZIOM_WODY - .1), b_ + UP * (POZIOM_WODY - .1), b_ + UP * .12, a + UP * .12, kier=n)
-                # krawędź z granitu 25 cm + żeliwna balustrada (zdjęcia m14, m34–m36), słupki co ok. 2,4 m
-                S.box("teren", "mur_nabrzeza", a + UP * .12 - t * .01, t, UP, -n, L + .02, .25, .4)
-                e = a - n * .2 + UP * .37
-                S.quad("teren", "balustrada_kuta", e, e + t * L, e + t * L + UP * 1.0, e + UP * 1.0, uv_o=e, kier=n)
-                # pochwyt (24.11, gra: kolizja wzdłuż nabrzeża — postać nie wpada do Brdy między słupkami)
-                S.box("teren", "latarnia_czarna", e + UP * 1.0 - n * .03 - t * .01, t, UP, n, L + .02, .05, .06)
-                for k_ in np.arange(0, L, 2.4):
-                    S.box("teren", "latarnia_czarna", e + t * k_ - t * .04 - n * .04, t, UP, n, .08, 1.06, .08)
+                reszta = LineString([(x0, z0), (x1, z1)]).difference(POD_MOSTEM)       # odcinki poza mostami
+                for cz in getattr(reszta, "geoms", [reszta]):
+                    if cz.is_empty or cz.geom_type != "LineString" or cz.length < .3: continue
+                    (u0, w0), (u1, w1) = cz.coords[0], cz.coords[-1]
+                    a = np.array([u0, 0., w0]); Lc = float(math.hypot(u1 - u0, w1 - w0))
+                    # krawędź z granitu 25 cm + żeliwna balustrada (zdjęcia m14, m34–m36), słupki co ok. 2,4 m
+                    S.box("teren", "mur_nabrzeza", a + UP * .12 - t * .01, t, UP, -n, Lc + .02, .25, .4)
+                    e = a - n * .2 + UP * .37
+                    S.quad("teren", "balustrada_kuta", e, e + t * Lc, e + t * Lc + UP * 1.0, e + UP * 1.0, uv_o=e, kier=n)
+                    # pochwyt (24.11, gra: kolizja wzdłuż nabrzeża — postać nie wpada do Brdy między słupkami)
+                    S.box("teren", "latarnia_czarna", e + UP * 1.0 - n * .03 - t * .01, t, UP, n, Lc + .02, .05, .06)
+                    for k_ in np.arange(0, Lc, 2.4):
+                        S.box("teren", "latarnia_czarna", e + t * k_ - t * .04 - n * .04, t, UP, n, .08, 1.06, .08)
     return S, {"jezdnie": round(JEZ.area), "rynek": round(PLAC.area), "chodniki": round(CHOD.area), "trawa": round(TRAWA.area), "woda": round(W.area)}, mosty, (PLAC.union(PAS), CHOD, NABRZEZE)
 
 
@@ -379,6 +387,7 @@ def mosty_scal(S, mosty, W, d=None):
                 p0 = a_ + t * L * k / m; p1 = a_ + t * L * (k + 1) / m
                 S.quad("mosty", "beton_most", p0 + UP * spod(p0[0], p0[2]), p1 + UP * spod(p1[0], p1[2]), p1 + UP * .17, p0 + UP * .17, kier=n)
             if not Wb.contains(Point((x0 + x1) / 2, (z0 + z1) / 2)): continue  # balustrada tylko nad wodą
+            if not W.contains(Point(*((a_ + b_) / 2 + n * .8)[[0, 2]])): continue  # i tylko na bokach (za krawędzią woda), nie w poprzek wjazdu
             e = a_ - n * .12 + UP * .17
             S.quad("mosty", "balustrada_most", e, e + t * L, e + t * L + UP * 1.0, e + UP * 1.0, uv_o=e, kier=n)
             S.box("mosty", "latarnia_czarna", e + UP * 1.0 - n * .05, t, UP, n, L, .06, .1)
