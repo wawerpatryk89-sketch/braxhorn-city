@@ -8,7 +8,8 @@ naczółki; balkon na II piętrze w środkowej osi (drzwi balkonowe), na balustr
 DJ, po bokach kolumny na statywach, różowo-fioletowe światła. Budynek wskazany przez właściciela: OSM w134510002
 (adres OSM Mostowa 27 — kamienica przechodzi przez kwartał, front 6,9 m od Rynku).
 
-Napis na banerze bez prawdziwej nazwy lokalu (zasada właściciela: bez prawdziwych marek i logo) — „BALKON · DJ SET”.
+Napis na banerze bez prawdziwej nazwy lokalu (zasada właściciela: bez prawdziwych marek i logo) — 14:36 właściciel:
+„Balkon BDG”, „Zrób” → „BALKON BDG — DJ SET —”.
 Muzyka w grze: BraxClaudeMuzyka (ten sam utwór co dyskoteka osiedla, industrial_pulse_petla.ogg — 138 BPM),
 głośniki = kolumny na balkonie, „sala” = plac przed kamienicą; światła pulsują w rytm (BraxPulsSwiatla).
 """
