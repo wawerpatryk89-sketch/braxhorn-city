@@ -11,7 +11,8 @@
     over an 18 m wooded hill (logs, mud, a creek), then a motocross field of hairpins (FIM's rules where they apply); the
     rental booth with the six quads, the grandstand, the start gate, the START / META arch; BraxChampionsTorCzas;
   - BraxChampionsLasKladow: the forest - Poly Haven's scanned pines and firs as crossed cards;
-  - BraxChampionsOponyKladow (17:11 "Opony na zakrętach" + "Ściany z opon"): tyre bundles, tyre walls, the stakes' tape."""
+  - BraxChampionsOponyKladow (17:11 "Opony na zakrętach" + "Ściany z opon"): tyre bundles, tyre walls, the stakes' tape;
+  - BraxChampionsKlubKladow (19:31 "bardziej luksusowo", "Kłady na podestach" + "Taras nad torem"): the quad club, the VIP terrace."""
 import hashlib
 import json
 import math
@@ -36,6 +37,8 @@ BLOTO = (RT / "BraxChampionsBloto.cs").read_text(encoding="utf-8")
 LAS = (ED / "BraxChampionsLasKladow.cs").read_text(encoding="utf-8")
 LAS_IMPORT = (ED / "BraxChampionsLasTextureImport.cs").read_text(encoding="utf-8")
 OPONY = (ED / "BraxChampionsOponyKladow.cs").read_text(encoding="utf-8")
+KLUB = (ED / "BraxChampionsKlubKladow.cs").read_text(encoding="utf-8")
+OBROTNICA = (RT / "BraxChampionsObrotnica.cs").read_text(encoding="utf-8")
 OPONA = ROOT / "unity-city/Assets/Source/Mistrzowie/Opony/opona.bytes"
 ATLAS = ROOT / "unity-city/Assets/Source/Mistrzowie/Las/las_atlas.png"
 PACK = ROOT / "unity-city/Prywatne/braxhorn-sklep-klady-01"
@@ -237,14 +240,16 @@ class Tor(unittest.TestCase):
         self.assertIn("BraxChampionsHorizon.Docisk = (x, z) => Mathf.Min(poprzedni != null ? poprzedni(x, z) : float.PositiveInfinity, Docisk(x, z));", TOR)
         # after the villas (their press first), before the far land
         self.assertLess(BUILD.index("BraxChampionsWilleDzialki.Zbuduj(null)"), BUILD.index("BraxChampionsTorKladow.Zbuduj(null)"))
-        # no flicker: thin layers at least 4 cm proud (the finish band, the bays, the gate's pad), the skirts under every edge
-        self.assertIn("my + .04f, my + .07f", TOR); self.assertIn("y - .1f, y + .1f, baysZ - 2.2f", TOR); self.assertIn("gy - .2f, gy + .08f", TOR)
+        # no flicker: thin layers at least 4 cm proud (the finish band, the club's plaza, the gate's pad), the skirts under every edge
+        self.assertIn("my + .04f, my + .07f", TOR); self.assertIn("b.BoxMinMax(granit, PlacX0, PlacX1, y - .08f, yp, PlacZ0, PlacZ1);", KLUB); self.assertIn("gy - .2f, gy + .08f", TOR)
         self.assertIn("vT.Add(top - Vector3.up * .6f * K)", TOR)
 
     def test_paddock_and_timer(self):
-        for s in ('"WYPOŻYCZALNIA KŁADÓW"', '"BRAXHORN"', '"BRAXHORN QUAD RENTAL"', '"BRAXHORN QUAD CROSS"'):
+        for s in ('"WYPOŻYCZALNIA KŁADÓW"', '"BRAXHORN"', '"BRAXHORN QUAD CROSS"'):
             self.assertIn(s, TOR)
-        self.assertIn("BraxChampionsKlady.Postaw(g, f.model, f.kolor, f.napis,", TOR)
+        self.assertIn('"BRAXHORN QUAD CLUB"', KLUB)
+        self.assertIn("BraxChampionsKlady.Postaw(g, f.model, f.kolor, f.napis, miejsca[i] * K, 180f, czas, wolne, jazda);", KLUB)
+        self.assertIn("BraxChampionsKlubKladow.Zbuduj(g, b, y, czas, wolne, jazda);", TOR)
         self.assertIn("czas.punkty = pkt.ToArray();", TOR)
         self.assertIn("bool przezMete = indeks > n - 8 && i < 8;", CZAS)
         self.assertIn("if (liczy && zaliczone >= n * .9f)", CZAS)                                  # no lap by a short cut
@@ -730,6 +735,52 @@ class Opony(unittest.TestCase):
         self.assertIn("imp.mipmapEnabled = true; imp.wrapMode = TextureWrapMode.Repeat;", OPONY)
         self.assertIn('BraxChampionsHarbour.Surface("tor_kladow_tasma", Color.white, .55f, 0f, null, true);', OPONY)
         self.assertGreater(const("TasmaPas", OPONY), .2)                           # the quad: 4 times the band
+
+
+class KlubKladow(unittest.TestCase):
+    """owner 24.11 19:31 "A tak trochę tak bardziej luksusowo zrobić tam ... koło tego wypożyczalni"; his pick: "Kłady na
+    podestach" and "Taras nad torem"."""
+
+    def test_quads_on_podiums_one_turning(self):
+        # six podiums: five in a row, the lime Raptor in front on a bigger one; a quad rides off 28 cm as off a kerb
+        self.assertEqual((const("PodestR", KLUB), const("PodestH", KLUB), const("ObrotR", KLUB), const("ObrotH", KLUB)), (1.9, .28, 2.3, .32))
+        self.assertIn("public const int Bohater = 3;", KLUB)
+        rozstaw, r = const("Rozstaw", KLUB), const("PodestR", KLUB)
+        self.assertGreater(rozstaw - 2 * r, 1.0)                                                   # room between podiums
+        self.assertGreater(const("RzadZ", KLUB) - r - (const("ObrotZ", KLUB) + const("ObrotR", KLUB)), 2.5)   # the hero's quad can turn out
+        # the quad (2.03 x 1.24 m) stays on its podium's collider (the square inside the disc) as it turns: half its diagonal
+        self.assertLess(math.hypot(2.03, 1.24) / 2, r * 1.41 / 2)
+        self.assertIn("W.Kolizja(new Vector3(c.x, yp + h * .5f, c.z) * K, new Vector3(r * 1.41f, h, r * 1.41f) * K, Quaternion.identity);", KLUB)
+        # the turntable: only while parked on it, nobody riding, a showroom's 40 s a turn
+        self.assertIn("if (!klad || !rb || !rb.isKinematic || klad.Rywal || BraxChampionsKlad.Jedzie == klad) return;", OBROTNICA)
+        self.assertIn("public float stopniNaSekunde = 9f;", OBROTNICA)
+        self.assertRegex((RT / "BraxChampionsObrotnica.cs.meta").read_text(encoding="utf-8"), r"guid: [0-9a-f]{32}\n")
+        # the canopy: its timber underside below the black slab (1 cm apart: nothing coplanar), BRAXHORN QUAD CLUB in gold
+        self.assertIn("b.BoxMinMax(deski, WiataX0 + .1f, WiataX1 - .1f, yw - .06f, yw - .01f, WiataZ0 + .1f, WiataZ1 - .1f);", KLUB)
+        self.assertIn('SourceMaterial("tor_kladow_klub_granit", "granite_tile_04", 2f,', KLUB)
+        self.assertLess(const("PlacZ1", KLUB), 995.9)                                              # clear of the booth's plinth
+        self.assertNotRegex(KLUB, r"\bT\.led\b|Emission")                                         # nothing glows
+
+    def test_vip_terrace(self):
+        # 2.6 m up over the start gate (x -72), in the paddock, clear of the grandstand and the riders' park
+        tx0, tx1, tz0, tz1 = (const(n, KLUB) for n in ("TX0", "TX1", "TZ0", "TZ1"))
+        self.assertTrue(tx0 < const("BramkaX") < tx1)
+        self.assertGreaterEqual(tz0, const("PZ0")); self.assertGreater(tx0 - 4.5, -108)            # the grandstand ends at x -108
+        self.assertLess(tz1, const("ParkZ") - 4)
+        self.assertIn("foreach (float px in new[] { -98f, -42f })", TOR)                           # the middle banner gave way
+        # the balustrade 1.1 m (the building code's for a terrace), glass with a teak handrail; the stairs 16 x 16.25 = 2.6 m
+        self.assertEqual(const("Balustrada", KLUB), 1.1)
+        self.assertAlmostEqual(int(re.search(r"public const int Stopni = (\d+);", KLUB).group(1)) * const("Stopien", KLUB), const("TH", KLUB), 3)
+        st, bg = const("Stopien", KLUB), const("Bieg", KLUB)
+        self.assertTrue(.60 <= 2 * st + bg <= .65)                                                 # a comfortable step (2 rises + 1 tread)
+        self.assertIn("W.Kolizja(srodekRampy * K, new Vector3(SchodyZ1 - SchodyZ0, .1f, dlug) * K, obr);", KLUB)
+        # outdoor lounge furniture at real sizes; the owner's bouclé; four planters with young pines (the forest's cards)
+        self.assertIn('SourceMaterial("tor_kladow_klub_boucle", "curly_teddy_natural", .336f, Color.white);', KLUB)
+        self.assertIn("b.Box(teak, P(0f, .2f, 0f), new Vector3(len, .16f, .85f), q);", KLUB)
+        self.assertIn("b.BoxMinMax(marmur, x - .35f, x + .35f, yd + 1.03f, yd + 1.06f, z - .35f, z + .35f);", KLUB)
+        self.assertIn("BraxChampionsLasKladow.Dodatkowe.Add(", KLUB)
+        self.assertIn("var lista = new List<Drzewo>(Drzewa()); lista.AddRange(Dodatkowe);", LAS)
+        self.assertIn("BraxChampionsLasKladow.Dodatkowe.Clear();", KLUB)
 
 
 if __name__ == "__main__":

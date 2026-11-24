@@ -412,7 +412,7 @@ public static class BraxChampionsTorKladow
     }
 
     // ---------------------------------------------------------------- materials
-    static Material nawierzchnia, pobocze, trawa, szuter, woda, beton, drewno, stal, czern, zloto, biel, pomarancz, czerwien, szyba, led, siedzisko, bloto, kora, sciolka;
+    internal static Material nawierzchnia, pobocze, trawa, szuter, woda, beton, drewno, stal, czern, zloto, biel, pomarancz, czerwien, szyba, led, siedzisko, bloto, kora, sciolka;
     static void Materialy()
     {
         nawierzchnia = BraxChampionsFoundation.SourceMaterial("tor_kladow_koleiny", "muddy_tracks", 2.25f, new Color(.96f, .9f, .86f));
@@ -934,41 +934,14 @@ public static class BraxChampionsTorKladow
             b.Lathe(kask, new Vector3(kx, ky, hz - .25f), new[] { new Vector2(0f, 0f), new Vector2(.15f, .02f), new Vector2(.16f, .14f), new Vector2(.11f, .26f), new Vector2(0f, .3f) }, 14);
             b.BoxMinMax(czern, kx - .11f, kx + .11f, ky + .1f, ky + .17f, hz - .42f, hz - .38f);                               // the visor
         }
-        // the six bays in front of the booth (concrete, white lines) and the quads in them, facing the track
-        float baysZ = fz - 9f, bayW = 2.8f, bay0 = bx - 2.5f * bayW;
-        // the canopy over the bays: a black steel deck 3.3 m up on six posts, an LED line along its front (the quads in its shade)
-        float c0 = bay0 - bayW * .5f - .6f, c1 = bay0 + 5.5f * bayW + .6f, cz0 = baysZ - 2.9f, cz1 = baysZ + 2.9f;
-        b.BoxMinMax(czern, c0, c1, y + 3.3f, y + 3.5f, cz0, cz1);
-        b.BoxMinMax(led, c0 + .2f, c1 - .2f, y + 3.28f, y + 3.3f, cz0 + .1f, cz0 + .25f);
-        foreach (float cx in new[] { c0 + .2f, (c0 + c1) * .5f, c1 - .2f })
-            foreach (float cz in new[] { cz0 + .2f, cz1 - .2f })
-            { b.BoxMinMax(stal, cx - .09f, cx + .09f, y, y + 3.3f, cz - .09f, cz + .09f); W.Kolizja(new Vector3(cx, y + 1.65f, cz) * K, new Vector3(.2f, 3.3f, .2f) * K, Quaternion.identity); }
-        BraxChampionsLetters3D.Text(b, zloto, czern, "BRAXHORN QUAD RENTAL", new Vector3((c0 + c1) * .5f, y + 3.33f, cz0 - .01f), 180f, .14f, .02f, .12f, c1 - c0 - 2f);
-        // two feather flags at the booth's corners (black, gold edge, orange)
-        foreach (float fx in new[] { bx - bw * .5f - 3.2f, bx + bw * .5f + 3.2f })
-        {
-            b.Cylinder(stal, new Vector3(fx, y, fz - 2f), .03f, 4.2f, 8);
-            b.BoxMinMax(czern, fx, fx + .75f, y + 1.45f, y + 4.1f, fz - 2.02f, fz - 1.98f);                          // over the orange band (no shared faces)
-            b.BoxMinMax(zloto, fx + .75f, fx + .82f, y + 1.2f, y + 4.1f, fz - 2.03f, fz - 1.97f);
-            b.BoxMinMax(pomarancz, fx, fx + .75f, y + 1.2f, y + 1.45f, fz - 2.03f, fz - 1.97f);
-        }
-        b.BoxMinMax(beton, bay0 - bayW * .5f - .3f, bay0 + 5.5f * bayW + .3f, y - .1f, y + .1f, baysZ - 2.2f, baysZ + 2.2f);
-        W.Kolizja(new Vector3((bay0 + bay0 + 5f * bayW) * .5f, y, baysZ) * K, new Vector3(6f * bayW + .6f, .2f, 4.4f) * K, Quaternion.identity);
-        for (int i = 0; i <= 6; i++) b.BoxMinMax(biel, bay0 - bayW * .5f + i * bayW - .05f, bay0 - bayW * .5f + i * bayW + .05f, y + .1f, y + .115f, baysZ - 2f, baysZ + 2f);
         var czas = new GameObject("TOR DO KŁADÓW | pomiar czasu okrążenia").AddComponent<BraxChampionsTorCzas>();
         czas.transform.SetParent(g, false);
         var wolne = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Source/Mistrzowie/Audio/Klad/klad_silnik_wolne.ogg");
         var jazda = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Source/Mistrzowie/Audio/Klad/klad_silnik_jazda.ogg");
-        Klady = 0;
-        for (int i = 0; i < BraxChampionsKlady.Flota.Length; i++)
-        {
-            var f = BraxChampionsKlady.Flota[i];
-            try
-            {
-                if (BraxChampionsKlady.Postaw(g, f.model, f.kolor, f.napis, new Vector3(bay0 + i * bayW, y + .1f, baysZ) * K, 180f, czas, wolne, jazda)) Klady++;
-            }
-            catch (Exception e) { BraxBuildQuality.Warn("DO POPRAWKI TOR_KLADOW_KLAD " + f.napis + ": " + e.Message); }
-        }
+        // the quad club before the booth and the VIP terrace over the start (owner 19:31 "bardziej luksusowo"): the six quads on
+        // their podiums under the club's canopy, the flags at its corners (BraxChampionsKlubKladow)
+        BraxChampionsKlubKladow.Zbuduj(g, b, y, czas, wolne, jazda);
+        Klady = BraxChampionsKlubKladow.Klady;
         // the grandstand over the start straight: 30 m, six rows (0.45 m up, 0.85 m deep), steel frame, black seats
         float gx0 = -152f, gx1 = -108f, gz = 940f;
         for (int r = 0; r < 6; r++)
@@ -1010,7 +983,7 @@ public static class BraxChampionsTorKladow
             W.Kolizja(new Vector3(lx, y + 4.5f, lz) * K, new Vector3(.3f, 9f, .3f) * K, Quaternion.identity);
         }
         // the banners on the paddock's south side along the start straight: three black panels with BRAXHORN
-        foreach (float px in new[] { -98f, -70f, -42f })
+        foreach (float px in new[] { -98f, -42f })                       // (the middle one gave way to the VIP terrace)
         {
             float pz = PZ0 - .5f;
             foreach (float sx in new[] { -3.2f, 3.2f }) b.Cylinder(stal, new Vector3(px + sx, y, pz), .05f, 1.9f, 8);

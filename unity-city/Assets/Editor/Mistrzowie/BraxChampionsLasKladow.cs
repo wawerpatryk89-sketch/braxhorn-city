@@ -120,6 +120,8 @@ public static class BraxChampionsLasKladow
     // ---------------------------------------------------------------- the placing (one seed: the same forest every build)
     public struct Drzewo { public float x, z, y, skala, obrot, odcien; public int karta; }
     static List<Drzewo> drzewa;
+    /// <summary>Trees others plant (the quad club's planters: BraxChampionsKlubKladow), at their own height; cleared each build.</summary>
+    public static readonly List<Drzewo> Dodatkowe = new List<Drzewo>();
     public static int Drzew, Mlodych, Pni, Kwadratow, Trojkaty;
     public static List<Drzewo> Drzewa()
     {
@@ -190,7 +192,7 @@ public static class BraxChampionsLasKladow
     {
         var mat = Material(); if (!mat) return;
         Directory.CreateDirectory(Folder);
-        var lista = Drzewa();
+        var lista = new List<Drzewo>(Drzewa()); lista.AddRange(Dodatkowe);
         var paczki = new SortedDictionary<long, Paczka>();
         Drzew = Mlodych = Pni = Kwadratow = Trojkaty = 0;
         foreach (var d in lista)

@@ -5,6 +5,8 @@ public class AudioClip : Object { }
 public static class BraxCityMaterials { public const string ShaderName = "Braxhorn/CityStaticPBR"; }
 public sealed class BraxChampionsTorCzas : MonoBehaviour { public Vector3[] punkty = new Vector3[0]; public float polSzerokosci; }
 public sealed class BraxChampionsKladRywal : MonoBehaviour { public string imie; public int numer; public float umiejetnosc, pas, rozstawOsi; public Vector3 parking; public Quaternion parkingObrot; }
+public sealed class BraxChampionsKlad : MonoBehaviour { }
+public sealed class BraxChampionsObrotnica : MonoBehaviour { public BraxChampionsKlad klad; public Vector3 srodek; public float promien, stopniNaSekunde; }
 public sealed class BraxChampionsBloto : MonoBehaviour { public Vector3[] srodek, wzdluz; public float[] polDl, polSzer; public Material pyl, grudki; public float K; }
 public sealed class BraxChampionsWyscig : MonoBehaviour
 {
