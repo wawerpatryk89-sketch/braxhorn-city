@@ -43,6 +43,7 @@ public static class BraxBydgoszcz
     const string PlikRynku = "unity-tools/claude/rynek_bdg/gen/rynek.bin";
     const string WodaPortu = "Assets/PlayableGenerated/CityRebuildWater/HarbourWater.mat";
     const string Naklejki = "Assets/Source/Claude/Bydgoszcz/";
+    static readonly string[] KioskNoca = { "kp_wystawa", "kp_szyld" };      // kiosk Ruchu: naklejki świecące nocą (BraxLampyNoc)
     const string Prywatne = "Assets/Source/Prywatne/Miasto/bydgoszcz_mural/";
     const string Pokoje = "Assets/Source/Claude/Osiedle/detail/pokoje.png";
     static float K => BraxClaudeOsiedle.K;
@@ -139,6 +140,13 @@ public static class BraxBydgoszcz
             var m = BraxCityMaterials.Textured(n, t, null, null, 1f);
             m.SetFloat("_MainTex_texCoord", 1f); m.SetTextureScale("_MainTex", Vector2.one);
             m.SetFloat("_Roughness", d.szorst); m.SetFloat("_Metallic", 0f);
+            if (System.Array.IndexOf(KioskNoca, nazwa) >= 0)
+            {
+                // kiosk Ruchu (24.11): wystawa i szyld świecą nocą własnym obrazem — mapa emisji = naklejka (UV2),
+                // barwa emisji 0 w dzień (shader pomija), nocą ustawia ją BraxLampyNoc
+                m.SetTexture("_EmissionMap", t); m.SetFloat("_EmissionMap_texCoord", 1f); m.SetTextureScale("_EmissionMap", Vector2.one);
+                m.SetColor("_EmissionColor", Color.black);
+            }
             EditorUtility.SetDirty(m);
             return m;
         }
@@ -165,7 +173,7 @@ public static class BraxBydgoszcz
     static bool Kolizja(string mat) =>
         !(mat.StartsWith("okno") || mat.StartsWith("balustrada") || mat == "pcv" || mat == "opaska" || mat == "parapet" || mat == "stal" ||
           mat == "stal_balustrada" || mat == "rura_gaz" || mat == "linia_biala" || mat == "lampa" || mat == "tabliczka" || mat == "domofon" ||
-          mat == "kratka" || mat == "obrobka" || mat == "szyba_drzwi" || mat == "szyba_piwnica" || mat.StartsWith("dj_"));
+          mat == "kratka" || mat == "obrobka" || mat == "szyba_drzwi" || mat == "szyba_piwnica" || mat.StartsWith("dj_") || mat == "kp_alu");      // kiosk Ruchu: daszek, zastrzały, półki — bez kolizji (bryła ma)
 
     /// <summary>Folder zasobów z rodzicami (AssetDatabase.CreateFolder + dysk). Build 45304516914 (24.11): CreateAsset w nieistniejącym
     /// ClaudeRegion/Bydgoszcz rzucił wyjątek na pierwszej siatce — osiedle i Stary Rynek nie weszły do świata.</summary>
@@ -274,7 +282,14 @@ public static class BraxBydgoszcz
             if (l.Count == 0) return 0;
             var ln = new GameObject("Bydgoszcz: lampy nocą").AddComponent<BraxLampyNoc>(); ln.transform.SetParent(root, false);
             ln.materialy = l.ToArray();
-            return l.Count;
+            var kioskMaty = new List<Material>();
+            foreach (var nazwaK in KioskNoca) if (maty.TryGetValue(nazwaK, out var kioskMat) && kioskMat) kioskMaty.Add(kioskMat);
+            if (kioskMaty.Count > 0)
+            {
+                var kioskNoc = new GameObject("Bydgoszcz: kioski nocą").AddComponent<BraxLampyNoc>(); kioskNoc.transform.SetParent(root, false);
+                kioskNoc.materialy = kioskMaty.ToArray(); kioskNoc.barwa = new Color(1f, .93f, .8f); kioskNoc.moc = .75f;
+            }
+            return l.Count + kioskMaty.Count;
         });
         int akcji = Bezpiecznie(przedrostek + " akcje", () => Akcje(root, Swiat, Obok(sciezka, przedrostek, "akcje.json")));
         Bezpiecznie(przedrostek + " maska trawy", () => { TrawaMaska(root, Obok(sciezka, przedrostek, "trawa_maska.bin"), katalogSiatek); return 1; });

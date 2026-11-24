@@ -273,6 +273,16 @@ P["dj_membrana"] = {"tex": "plotno_parasol", "m": .5, "kol": [36, 36, 38], "szor
 P["dj_led"] = {"tex": None, "kol": [255, 72, 205], "szorst": .4, "emisja": 2.6}
 P["dj_plotno"] = {"tex": "plotno_parasol", "m": 1.0, "kol": [236, 234, 228], "szorst": .95}
 P["dj_baner"] = {"tex": "plotno_parasol", "m": 1.0, "kol": [236, 234, 228], "szorst": .95, "nakl": "dj_baner.png"}
+# stary kiosk Ruchu (24.11, 17:29, wzór IMG_2056; osiedle_bdg/kiosk_ruchu.py): zielony lakier, kremowe narożniki, aluminium;
+# naklejki wystawy, szyldu „KIOSK RUCH”, gabloty i tabliczki telefonu (plik = nazwa materiału, rysuje kiosk_ruchu.naklejki)
+P["kp_zielony"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [46, 112, 72], "szorst": .6}
+P["kp_drzwi"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [40, 100, 64], "szorst": .6}
+P["kp_krem"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [228, 218, 188], "szorst": .6}
+P["kp_alu"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [178, 180, 182], "szorst": .45, "metal": .6}
+P["kp_cokol"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [44, 46, 44], "szorst": .7}
+P["kp_bialy"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [238, 238, 232], "szorst": .6}
+for _k, _s in (("kp_wystawa", .15), ("kp_szyld", .5), ("kp_ogloszenia", .9), ("kp_telefon", .5)):
+    P[_k] = {"tex": "lakier_blacha", "m": 2.5, "kol": [236, 234, 228], "szorst": _s, "nakl": _k + ".png"}
 P["nabrzeze"] = {"tex": "granite_tile_04", "m": 2.0, "kol": [150, 146, 140], "szorst": .9}
 P["mur_nabrzeza"] = {"tex": "granite_tile", "m": 2.3, "kol": [128, 126, 122], "szorst": .8}
 P["woda_brda"] = {"tex": None, "kol": [30, 42, 36], "szorst": .14, "metal": .0, "woda": "HarbourWater"}   # w grze: materiał wody portu (fale, odbicia)

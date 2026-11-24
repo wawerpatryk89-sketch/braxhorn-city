@@ -247,6 +247,26 @@ def test_build_45304516914_poprawki():
     assert "numpy" in krok
 
 
+def test_kioski_ruchu():
+    """24.11, 17:29 (właściciel: „klocz ruchu polski stary, minimum 2 na mieście”, „normalnie z napisem kiosk ruch”, wzór
+    IMG_2056): co najmniej dwa kioski w wygenerowanym Starym Rynku, naklejki (wystawa, szyld, gablota, telefon) w Assets pod
+    nazwą materiału, paleta z barwą i naklejkami, C#: wystawa i szyld świecą nocą, aluminium kiosku bez kolizji."""
+    import json
+    from pathlib import Path
+    R = Path(__file__).resolve().parents[2]
+    op = json.loads((R / "unity-tools/claude/rynek_bdg/gen/rynek_opis.json").read_text(encoding="utf-8"))
+    assert op["teren"]["kioski"] >= 2 and len(op["teren"]["kioski_miejsca"]) >= 2
+    import sys; sys.path.insert(0, str(R / "unity-tools/claude/osiedle_bdg")); import paleta
+    for k in ("kp_wystawa", "kp_szyld", "kp_ogloszenia", "kp_telefon"):
+        assert paleta.P[k]["nakl"] == k + ".png" and (R / "unity-city/Assets/Source/Claude/Bydgoszcz" / (k + ".png")).exists()
+    for k in ("kp_zielony", "kp_krem", "kp_alu", "kp_cokol", "kp_drzwi", "kp_bialy"):
+        assert paleta.P[k]["tex"] == "lakier_blacha"
+    src = (R / "unity-tools/claude/osiedle_bdg/kiosk_ruchu.py").read_text(encoding="utf-8")
+    assert '"KIOSK RUCH"' in src
+    cs = (R / "unity-city/Assets/Editor/Claude/Region/BraxBydgoszcz.cs").read_text(encoding="utf-8")
+    assert '{ "kp_wystawa", "kp_szyld" }' in cs and '"_EmissionMap_texCoord", 1f' in cs and 'mat == "kp_alu"' in cs
+
+
 def test_balkon_dj_na_rynku():
     """24.11, 14:09 (właściciel: balkon na zaznaczonej kamienicy, sprzęt DJ, głośniki i muzyka leci): wpis muzyki w punktach
     Rynku (utwór istnieje, plac przed kamienicą, dwie kolumny na wysokości balkonu), C# tworzy BraxClaudeMuzyka i puls diod,

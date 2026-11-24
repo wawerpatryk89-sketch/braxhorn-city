@@ -558,11 +558,36 @@ def ogrodek(S, a, t, n, L, R_):
                 S.quad(g, "zywoplot_galazki", c_ - w_ * .45, c_ + w_ * .45, c_ + w_ * .45 + UP * .8, c_ - w_ * .45 + UP * .8, uv_o=c_ - w_ * .45)
 
 
-def detale(d, bud_lista, PLAC_, CHOD_, NABRZ_, W, R_):
+# kioski Ruchu (24.11, 17:29 właściciel: „klocz ruchu polski stary — minimum 2 na mieście”, wzór IMG_2056): na chodniku przy
+# skrzyżowaniu Focha × Gdańska × Jagiellońska (tyłem do jezdni, poza 17 m od środka — przejścia dla pieszych) i na Mostowej
+# przy moście (przodem do osi deptaka); miejsce: najbliższe punktowi, obrys z dachem i 1,6 m przed frontem na chodniku/płycie,
+# z dala od budynków (0,8 m), latarni, masztów trakcji, słupków, ławek, drzew i ogródków
+KIOSKI_RYNEK = [("Focha × Gdańska", SKRZYZOWANIE, 45.0, "od", 17.0), ("Mostowa przy moście", (-128.0, -170.0), 40.0, "do", 0.0)]
+JEZDNIE_K = ("primary", "secondary", "tertiary", "residential", "service", "unclassified", "living_street")
+KIOSKI_POZ = []
+
+
+def kioski_ruchu(S, d, PLAC, CHOD, zakaz0):
+    import kiosk_ruchu
+    from shapely.prepared import prep
+    dozw = prep(unary_union([PLAC, CHOD]).buffer(-.02)); KIOSKI_POZ.clear(); zajete = []
+    for nazwa, (ax, az), R, tryb, odl_min in KIOSKI_RYNEK:
+        linie = [LineString(u["linia"]) for u in d["ulice"] if len(u["linia"]) > 1 and not u.get("most") and not u.get("obszar")
+                 and (u["klasa"] in JEZDNIE_K if tryb == "od" else (u["klasa"] == "pedestrian" and u.get("nazwa")))]
+        linie = [l for l in linie if l.distance(Point(ax, az)) < R + 30]
+        zakaz = unary_union([zakaz0] + zajete + ([Point(ax, az).buffer(odl_min)] if odl_min else []))
+        m = kiosk_ruchu.miejsce((ax, az), R, linie, tryb, dozw, prep(zakaz)) if linie else None
+        if m is None: print("KIOSK: brak miejsca —", nazwa); continue
+        o, t, n = m; kiosk_ruchu.kiosk(S, o, t, n)
+        zajete.append(kiosk_ruchu.obrys(o, t, n).buffer(25)); KIOSKI_POZ.append((nazwa, round(o[0], 2), round(o[2], 2), round(n[0], 3), round(n[2], 3)))
+    return len(KIOSKI_POZ)
+
+
+def detale(d, bud_lista, PLAC_, CHOD_, NABRZ_, W, R_, bud_all=None):
     """Latarnie (Rynek, ulice, nabrzeża), ławki (OSM amenity=bench), ogródki kawiarni na płycie Rynku przed kamienicami,
     drzewa z OSM (natural=tree) do listy punktów (w grze BraxBydgoszcz: te same drzewa co osiedle)."""
     S = Siatka(); PLAC, CHOD, NABRZ = PLAC_, CHOD_, NABRZ_
-    lat = []
+    lat = []; ogr = []; masty = []; slup = []; lawy = []           # ogr..lawy: przeszkody dla kiosków Ruchu
     # Rynek: latarnie wzdłuż ogródków (6,8 m od fasad), co ok. 16 m
     for b in bud_lista:
         if b.get("nazwa"): continue                                    # urząd, kościół — bez ogródków
@@ -574,7 +599,7 @@ def detale(d, bud_lista, PLAC_, CHOD_, NABRZ_, W, R_):
             if P.contains(Point(*(((a + c) / 2 + n * .3)[[0, 2]]))): n = -n
             pr = [Point(*((a + t * u + n * dd)[[0, 2]])) for u in (.5, L / 2, L - .5) for dd in (1.0, 6.5)]
             if all(PLAC.contains(q) for q in pr):
-                ogrodek(S, a, t, n, L, R_)
+                ogrodek(S, a, t, n, L, R_); ogr.append(Polygon([tuple(a[[0, 2]]), tuple(c[[0, 2]]), tuple((c + n * 7.8)[[0, 2]]), tuple((a + n * 7.8)[[0, 2]])]))
                 for u in np.arange(L / 2 % 16, L, 16): lat.append((a + t * u + n * 7.4, math.atan2(t[2], t[0])))
     # ulice: co ok. 24 m na chodnikach (OSM highway z nazwą), naprzemiennie po stronach
     szer = {"primary": 14, "secondary": 12, "tertiary": 10, "residential": 7, "living_street": 6, "pedestrian": 6}
@@ -616,7 +641,7 @@ def detale(d, bud_lista, PLAC_, CHOD_, NABRZ_, W, R_):
                 for sg in (-1, 1):
                     q = np.array([p[0], 0., p[1]]) + nn * sg * 5.2
                     if CHOD.contains(Point(q[0], q[2])):
-                        S.rura("tory", "latarnia_czarna", q, q + UP * 7.5, .09, seg=8)
+                        S.rura("tory", "latarnia_czarna", q, q + UP * 7.5, .09, seg=8); masty.append((q[0], q[2]))
                         S.rura("tory", "szyna", q + UP * 6.6, np.array([p[0], 5.8, p[1]]), .006, seg=3)
                         break
     # słupki żeliwne z łańcuchami wzdłuż krawężników przy skrzyżowaniu (zdjęcia IMG_1983–1988), do 90 m od środka
@@ -639,7 +664,7 @@ def detale(d, bud_lista, PLAC_, CHOD_, NABRZ_, W, R_):
                 if prev is not None:                                  # łańcuch: zwis 12 cm
                     a0 = prev + UP * .72; a1 = q + UP * .72; m_ = (a0 + a1) / 2 - UP * .12
                     S.rura("slupki", "latarnia_czarna", a0, m_, .012, seg=3); S.rura("slupki", "latarnia_czarna", m_, a1, .012, seg=3)
-                prev = q; nsl += 1
+                prev = q; nsl += 1; slup.append((q[0], q[2]))
     zaj = []
     for (q, ob) in lat:                                            # bez dwóch latarni bliżej niż 8 m
         if any(np.hypot(q[0] - z_[0], q[2] - z_[2]) < 8 for z_ in zaj): continue
@@ -649,6 +674,7 @@ def detale(d, bud_lista, PLAC_, CHOD_, NABRZ_, W, R_):
         tg = pk["tagi"]
         if tg.get("amenity") == "bench" and OKNO.contains(Point(*pk["xz"])):
             lawka(S, pk["xz"][0], pk["xz"][1], float(tg.get("direction", "0") or 0) * math.pi / 180 if str(tg.get("direction", "0")).replace(".", "").isdigit() else 0.0); lawki += 1
+            lawy.append(tuple(pk["xz"]))
     # ogrodzenia z OSM (24.11 01:14 „każdy mur ma mieć teksturę, cegłę”): mury ze starej cegły z filarami i czapą,
     # płoty żeliwne jak balustrady nabrzeży, żywopłoty jak na osiedlu
     import wyposazenie
@@ -684,7 +710,10 @@ def detale(d, bud_lista, PLAC_, CHOD_, NABRZ_, W, R_):
                     S.box("detale", "krawoznik", oo, ax, UP, az, sx, .1, sz)
                 S.quad("detale", "zwir", o_ + X * .14 + Z * .14 + UP * .02, o_ + X * 1.66 + Z * .14 + UP * .02, o_ + X * 1.66 + Z * 1.66 + UP * .02, o_ + X * .14 + Z * 1.66 + UP * .02, kier=UP)
             drzewa.append([round(x, 2), round(z, 2), "duze" if blisko_wody or "Salix" in (tg.get("genus", "") + tg.get("species", "")) else "srednie"])
-    return S, {"latarnie": len(zaj), "lawki": lawki, "drzewa": len(drzewa), "slupki": nsl, "mury": nmur, "ploty": nplot, "zywoploty": nzyw}, {"drzewa": drzewa, "latarnie": [[round(q[0], 2), round(q[2], 2), "stylowa"] for q in zaj]}
+    przeszk = [Point(q[0], q[2]).buffer(.8) for q in zaj] + [Point(*q).buffer(1.4) for q in masty + slup] + [Point(*q).buffer(1.0) for q in lawy] + \
+              [Point(x, z).buffer(1.6) for x, z, _ in drzewa] + [q.buffer(1.5) for q in ogr]
+    nk = kioski_ruchu(S, d, PLAC, CHOD, unary_union(przeszk + ([bud_all] if bud_all is not None else [b["poly"] for b in bud_lista])))
+    return S, {"latarnie": len(zaj), "lawki": lawki, "drzewa": len(drzewa), "slupki": nsl, "mury": nmur, "ploty": nplot, "zywoploty": nzyw, "kioski": nk}, {"drzewa": drzewa, "latarnie": [[round(q[0], 2), round(q[2], 2), "stylowa"] for q in zaj]}
 
 
 def main(out):
@@ -757,7 +786,7 @@ def main(out):
             dd["i"] += [b0 + q for q in c["i"]]
     bud = unary_union([b["poly"] for b in budynki] + [q for k, q in wlasne.items() if k not in (zabytki.OSM_BARKA, zabytki.OSM_AMFITEATR, "pomost_opery")] + [Q.buffer(.3) for Q in OBCE])
     T, pola, mosty, (PLAC_, CHOD_, NABRZ_) = teren(d, bud, W)
-    Dt, pola_d, punkty = detale(d, budynki, PLAC_, CHOD_, NABRZ_, W, random.Random(5))
+    Dt, pola_d, punkty = detale(d, budynki, PLAC_, CHOD_, NABRZ_, W, random.Random(5), bud)
     if muzyka: punkty["muzyka"] = muzyka      # [plik, x0, z0, x1, z1, wys, głośność, głośnik1 xyz, głośnik2 xyz, materiał świateł, bpm, faza]
     # drzewa na skarpie między Operą a Brdą (m44–m45: kilkanaście drzew na trawniku przed kręgami)
     if zabytki.OSM_OPERA in wlasne and TRAWNIK[0] is not None:
@@ -769,7 +798,7 @@ def main(out):
                 q = Point(x + Rd.uniform(-2, 2), z + Rd.uniform(-2, 2))
                 if pas.buffer(-2.5).contains(q) and all(q.distance(o) > 6 for o in stare):
                     punkty["drzewa"].append([round(q.x, 2), round(q.y, 2), "duze" if Rd.random() < .35 else "srednie"]); stare.append(q)
-    pola.update(pola_d)
+    pola.update(pola_d); pola["kioski_miejsca"] = list(KIOSKI_POZ)
     for (g, m), c in Dt.dane().items():
         dd = D._c(g, m); b0 = len(dd["v"])
         for f in ("v", "n", "t", "uv", "uv1"): dd[f] += c[f]

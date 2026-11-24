@@ -1564,8 +1564,25 @@
   "mury": 17,
   "ploty": 40,
   "zywoploty": 17,
+  "kioski": 2,
+  "kioski_miejsca": [
+   [
+    "Focha × Gdańska",
+    -21.5,
+    2.0,
+    0.959,
+    -0.284
+   ],
+   [
+    "Mostowa przy moście",
+    -125.0,
+    -163.5,
+    -0.923,
+    0.384
+   ]
+  ],
   "mosty_zespoly": 4
  },
  "mostow": 5,
- "trojkatow": 842572
+ "trojkatow": 844148
 }
