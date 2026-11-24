@@ -18,6 +18,7 @@ public sealed class BraxChampionsKladRywal : MonoBehaviour
     // ---------------------------------------------------------------- set by the builder
     public string imie = "RYWAL";
     public int numer = 1;
+    public string kolor = "";                    // his quad's paint as the boards say it (POMARAŃCZOWY)
     public float umiejetnosc = .9f;              // the share of the line's speed it rides at (0.85 - 0.97)
     public float pas;                            // its lane: metres left (+) / right (-) of the centre line
     public Vector3 parking;                      // world: where it waits in the riders' park

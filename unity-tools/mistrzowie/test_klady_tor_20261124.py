@@ -12,7 +12,9 @@
     rental booth with the six quads, the grandstand, the start gate, the START / META arch; BraxChampionsTorCzas;
   - BraxChampionsLasKladow: the forest - Poly Haven's scanned pines and firs as crossed cards;
   - BraxChampionsOponyKladow (17:11 "Opony na zakrętach" + "Ściany z opon"): tyre bundles, tyre walls, the stakes' tape;
-  - BraxChampionsKlubKladow (19:31 "bardziej luksusowo", "Kłady na podestach" + "Taras nad torem"): the quad club, the VIP terrace."""
+  - BraxChampionsKlubKladow (19:31 "bardziej luksusowo", "Kłady na podestach" + "Taras nad torem"): the quad club, the VIP terrace;
+  - BraxChampionsWynikiKladow, BraxChampionsTablicaTop, BraxChampionsPodiumKladow (20:31 "Tablica TOP 10", "Turniej z
+    rywalami", "Podium i puchar"; "nie do jazdy w nocy"): the TOP 10 board, the BRAXHORN cup, the podium and its cups."""
 import hashlib
 import json
 import math
@@ -39,6 +41,9 @@ LAS_IMPORT = (ED / "BraxChampionsLasTextureImport.cs").read_text(encoding="utf-8
 OPONY = (ED / "BraxChampionsOponyKladow.cs").read_text(encoding="utf-8")
 KLUB = (ED / "BraxChampionsKlubKladow.cs").read_text(encoding="utf-8")
 OBROTNICA = (RT / "BraxChampionsObrotnica.cs").read_text(encoding="utf-8")
+WYNIKI = (RT / "BraxChampionsWynikiKladow.cs").read_text(encoding="utf-8")
+TOP = (RT / "BraxChampionsTablicaTop.cs").read_text(encoding="utf-8")
+PODIUM = (ED / "BraxChampionsPodiumKladow.cs").read_text(encoding="utf-8")
 OPONA = ROOT / "unity-city/Assets/Source/Mistrzowie/Opony/opona.bytes"
 ATLAS = ROOT / "unity-city/Assets/Source/Mistrzowie/Las/las_atlas.png"
 PACK = ROOT / "unity-city/Prywatne/braxhorn-sklep-klady-01"
@@ -432,7 +437,8 @@ class Wyscig(unittest.TestCase):
         # followed from where each rider was (a cut gains nothing)
         self.assertIn("if (t >= 3.6f) Puszczaj();", WYSCIG)
         self.assertIn("public const int Okrazen = 2;", TOR)
-        self.assertIn("public float Dystans => sMety + okrazen * dlugosc;", WYSCIG)
+        self.assertIn("public float Dystans => sMety + Okr * dlugosc;", WYSCIG)
+        self.assertIn("int Okr => puchar ? okrazenPucharu : okrazen;", WYSCIG)
         self.assertIn("for (int k = -4; k <= 12; k++)", WYSCIG)
         self.assertIn("static bool Przed(Uczestnik a, Uczestnik b) => a.meta ? (!b.meta || a.czas < b.czas) : (!b.meta && a.dystans > b.dystans);", WYSCIG)
         self.assertIn("if (!ja.klad || BraxChampionsKlad.Jedzie != ja.klad) { Przerwij(); break; }", WYSCIG)
@@ -781,6 +787,151 @@ class KlubKladow(unittest.TestCase):
         self.assertIn("BraxChampionsLasKladow.Dodatkowe.Add(", KLUB)
         self.assertIn("var lista = new List<Drzewo>(Drzewa()); lista.AddRange(Dodatkowe);", LAS)
         self.assertIn("BraxChampionsLasKladow.Dodatkowe.Clear();", KLUB)
+
+
+def ints(name, src):
+    return [int(v) for v in re.search(r"\b" + name + r"\s*=\s*\{([^}]*)\}", src).group(1).replace(" ", "").split(",") if v]
+
+
+def tablica(name, src):
+    return [float(v.strip().rstrip("f")) for v in re.search(r"\b" + name + r"\s*=\s*\{([^}]*)\}", src).group(1).split(",") if v.strip()]
+
+
+def pole(name, src):
+    return int(re.search(r"\b" + name + r"\s*=\s*(-?\d+)\b", src).group(1))
+
+
+class TablicaPucharPodium(unittest.TestCase):
+    """owner 24.11 20:31 "Tablica z najlepszymi wynikami ... na turniej albo coś takiego?" - his picks "Tablica TOP 10",
+    "Turniej z rywalami", "Podium i puchar"; "Nie do jazdy w nocy" (daytime only)"""
+
+    def test_scripts_and_metas(self):
+        for f in (RT / "BraxChampionsWynikiKladow.cs", RT / "BraxChampionsTablicaTop.cs", ED / "BraxChampionsPodiumKladow.cs"):
+            meta = Path(str(f) + ".meta").read_text(encoding="utf-8")
+            self.assertIn("MonoImporter:", meta); self.assertRegex(meta, r"guid: [0-9a-f]{32}\n")
+        self.assertIn("public static class BraxChampionsWynikiKladow", WYNIKI)
+        self.assertIn("public sealed class BraxChampionsTablicaTop : MonoBehaviour", TOP)
+        self.assertIn("public static class BraxChampionsPodiumKladow", PODIUM)
+        self.assertIn("BraxChampionsPodiumKladow.Zbuduj(g, b, y, w, Folder);", TOR)
+
+    def test_the_ten_best_on_the_phone(self):
+        # four lists of ten, PlayerPrefs JSON, every read and write guarded; the single records before them seed them once
+        self.assertEqual(pole("Ile", WYNIKI), 10)
+        for k in ("BRAX_TOR_TOP_WYSCIG", "BRAX_TOR_TOP_OKRAZENIE", "BRAX_TOR_TOP_SKOK", "BRAX_TOR_PUCHAR_ZWYCIEZCY", "BRAX_TOR_PUCHARY"):
+            self.assertIn('"%s"' % k, WYNIKI)
+        for k in ("BRAX_TOR_WYSCIG_REKORD", "BRAX_TOR_KLADOW_NAJLEPSZE", "BRAX_KLAD_REKORD_SKOKU"):
+            self.assertIn('"%s"' % k, WYNIKI)
+        self.assertGreaterEqual(WYNIKI.count("try {"), 4); self.assertNotIn("PlayerPrefs.DeleteAll", WYNIKI)
+        # the times shortest first, the jumps most points first, a tie: the one there first keeps his place
+        self.assertIn("public static bool Lepszy(Rodzaj r, float a, float b) => r == Rodzaj.Skok ? a > b : a < b;", WYNIKI)
+        self.assertIn("for (int i = 0; i < l.Count; i++) if (Lepszy(r, w, l[i].w)) { m = i; break; }", WYNIKI)
+        self.assertIn("if (r == Rodzaj.Puchar) m = 0;", WYNIKI)                                     # the newest cup winner on top
+        # who and his quad's paint: TY for the player, the rival's paint from the fleet's labels
+        self.assertIn('public const string Gracz = "TY";', WYNIKI)
+        self.assertIn("r.kolor = f.napis != null ? f.napis.Substring(f.napis.LastIndexOf('·') + 1).Trim() : kolor.ToUpperInvariant();", KLADY)
+        self.assertIn('public string kolor = "";', RYWAL)
+
+    def test_results_come_in(self):
+        # the race: every real time over the line (the rivals' too), never an estimated one, never a cup race (one lap)
+        self.assertIn("if (z.meta && !z.szac) { int m = R.Dodaj(R.Rodzaj.Wyscig, z.czas, z.imie, R.Kolor(z.klad)); if (z == ja) wynikTop = m; }", WYSCIG)
+        blok = WYSCIG.split("void Koniec()")[1].split("ostatnie.Clear();")[0]
+        self.assertIn("if (!puchar)", blok)
+        # the lap (the lap timer), the jump (the player's only: a rival scores nothing)
+        self.assertIn("BraxChampionsWynikiKladow.Dodaj(BraxChampionsWynikiKladow.Rodzaj.Okrazenie, t, BraxChampionsWynikiKladow.Gracz, BraxChampionsWynikiKladow.Kolor(jedzie));", CZAS)
+        self.assertIn("BraxChampionsWynikiKladow.Dodaj(BraxChampionsWynikiKladow.Rodzaj.Skok, pkt, BraxChampionsWynikiKladow.Gracz, BraxChampionsWynikiKladow.Kolor(this));", KLAD)
+        self.assertIn("if (!gracz) { lot = ileNaZiemi == 0 ? lot + dt : 0f; trik = Trik.Brak; return; }", KLAD)
+
+    def test_the_cup(self):
+        # three races of one lap with the same four rivals, the MXGP points (FIM: 25, 22, 20, 18, 16, 15 ... 1)
+        self.assertEqual(ints("PunktyMXGP", WYSCIG), [25, 22, 20, 18, 16, 15, 14, 13, 12, 11])
+        self.assertIn("w.okrazenPucharu = 1; w.wyscigowPucharu = 3;", TOR)
+        self.assertIn("zz.punkty += i < PunktyMXGP.Length ? PunktyMXGP[i] : 0; zz.miejsca.Add(i + 1);", WYSCIG)
+        # a tie: the better place in the last race (as motocross breaks it)
+        self.assertIn("k.Sort((a, b) => a.punkty != b.punkty ? b.punkty.CompareTo(a.punkty) : Ostatnie(a).CompareTo(Ostatnie(b)));", WYSCIG)
+        # the next race from the gate 12 s after the last; getting off stops the cup; the winner on the board, the player's cups
+        self.assertEqual(const("CzasPrzerwy", WYSCIG), 12.0)
+        self.assertIn("if (t > CzasPrzerwy) Ustawienie();", WYSCIG)
+        blok = WYSCIG.split("case Faza.Wyniki:")[1].split("case Faza.Podium:")[0]
+        self.assertIn("if (!ja.klad || BraxChampionsKlad.Jedzie != ja.klad) { Przerwij(); break; }", blok)
+        self.assertIn("R.Dodaj(R.Rodzaj.Puchar, k[0].punkty, k[0].imie, k[0].klad);", WYSCIG)
+        self.assertIn("if (wygrales) R.DodajPuchar();", WYSCIG)
+        # its button under the race's (Y on a desktop); daytime only: no lights anywhere in it
+        self.assertIn("else if (Input.GetKeyDown(KeyCode.Y) || Dotkniety(PrzyciskPucharu())) Zacznij(true);", WYSCIG)
+        self.assertIn("Rect PrzyciskPucharu() { float u = Jedn; return new Rect(Screen.width * .5f - 230f * u, 110f * u, 460f * u, 84f * u); }", WYSCIG)
+        for src in (WYSCIG, TOP, PODIUM, WYNIKI):
+            self.assertNotRegex(src, r"\bLight\b|AddComponent<Light>|noc\b")
+
+    def test_podium(self):
+        h = tablica("Wysokosc", PODIUM)
+        st0 = const("Stopien", PODIUM)
+        dx = [float(v.strip().replace("Stopien", str(st0)).rstrip("f")) for v in re.search(r"Przesuniecie\s*=\s*\{([^}]*)\}", PODIUM).group(1).split(",")]
+        self.assertEqual(h, sorted(h, reverse=True)); self.assertLessEqual(h[0], .8)               # 1st highest, a quad rides off it
+        self.assertEqual(dx[0], 0.0); self.assertLess(dx[1], 0); self.assertGreater(dx[2], 0)      # the 2nd at the west: the audience's left
+        st, gl = const("Stopien", PODIUM), const("Glebokosc", PODIUM)
+        self.assertGreaterEqual(st, 1.28 + 1.5); self.assertGreaterEqual(gl, 2.05 + .8)              # a Rancher (2.05 x 1.28 m) with room
+        # facing the paddock (south); the player not on it watches from 8.5 m before it, facing it
+        self.assertIn("w.podiumObrot = Quaternion.Euler(0f, 180f, 0f);", PODIUM)
+        self.assertIn("w.podiumWidz = new Vector3(PodiumX, y, WidzZ) * K; w.podiumWidzObrot = Quaternion.identity;", PODIUM)
+        self.assertGreater(const("WidzZ", PODIUM) - 945.2, 6)                                     # clear of the grandstand's back for the camera
+        # in the paddock's free west: inside it, clear of the grandstand (z 940 - 945.2), the riders' park (x -102), the masts
+        x0, x1, z0, z1 = (const(n, PODIUM) for n in ("PlytaX0", "PlytaX1", "PlytaZ0", "PlytaZ1"))
+        self.assertGreaterEqual(x0, const("PX0")); self.assertLessEqual(z1, const("PZ1")); self.assertGreater(z0, 945.2 + 8)
+        self.assertLess(x1, const("ParkX") - 2 - 5)
+        tx0, tx1 = const("TopX", PODIUM) - const("TopW", PODIUM) / 2, const("TopX", PODIUM) + const("TopW", PODIUM) / 2
+        self.assertGreater(tx0, const("PX0") + 3); self.assertLess(tx1, x0 - 3)
+        for mx, mz in ((-157, 952), (-157, 1005)):
+            self.assertGreater(min(abs(mx - tx0), abs(mx - tx1)), 3)
+        # the boxes 1 cm into the middle one and 1 cm shallower: no face shared (zfight 0); each 1 cm into the platform
+        self.assertIn("float x0 = cx - Stopien * .5f - (i == 2 ? .01f : 0f), x1 = cx + Stopien * .5f + (i == 1 ? .01f : 0f), z0 = PodiumZ + (i == 0 ? 0f : .01f), z1 = PodiumZ + Glebokosc - (i == 0 ? 0f : .01f);", PODIUM)
+        self.assertIn("b.BoxMinMax(podest, x0, x1, yp - .01f, yp + h, z0, z1);", PODIUM)
+        self.assertIn('"BRAXHORN QUAD CUP"', PODIUM)
+
+    def test_ceremony_and_cups(self):
+        # the first three on their quads on the steps (the rivals' AI off, parked bodies), the player held there or before it
+        self.assertIn("if (na) { z.rywal.Aktywny = false; z.klad.Sam(false); z.klad.Ustaw(podium[i], podiumObrot, Vector3.zero); }", WYSCIG)
+        self.assertIn("z.klad.Ustaw(na ? podium[i] : podiumWidz, na ? podiumObrot : podiumWidzObrot, Vector3.zero);", WYSCIG)
+        self.assertEqual(const("CzasPodium", WYSCIG), 14.0)
+        self.assertIn("if (t > CzasPodium) Sprzatnij();", WYSCIG)
+        self.assertIn("for (int i = 0; i < puchary.Length && i < stolPoz.Length; i++) if (puchary[i]) puchary[i].SetPositionAndRotation(stolPoz[i], stolObr[i]);", WYSCIG)
+        # three cups, the metals' measured colours (gold sRGB 255/226/155, silver 252/250/245), real heights, not static
+        self.assertEqual(tablica("Puchar", PODIUM), [.62, .56, .5])
+        self.assertIn('Surface("tor_kladow_puchar_zloto", new Color(1f, .886f, .608f), .16f, 1f);', PODIUM)
+        self.assertIn('Surface("tor_kladow_puchar_srebro", new Color(.988f, .98f, .96f), .14f, 1f);', PODIUM)
+        self.assertIn("GameObjectUtility.SetStaticEditorFlags(tr.gameObject, (StaticEditorFlags)0);", PODIUM)
+        # each on its step beside its quad (inside the step, clear of a 1.28 m wide quad), 2 mm over it
+        self.assertIn("w.pucharyNaPodium[i] = new Vector3(cx - 1.15f, yp + h + .002f, PodiumZ + .45f) * K;", PODIUM)
+        st = const("Stopien", PODIUM)
+        self.assertLess(1.15 + .17 / 2, st / 2); self.assertGreater(1.15 - .215, 1.28 / 2)
+
+    def test_top10_board(self):
+        tw, th = pole("TW", TOP), pole("TH", TOP)
+        self.assertEqual((tw, th), (256, 128))
+        self.assertAlmostEqual(const("TopW", PODIUM) / const("TopH", PODIUM), tw / th)              # square LEDs
+        # its mipmaps (no shimmer from afar: ZASADA-MIGOTANIE), the LEDs' squares near; the race board's too
+        for src in (TOP, WYSCIG):
+            self.assertIn("TextureFormat.RGBA32, true) { filterMode = FilterMode.Point", src)
+            self.assertIn("tex.SetPixels32(px); tex.Apply(true);", src)
+        # ten rows 9 px apart under the title, the page's dots under them
+        self.assertIn("int y = TH - 34 - i * 9;", TOP); self.assertGreater(th - 34 - 9 * 9, 6 + 2)
+        # the columns hold their longest marks: 8 (1240 PKT, 12:34.5), 8 (the name), 12 (POMARAŃCZOWY), 5 (24.11)
+        kol = {n: pole(n, TOP) for n in ("KolMiejsce", "KolWartosc", "KolKto", "KolKlad", "KolData")}
+        self.assertLess(kol["KolWartosc"] + 8 * 6, kol["KolKto"]); self.assertLess(kol["KolKto"] + 8 * 6, kol["KolKlad"])
+        self.assertLess(kol["KolKlad"] + 12 * 6, kol["KolData"]); self.assertLessEqual(kol["KolData"] + 5 * 6, tw)
+        # every mark it and the race board print is in the LED font
+        znaki = re.search(r'const string Znaki = "([^"]*)";', (RT / "BraxChampionsPiksele.cs").read_text(encoding="utf-8")).group(1)
+        for t in ("TOP 10 · WYŚCIG", "TOP 10 · OKRĄŻENIE", "TOP 10 · SKOK", "PUCHAR BRAXHORN", "PUCHAR · START", "PUCHAR · PO 2/3",
+                  "BRAK WYNIKÓW · JEDŹ!", "SKOCZ NA FREESTYLE", "TWOJE PUCHARY: 2", "3 WYŚCIGI · 25-22-20-18-16", "1240 PKT",
+                  "POMARAŃCZOWY", "BIAŁY", "24.11", "TWÓJ REKORD 7:41.6", "PUNKTY 25-22-20-18-16", "ZWYCIĘZCA: SZYMON", "PODIUM",
+                  "WYŚCIG 2/3", "1. SZYMON   47 PKT 1-2-1"):
+            for c in t:
+                self.assertIn(c, znaki, t)
+        # the titles fit at twice the size: 15 marks on the race board, 21 on the TOP 10
+        for t in ("PUCHAR BRAXHORN", "PUCHAR · PO 2/3", "WYŚCIG BRAXHORN"):
+            self.assertLessEqual(len(t) * 12 - 2, 192 - 8)
+        self.assertLessEqual(len("TOP 10 · OKRĄŻENIE") * 12 - 2, tw - 8)
+        # the screen faces the paddock (south), its picture the right way round from there
+        self.assertIn("be.QuadUV(ekran, new Vector3(x0, yb, zs), new Vector3(x0, yt, zs), new Vector3(x1, yt, zs), new Vector3(x1, yb, zs),", PODIUM)
+        self.assertIn("t.ekran = r.Length > 0 ? r[0] : null; t.wyscig = w;", PODIUM)
 
 
 if __name__ == "__main__":

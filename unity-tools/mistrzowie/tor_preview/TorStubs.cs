@@ -4,7 +4,7 @@ using UnityEngine;
 public class AudioClip : Object { }
 public static class BraxCityMaterials { public const string ShaderName = "Braxhorn/CityStaticPBR"; }
 public sealed class BraxChampionsTorCzas : MonoBehaviour { public Vector3[] punkty = new Vector3[0]; public float polSzerokosci; }
-public sealed class BraxChampionsKladRywal : MonoBehaviour { public string imie; public int numer; public float umiejetnosc, pas, rozstawOsi; public Vector3 parking; public Quaternion parkingObrot; }
+public sealed class BraxChampionsKladRywal : MonoBehaviour { public string imie, kolor; public int numer; public float umiejetnosc, pas, rozstawOsi; public Vector3 parking; public Quaternion parkingObrot; }
 public sealed class BraxChampionsKlad : MonoBehaviour { }
 public sealed class BraxChampionsObrotnica : MonoBehaviour { public BraxChampionsKlad klad; public Vector3 srodek; public float promien, stopniNaSekunde; }
 public sealed class BraxChampionsBloto : MonoBehaviour { public Vector3[] srodek, wzdluz; public float[] polDl, polSzer; public Material pyl, grudki; public float K; }
@@ -12,7 +12,9 @@ public sealed class BraxChampionsWyscig : MonoBehaviour
 {
     public Vector3[] punkty, lewo, sloty; public float[] vCel, szer; public bool[] skok; public float krok, dlugosc, sMety, polSzerokosci, K, strefaPromien; public int okrazen;
     public Quaternion kierunekStartu, belkaGora, belkaDol; public Transform[] belki; public BraxChampionsKladRywal[] rywale; public Renderer tablica; public Vector3 strefaStartu;
+    public int okrazenPucharu, wyscigowPucharu; public Vector3[] podium, pucharyNaPodium; public Quaternion podiumObrot, podiumWidzObrot; public Vector3 podiumWidz; public Transform[] puchary;
 }
+public sealed class BraxChampionsTablicaTop : MonoBehaviour { public Renderer ekran; public BraxChampionsWyscig wyscig; public float naStrone; }
 public static class BraxChampionsKlady
 {
     public static readonly (string model, string kolor, string napis)[] Flota =

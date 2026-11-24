@@ -516,8 +516,9 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
             Punkty += pkt;
             bool rekord = pkt > RekordSkoku;
             if (rekord) { rekordSkoku = pkt; try { PlayerPrefs.SetInt(KluczRekordu, pkt); PlayerPrefs.Save(); } catch { } }
+            int top = BraxChampionsWynikiKladow.Dodaj(BraxChampionsWynikiKladow.Rodzaj.Skok, pkt, BraxChampionsWynikiKladow.Gracz, BraxChampionsWynikiKladow.Kolor(this));   // the TOP 10 board
             string co = trikiSkoku > 0 ? (trikiSkoku >= 2 ? "KOMBO! " : "") + nazwyTrikow + "!" : "SKOK " + lot.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + " s";
-            Napis(co + "  +" + pkt + (rekord ? "\nREKORD SKOKU!" : ""), new Color(.93f, .76f, .36f), 2.6f);
+            Napis(co + "  +" + pkt + (rekord ? "\nREKORD SKOKU!" : top > 0 ? "\nTOP 10: " + top + "." : ""), new Color(.93f, .76f, .36f), 2.6f);
             Debug.Log("BRAX_KLAD_SKOK pkt=" + pkt + " triki=" + trikiSkoku + " air=" + lot.ToString("F2") + " razem=" + Punkty);
         }
         Zeruj();

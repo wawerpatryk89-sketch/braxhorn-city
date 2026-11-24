@@ -24,7 +24,8 @@ using W = BraxWnetrzaKit;
 /// The paddock: the rental booth (WYPOŻYCZALNIA KŁADÓW BRAXHORN) with the six quads in their bays (BraxChampionsKlady), the
 /// grandstand over the start straight, the start gate, the START / META arch, light masts, the riders' park; the freestyle
 /// zone north of the start straight; the road from the city's north-west corner (the street mouth at x 60, z 935). The lap
-/// timer: BraxChampionsTorCzas; the race: BraxChampionsWyscig. All in nominal metres x K.</summary>
+/// timer: BraxChampionsTorCzas; the race and the cup: BraxChampionsWyscig; the podium, the cups and the TOP 10 board by the
+/// finish line: BraxChampionsPodiumKladow. All in nominal metres x K.</summary>
 public static class BraxChampionsTorKladow
 {
     static float K => BraxClaudeOsiedle.K;
@@ -1104,7 +1105,7 @@ public static class BraxChampionsTorKladow
     static BraxChampionsWyscig Wyscig(Transform g, BraxChampionsMeshBatch b)
     {
         var o = Linia(); var pr = ProfilWyscigu(); float y = PaddockY;
-        var w = new GameObject("TOR DO KŁADÓW | wyścig z rywalami (3 okrążenia)").AddComponent<BraxChampionsWyscig>();
+        var w = new GameObject("TOR DO KŁADÓW | wyścig z rywalami (2 okrążenia) i Puchar BRAXHORN").AddComponent<BraxChampionsWyscig>();
         w.transform.SetParent(g, false);
         int n = pr.p.Length;
         w.punkty = new Vector3[n]; w.lewo = new Vector3[n]; w.vCel = new float[n]; w.skok = new bool[n]; w.szer = new float[n];
@@ -1161,7 +1162,12 @@ public static class BraxChampionsTorKladow
         var te = be.Build(g, "TOR DO KŁADÓW | tablica wyników LED", Folder, false, K);
         var ekrany = te.GetComponentsInChildren<MeshRenderer>(true); w.tablica = ekrany.Length > 0 ? ekrany[0] : null;
         Trojkaty += be.Triangles;
-        Debug.Log("MISTRZOWIE_TOR_KLADOW_WYSCIG punkty=" + n + " meta=" + pr.sMety.ToString("F0") + "m rywale=" + Rywali + " belki=" + Belek + " " + string.Join(" | ", pr.doubles));
+        // the podium by the finish line, the cups, the TOP 10 board (owner 20:31: "Tablica TOP 10", "Turniej z rywalami",
+        // "Podium i puchar"); the cup: three races of one lap, the MXGP points
+        w.okrazenPucharu = 1; w.wyscigowPucharu = 3;
+        BraxChampionsPodiumKladow.Zbuduj(g, b, y, w, Folder);
+        Trojkaty += BraxChampionsPodiumKladow.Trojkaty;
+        Debug.Log("MISTRZOWIE_TOR_KLADOW_WYSCIG punkty=" + n + " meta=" + pr.sMety.ToString("F0") + "m rywale=" + Rywali + " belki=" + Belek + " podium=" + w.podium.Length + " puchary=" + BraxChampionsPodiumKladow.Pucharow + " " + string.Join(" | ", pr.doubles));
         return w;
     }
 }

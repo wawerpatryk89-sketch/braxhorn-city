@@ -191,6 +191,8 @@ public static class BraxChampionsKlady
         BraxChampionsKladZawodnik.Zbuduj(root.transform, model, stroj, akcent, Folder);
         var r = root.AddComponent<BraxChampionsKladRywal>();
         r.imie = imie; r.numer = numer; r.umiejetnosc = umiejetnosc; r.pas = pas;
+        var f = Flota.FirstOrDefault(x => x.kolor == kolor);                // the paint's name as the fleet's labels say it
+        r.kolor = f.napis != null ? f.napis.Substring(f.napis.LastIndexOf('·') + 1).Trim() : kolor.ToUpperInvariant();
         r.parking = p; r.parkingObrot = Quaternion.Euler(0f, yaw, 0f);
         var m = Kat()?.modele?.FirstOrDefault(x => x.model == model);
         if (m != null && m.rozstaw_osi > .5f) r.rozstawOsi = m.rozstaw_osi;

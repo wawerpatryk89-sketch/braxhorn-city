@@ -4,7 +4,7 @@ using UnityEngine;
 // centre line (world, every 5 m, from the finish line on) is written by the builder (BraxChampionsTorKladow); the ridden quad's
 // place on it is followed from where it was (never jumping to a section beside it), and a lap counts when the quad crosses the
 // line having passed 90 % of the track in order - a short cut through the infield is no lap. The best lap stays on the phone
-// (PlayerPrefs, a per-player convenience).
+// (PlayerPrefs, a per-player convenience), every lap goes to the TOP 10 board's list (BraxChampionsWynikiKladow).
 [DisallowMultipleComponent]
 public sealed class BraxChampionsTorCzas : MonoBehaviour
 {
@@ -71,7 +71,8 @@ public sealed class BraxChampionsTorCzas : MonoBehaviour
                     float t = Time.time - startOkr; Ostatnie = t;
                     bool rekord = Najlepsze <= 0f || t < Najlepsze;
                     if (rekord) { Najlepsze = t; try { PlayerPrefs.SetFloat(Klucz, t); PlayerPrefs.Save(); } catch { } }
-                    Pokaz((rekord ? "NOWY REKORD! " : "OKRĄŻENIE ") + Czas(t), 4f);
+                    int top = BraxChampionsWynikiKladow.Dodaj(BraxChampionsWynikiKladow.Rodzaj.Okrazenie, t, BraxChampionsWynikiKladow.Gracz, BraxChampionsWynikiKladow.Kolor(jedzie));   // the TOP 10 board
+                    Pokaz((rekord ? "NOWY REKORD! " : "OKRĄŻENIE ") + Czas(t) + (top > 0 ? " · TOP 10: " + top + "." : ""), 4f);
                     Debug.Log("BRAX_TOR_KLADOW lap=" + t.ToString("F2") + " best=" + Najlepsze.ToString("F2"));
                 }
                 else if (!liczy) Pokaz("START! JEDŹ!", 2f);
