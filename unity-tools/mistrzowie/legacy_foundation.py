@@ -397,13 +397,36 @@ for x in range(65,1146,25):plant(x,-115,'palm',len(plants)%2,'promenade_soil')
 # THICK-trunk palma (variant 0) in the grass strip along the back edge of the sand, every 15 m (was 17 m, mixed);
 # never on the city walks or the beach-club entry decks (plant() needs a genuine grass root disk).
 for x in range(65,693,15):plant(x,-155.5,'palm',0,'beach_soil')
+# Owner 24.11 00:50 ("w każdej drodze, przy drogach, jak są gwiazdy, te grube palmy ... tylko i wyłącznie grube palmy") and
+# his answers (every street of the city; off the streets - aquapark, hotels, promenade - mixed as on 10.11 08:48): every
+# street, both sides, lined with the owner's THICK-trunk palma (variant 0), as the palm-lined streets of Beverly Hills - on
+# the grass 4 m past the sidewalk (its edge 17 m off the road's axis), every 20 m (a third fewer to draw than at 15 m),
+# clear of the junctions (25 m from a cross street's axis); no trees and no thin palm along a street any more (plant()
+# keeps the grass root disk and 10 m spacing).
+STREET_PALM_STEP,STREET_PALM_OFF,STREET_PALM_JUNCTION=20,21,25
+# Not on the lawns the plot generators take over in C#: the towers' granite forecourts from the plot to the sidewalk
+# (BraxChampionsWiezowce.Forecourts: T08-T10 north to road Z650's sidewalk z 633.022, T12-T13 south to road Z330's z
+# 347.012, the plot's width; their own palms stand there in planters) and the arena's front lawn on road Z650, where
+# BraxChampionsArenaFront.LawnPalms plants its own row of thick palms along the street (arena x 600 +-173, z 671.5) and
+# the walk's avenue (a palm on the granite or a second row beside the arena's would stand "w kostce" / doubled).
+_TOWERS={b['id']:b for b in buildings if b['id'] in ('T08','T09','T10','T12','T13')}
+STREET_PALM_SKIP=[(t['x']-27.5-2,t['z']+27.5,59,633.022-(t['z']+27.5)+2) for k,t in _TOWERS.items() if k in ('T08','T09','T10')]
+STREET_PALM_SKIP+=[(t['x']-27.5-2,347.012-2,59,(t['z']-27.5)-347.012+2) for k,t in _TOWERS.items() if k in ('T12','T13')]
+STREET_PALM_SKIP+=[(600-185,655,370,70)]
+assert len(STREET_PALM_SKIP)==6,'three north towers, two south towers, the arena'
+def street_palm(x,z):
+ if any(inside((x,z),r) for r in STREET_PALM_SKIP):return
+ plant(x,z,'palm',0,'street_grass')
 for x in XROAD:
  for side in (-1,1):
-  for z in range(110,916,30):
-   if min(abs(z-a) for a in ZROAD)<30:continue
-   # owner 10.11 08:48: palms stay MIXED across the city ("nie wszędzie grube, ma być pomieszane"); the thick-trunk
-   # palm lines only the A1 street front and its entrance walk (BraxChampionsArenaArrival.LawnPalms / palm avenue).
-   plant(x+side*21,z,'palm' if x>=800 else 'tree',len(plants)%2,'street_grass')
+  for z in range(-70+STREET_PALM_JUNCTION,936,STREET_PALM_STEP):
+   if min(abs(z-a) for a in ZROAD)<STREET_PALM_JUNCTION:continue
+   street_palm(x+side*STREET_PALM_OFF,z)
+for zr in ZROAD:
+ for side in (-1,1):
+  for x in range(70+STREET_PALM_JUNCTION,1131,STREET_PALM_STEP):
+   if min(abs(x-a) for a in XROAD)<STREET_PALM_JUNCTION:continue
+   street_palm(x,zr+side*STREET_PALM_OFF)
 for x in [640,670,700,730,760]:
  for z in [115,145,175,205,225]:plant(x,z,'tree',0,'park')
 # Owner 10.11 08:40: "posadź drzewa jeszcze przy apartamentach, przy hotelach, przy kasynie". The owner's city palms

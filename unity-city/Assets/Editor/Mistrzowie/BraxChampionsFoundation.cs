@@ -339,7 +339,9 @@ public static class BraxChampionsFoundation
                 {
                     // Source palms are in real metres; Postaw applies the shared K once.
                     o=BraxChampionsModel.Postaw(vegetation,palms[p.variant%palms.Length],p.id+" Palma "+p.band,at,p.yaw,1f,false,true);
-                    BraxMiastoAssety.LodyZWezlow(o,new[]{.25f,.08f,.012f});report.palms++;
+                    // 24.11 the street rows (every street lined with thick palms, owner 00:50): the far palms of a long row go
+                    // at 1.8 % of the screen (~400 m) instead of 1.2 % - a long straight street shows dozens of them
+                    BraxMiastoAssety.LodyZWezlow(o,p.band=="street_grass"?new[]{.25f,.08f,.018f}:new[]{.25f,.08f,.012f});report.palms++;
                     BraxChampionsPalmTrunk.OnSpot(o,at);                    // the trunk, not the model origin, in the bed
                 }
                 else
