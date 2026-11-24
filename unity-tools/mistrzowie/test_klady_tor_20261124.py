@@ -28,6 +28,7 @@ PREP = (TOOLS / "klady/przygotuj_klady.py").read_text(encoding="utf-8")
 WYSCIG = (RT / "BraxChampionsWyscig.cs").read_text(encoding="utf-8")
 RYWAL = (RT / "BraxChampionsKladRywal.cs").read_text(encoding="utf-8")
 ZAWODNIK = (ED / "BraxChampionsKladZawodnik.cs").read_text(encoding="utf-8")
+BLOTO = (RT / "BraxChampionsBloto.cs").read_text(encoding="utf-8")
 PACK = ROOT / "unity-city/Prywatne/braxhorn-sklep-klady-01"
 K = 2.33 / 1.80
 
@@ -121,7 +122,7 @@ class Kierowanie(unittest.TestCase):
     def test_physics(self):
         self.assertIn("rb.AddForce(Vector3.down * (g + Physics.gravity.y), ForceMode.Acceleration);", KLAD)   # g x K
         self.assertIn("float kSpr = masa * g * .25f / (.4f * skok * K);", KLAD)                    # 40 % sag
-        self.assertIn("float lim = przyczepnosc * sila;", KLAD)                                     # grip from the load
+        self.assertIn("float lim = przyczepnosc * sila * (bl ? .55f : 1f);", KLAD)                                     # grip from the load
         self.assertIn("if (razem > lim && razem > 0f) { boczna *= lim / razem; wzdluz *= lim / razem; }", KLAD)
         self.assertIn("rb.AddTorque(right * (hamulec - gaz) * 2.4f, ForceMode.Acceleration);", KLAD)   # pitch in the air
         self.assertIn("if (doGory > 2.5f) Postaw();", KLAD)
@@ -227,7 +228,7 @@ class Tor(unittest.TestCase):
     def test_textures_poly_haven_4k(self):
         prep = (TOOLS / "prepare_assets.py").read_text(encoding="utf-8")
         fx = json.loads((TOOLS / "pbr-provider-preflight.json").read_text(encoding="utf-8"))
-        for slug in ("muddy_tracks", "brown_mud_02", "gravel_ground_01"):
+        for slug in ("muddy_tracks", "brown_mud_02", "gravel_ground_01", "aerial_mud_1"):
             self.assertIn("'" + slug + "'", prep)
             for key in ("Diffuse", "nor_gl", "Rough", "arm"):
                 self.assertIn("/4k/", json.dumps(fx[slug][key]["4k"]))
@@ -440,6 +441,81 @@ class Wyscig(unittest.TestCase):
         self.assertIn('BraxChampionsTorCzas.Czas(kolejnosc[i].czas) + (kolejnosc[i].szac ? "*" : "")', WYSCIG)
         # the screen faces the grandstand (north), its picture the right way round from there
         self.assertIn("be.QuadUV(ekran, new Vector3(x1, yb, zs), new Vector3(x1, yt, zs), new Vector3(x0, yt, zs), new Vector3(x0, yb, zs),", TOR)
+
+
+def rozwidlenia():
+    blok = TOR.split("public static readonly Rozwidlenie[] Rozwidlenia =")[1].split("};")[0]
+    return [tuple(float(v) for v in w) for w in re.findall(r"new Rozwidlenie\((\d+), ([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f, ([\d.]+)f\)", blok)]
+
+
+class BoczneLinieIBloto(unittest.TestCase):
+    """owner 24.11 12:57, his pick "Boczne linie i błoto": split lines on the two long straights, the mud pit, dust and mud"""
+
+    def przeszkody(self):
+        return [(int(a), float(b), c, float(d)) for a, b, c, d in re.findall(r"new Przeszkoda\((\d+), ([\d.]+)f, Typ\.(\w+), ([\d.]+)f", TOR)]
+
+    def test_splits_on_the_long_straights(self):
+        _, proste, _ = petla()
+        r = rozwidlenia(); self.assertEqual(len(r), 2)
+        najdluzsze = sorted(range(len(proste)), key=lambda i: -proste[i])[:4]
+        dl = {"Stol": lambda h: 35 if h >= 1.8 else 23, "Podwojna": lambda h: 28.8, "Schodek": lambda h: 35.5, "Fale": None, "Muldy": None,
+              "Gorka": lambda h: 66, "Brod": lambda h: 18, "Bloto": lambda h: 26}
+        for prosta, od, d, a, fa, h1, luka, fb, h2, deck, lad in r:
+            prosta = int(prosta)
+            self.assertIn(prosta, najdluzsze)
+            self.assertLess(od + d, proste[prosta] - 4)
+            warga = a + fa + .4; koniec = warga + 3 + luka + fb + deck + lad
+            self.assertLess(koniec, d - 4)
+            # over the rollers only: no other obstacle of that straight inside the stretch
+            for p, pod, typ, h in self.przeszkody():
+                if p != prosta or typ in ("Fale",): continue
+                koniec_p = pod + (dl[typ](h) if dl[typ] else 0)
+                self.assertTrue(koniec_p < od - 2 or pod > od + d + 2, (prosta, typ))
+            # the gap jump: its lip angle (the kicker's face: Rampa, toe 0.3), the flight to the middle of its landing a speed
+            # both quads reach (the Rancher's 75 km/h x 0.97); to its deck from a slower one; a real gap under it
+            kat = math.atan(h1 / fa / (1 - .15))
+            v_mid = math.sqrt(9.81 * (3 + luka + fb + deck + lad / 2) / math.sin(2 * kat))
+            v_deck = math.sqrt(9.81 * (3 + luka + fb) / math.sin(2 * kat))
+            self.assertLess(v_mid, 75 / 3.6 * .97); self.assertLess(v_deck, v_mid)
+            self.assertGreaterEqual(luka, 6)
+        # the left half its own, joined over the middle 2 m (the ribbon's columns 1 m apart, each its own normal)
+        self.assertIn("float w = Smooth(-2f, 2f, t) * (1f - Smooth(r.dl - 2f, r.dl + 2f, t)) * Smooth(-1f, 1f, u);", TOR)
+        self.assertIn("return Baza(i) + Profil(o.s[i], u) + Mathf.Abs(b) * (Szer * .5f - Mathf.Sign(b) * u);", TOR)
+        self.assertIn("float dAlong = (Tor(ib, u) - Tor(ia, u)) / (2f * ds), dAcross = Tor(i, u + .5f) - Tor(i, u - .5f);", TOR)
+        self.assertIn("// the split stretches: a row of stakes down the middle between the two lines", TOR)
+        # the rivals keep to the right line (the rollers): from 45 m before a split
+        self.assertIn("w.prawa[k] = WRozwidleniu(s, 45f);", TOR)
+        self.assertIn("if (w.prawa.Length == n && (w.prawa[Idx] || w.prawa[jp])) cel = Mathf.Clamp(cel, -2.6f, -1.1f);", RYWAL)
+
+    def test_ribbon_textures_at_real_size(self):
+        # the riding surface's UVs in metres: the ruts (muddy_tracks, 2.25 m on Poly Haven) and the mud (aerial_mud_1, 8 m)
+        self.assertIn("uvT.Add(new Vector2(u, s));", TOR)
+        self.assertNotIn("u / 2.25f", TOR)
+        self.assertIn('SourceMaterial("tor_kladow_koleiny", "muddy_tracks", 2.25f,', TOR)
+        self.assertIn('SourceMaterial("tor_kladow_bloto", "aerial_mud_1", 8f,', TOR)
+
+    def test_mud_pit(self):
+        mud = [p for p in self.przeszkody() if p[2] == "Bloto"]
+        self.assertEqual(len(mud), 1)
+        prosta, od, _, h = mud[0]
+        _, proste, _ = petla()
+        self.assertLess(od + 26, proste[prosta] - 6); self.assertAlmostEqual(h, .3)
+        self.assertIn("case Typ.Bloto: return 26f;", TOR)
+        # the quad in it: the tyre holds 55 %, the mud drags at 0.25 of the load; the rivals slow to 29 km/h for it
+        self.assertIn("float lim = przyczepnosc * sila * (bl ? .55f : 1f);", KLAD)
+        self.assertIn("if (bl) wzdluz -= Mathf.Clamp(vLon * masa * .25f / dt, -.25f * sila, .25f * sila);", KLAD)
+        self.assertIn("case Typ.Bloto: if (t > -10f && t < q.dl) v = Mathf.Min(v, 8f); break;", TOR)
+        self.assertIn("public static bool WBlocie(Vector3 p)", BLOTO)
+
+    def test_dust_and_mud_particles(self):
+        # no particle module in the project: soft billboards in one mesh per kind
+        self.assertNotIn("ParticleSystem", BLOTO)
+        self.assertIn("pPyl = new Pula(160); pBloto = new Pula(140);", BLOTO)
+        self.assertIn("if (i >= 2) Wyrzut(hit.point, vLon, bl, wf);", KLAD)
+        self.assertIn("foreach (var m in new[] { c.pyl, c.grudki }) { m.SetFloat(\"_VertexTint\", 1f); EditorUtility.SetDirty(m); }", TOR)
+        self.assertIn("if (mokre) q.v[i] += Vector3.down * (9.81f * K * dt);", BLOTO)            # the clumps on the world's gravity
+        meta = (RT / "BraxChampionsBloto.cs.meta").read_text(encoding="utf-8")
+        self.assertRegex(meta, r"guid: [0-9a-f]{32}\n")
 
 
 if __name__ == "__main__":

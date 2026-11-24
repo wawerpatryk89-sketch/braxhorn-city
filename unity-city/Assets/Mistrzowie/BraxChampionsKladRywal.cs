@@ -9,7 +9,7 @@ using UnityEngine;
 //     their radius and the berm's bank, the obstacles' caps, the braking for what comes), times the rider's skill - except
 //     on a double's run-up, where the speed is the jump's own;
 //   - in the air nothing (the rider's body brings the nose, BraxChampionsKlad), no tricks;
-//   - a slower rider ahead on its lane: it moves over to pass;
+//   - a slower rider ahead on its lane: it moves over to pass; a split stretch of the track ahead: its right line;
 //   - on its back, stuck or off the track for a while: back on its lane where it was (as a marshal would set it up).
 [DisallowMultipleComponent]
 [DefaultExecutionOrder(5090)]                                    // the hands before the quad's own physics step
@@ -74,6 +74,9 @@ public sealed class BraxChampionsKladRywal : MonoBehaviour
             if (lp.z > 0f && lp.z < 9f && Mathf.Abs(lp.x) < 1.6f && inny.PredkoscKmh < k.PredkoscKmh + 3f)
             { cel = pas + (lp.x > 0f ? -1.8f : 1.8f); break; }
         }
+        // a split stretch ahead (the track's side lines): the right line, its rollers (the left one's gap jump is the player's)
+        int jp = (Idx + Mathf.Max(2, Mathf.RoundToInt((4.5f + v * .5f) / w.krok))) % n;
+        if (w.prawa.Length == n && (w.prawa[Idx] || w.prawa[jp])) cel = Mathf.Clamp(cel, -2.6f, -1.1f);
         pasTeraz = Mathf.MoveTowards(pasTeraz, Mathf.Clamp(cel, -2.6f, 2.6f), 1.4f * dt);
 
         // ---- the bars: pure pursuit of the lane's point ahead

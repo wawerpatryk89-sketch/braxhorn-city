@@ -58,7 +58,9 @@ POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_
                  'medieval_red_brick','castle_wall_varriation',
                  # 24.11 owner (the quad track: "tor do kładów ... górki, pagórki, wyskoki"): the riding surface with its tyre ruts,
                  # the shoulders' packed soil, the paddock's and the road's gravel - no dirt on his list (ZASADY 5.8)
-                 'muddy_tracks','brown_mud_02','gravel_ground_01')
+                 'muddy_tracks','brown_mud_02','gravel_ground_01',
+                 # 24.11 12:57 owner's pick "Boczne linie i błoto": the mud pit's dark wet mud with its ruts (Poly Haven, 8 m)
+                 'aerial_mud_1')
 POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'),('arm','png'))
 # Owner 10.11 19:12 ("Nieba też brak", "I panorama realistyczną HDR 360"): the region's sky is a real 360 HDR panorama
 # (Poly Haven CC0), the original 4K Radiance .hdr checked against the provider's size and MD5 (BraxChampionsSky imports it

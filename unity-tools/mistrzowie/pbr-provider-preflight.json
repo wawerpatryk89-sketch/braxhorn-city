@@ -8186,5 +8186,83 @@
         }
       }
     }
+  },
+  "aerial_mud_1": {
+    "Diffuse": {
+      "4k": {
+        "jpg": {
+          "size": 8512539,
+          "md5": "ecb320c6d9936961bb4454a710933d30",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/aerial_mud_1/aerial_mud_1_diff_4k.jpg"
+        },
+        "png": {
+          "size": 33261556,
+          "md5": "dfc0fcfc8edf18f4e9d720a4596d2113",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/aerial_mud_1/aerial_mud_1_diff_4k.png"
+        },
+        "exr": {
+          "size": 29362561,
+          "md5": "d0fb6d7313c052d7b2ec8085723df531",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/aerial_mud_1/aerial_mud_1_diff_4k.exr"
+        }
+      }
+    },
+    "nor_gl": {
+      "4k": {
+        "jpg": {
+          "size": 10022663,
+          "md5": "d206160f0cbcde0f3cce1c2d03ab2b0b",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/aerial_mud_1/aerial_mud_1_nor_gl_4k.jpg"
+        },
+        "png": {
+          "size": 25733358,
+          "md5": "2f501fa461af689aeb5ff18c0f624ad0",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/aerial_mud_1/aerial_mud_1_nor_gl_4k.png"
+        },
+        "exr": {
+          "size": 25441817,
+          "md5": "b819d00242023f3e2b7d0770640e1e59",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/aerial_mud_1/aerial_mud_1_nor_gl_4k.exr"
+        }
+      }
+    },
+    "Rough": {
+      "4k": {
+        "jpg": {
+          "size": 5020157,
+          "md5": "29957de22267f30fa50fccb3cfe1ab17",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/aerial_mud_1/aerial_mud_1_rough_4k.jpg"
+        },
+        "png": {
+          "size": 8235274,
+          "md5": "37e2d1f16b5806573a33325da2e36a3a",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/aerial_mud_1/aerial_mud_1_rough_4k.png"
+        },
+        "exr": {
+          "size": 12679276,
+          "md5": "ace218539f9adc59f28fe0f5aaa74bce",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/aerial_mud_1/aerial_mud_1_rough_4k.exr"
+        }
+      }
+    },
+    "arm": {
+      "4k": {
+        "jpg": {
+          "size": 3330435,
+          "md5": "9240c78fece0671652ac7ba96a74471a",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/aerial_mud_1/aerial_mud_1_arm_4k.jpg"
+        },
+        "png": {
+          "size": 25946496,
+          "md5": "774e915697a362f6041c115c2dbe2726",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/4k/aerial_mud_1/aerial_mud_1_arm_4k.png"
+        },
+        "exr": {
+          "size": 27299023,
+          "md5": "f813663a40e25d316462f3d291594f88",
+          "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/aerial_mud_1/aerial_mud_1_arm_4k.exr"
+        }
+      }
+    }
   }
 }

@@ -393,7 +393,8 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
             var wf = Vector3.ProjectOnPlane(st * fwd, n0).normalized; var wr = Vector3.Cross(n0, wf);
             var vp = rb.GetPointVelocity(hit.point);
             float vLat = Vector3.Dot(vp, wr), vLon = Vector3.Dot(vp, wf);
-            float lim = przyczepnosc * sila;
+            bool bl = BraxChampionsBloto.WBlocie(hit.point);                // the mud pit: the tyre holds 55 %
+            float lim = przyczepnosc * sila * (bl ? .55f : 1f);
             float boczna = Mathf.Clamp(-vLat * masa * .25f / dt * .55f, -lim, lim);
             float wzdluz = 0f;
             bool napedowe = naprzod4x4 || i >= 2;
@@ -410,7 +411,10 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
             if (gaz == 0f && hamulec == 0f) wzdluz -= Mathf.Clamp(vLon * masa * .25f * .35f, -lim * .3f, lim * .3f);   // engine braking, rolling
             float razem = Mathf.Sqrt(boczna * boczna + wzdluz * wzdluz);
             if (razem > lim && razem > 0f) { boczna *= lim / razem; wzdluz *= lim / razem; }
+            // the deep wet mud drags at the tyre (rolling resistance 0.25 of its load), never past stopping it
+            if (bl) wzdluz -= Mathf.Clamp(vLon * masa * .25f / dt, -.25f * sila, .25f * sila);
             rb.AddForceAtPosition(wr * boczna + wf * wzdluz, hit.point);
+            if (i >= 2) Wyrzut(hit.point, vLon, bl, wf);
         }
         // the yaw of a steered machine never faster than its tyres hold (as the A1 car: ~1.6 g at the arcade grip)
         if (ileNaZiemi >= 2)
@@ -443,6 +447,19 @@ public sealed class BraxChampionsKlad : MonoBehaviour, IBraxInterakcja
         // the wheels keep the speed they left the ground with (a flip turns the quad, not its tyres)
         vKol = ileNaZiemi > 0 ? vNaprzod : vKol * (1f - .3f * dt);
         Kola(dt, vKol);
+    }
+
+    // what a rear wheel throws: clumps back and up out of the mud (more on the throttle), a dust cloud off the dry track at speed
+    void Wyrzut(Vector3 p, float vLon, bool bl, Vector3 wf)
+    {
+        float v = Mathf.Abs(vLon) / Mathf.Max(.01f, K);                      // real m/s
+        if (bl)
+        {
+            if (UnityEngine.Random.value < Mathf.Clamp01((v + gaz * 6f) / 12f) * .6f)
+                BraxChampionsBloto.Wyrzuc(p + Vector3.up * (.1f * K), (-wf * (v * .45f + gaz * 3f) + Vector3.up * UnityEngine.Random.Range(2f, 4.5f) + UnityEngine.Random.insideUnitSphere * 1.2f) * K, true);
+        }
+        else if (v > 7f && UnityEngine.Random.value < Mathf.Clamp01((v - 7f) / 18f) * .35f)
+            BraxChampionsBloto.Wyrzuc(p + Vector3.up * (.2f * K), (-wf * v * .15f + Vector3.up * .8f + UnityEngine.Random.insideUnitSphere * .8f) * K, false);
     }
 
     // ---------------------------------------------------------------- freestyle: the time in the air, the tricks, the landing

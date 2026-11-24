@@ -4,9 +4,10 @@ using UnityEngine;
 public class AudioClip : Object { }
 public sealed class BraxChampionsTorCzas : MonoBehaviour { public Vector3[] punkty = new Vector3[0]; public float polSzerokosci; }
 public sealed class BraxChampionsKladRywal : MonoBehaviour { public string imie; public int numer; public float umiejetnosc, pas, rozstawOsi; public Vector3 parking; public Quaternion parkingObrot; }
+public sealed class BraxChampionsBloto : MonoBehaviour { public Vector3[] srodek, wzdluz; public float[] polDl, polSzer; public Material pyl, grudki; public float K; }
 public sealed class BraxChampionsWyscig : MonoBehaviour
 {
-    public Vector3[] punkty, lewo, sloty; public float[] vCel; public bool[] skok; public float krok, dlugosc, sMety, polSzerokosci, K, strefaPromien; public int okrazen;
+    public Vector3[] punkty, lewo, sloty; public float[] vCel; public bool[] skok, prawa; public float krok, dlugosc, sMety, polSzerokosci, K, strefaPromien; public int okrazen;
     public Quaternion kierunekStartu, belkaGora, belkaDol; public Transform[] belki; public BraxChampionsKladRywal[] rywale; public Renderer tablica; public Vector3 strefaStartu;
 }
 public static class BraxChampionsKlady
