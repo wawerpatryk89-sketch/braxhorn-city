@@ -42,6 +42,17 @@ START_PO_GENEROWANIU = {
     'Assets/Claude/BraxEkranStartowy.cs',
 }
 
+# 24.11 (run 45369837017, drugi przebieg APK z tego samego commita co 45333989587): klucz wyszedł inny (cf660bdc… →
+# 0fd8779b…, grupa dane/Source/Claude), zapisany świat nie pasował, generowanie od nowa w kroku APK i runner padł po 3,5 h.
+# Przyczyna: pokwitowania pobierania tekstur (fetch_region.py / fetch_polyhaven.py) zapisują stan TEGO przebiegu —
+# „ok” + rozmiary przy pobraniu, „already”/„cached” przy trafieniu w pamięć cc0 (artefakt claude-cc0 różnił się o 352 B).
+# To raporty, nie wejście generatora (nikt ich nie czyta) — poza kluczem, żeby etap 1 i etap 2 miały ten sam klucz.
+RAPORTY_POBIERANIA = {
+    'Assets/Source/Claude/PolyHaven/region-fetch.json',
+    'Assets/Source/Claude/PolyHaven/polyhaven-receipt.json',
+}
+RAPORTY_POBIERANIA |= {r + '.meta' for r in RAPORTY_POBIERANIA}
+
 # Pliki generatora WYŁĄCZNIE drugiego rejonu (ścieżki względem unity-city/). Kod gry (Assets/Claude, Assets/City, …),
 # pliki wspólne edytora (BraxGymBuild, BraxCityBuild, BraxClaudeSiatki, BraxClaudeBezSwiecenia, BraxClaudeObszary,
 # BraxClaudeSufity, BraxClaudeGlosniki, BraxGymPremium, BraxHeroRefinements, postprocesory tekstur …) wchodzą do OBU kluczy.
@@ -203,7 +214,7 @@ def klucz(uc: pathlib.Path, rejon: str, platforma: str, unity: str):
     wz = wzorce(rejon)
     poza = [r for r in wszystkie if pasuje(r, wz)]
     zbior_poza = set(poza)
-    w_kluczu = [r for r in wszystkie if r not in zbior_poza and r not in START_PO_GENEROWANIU]
+    w_kluczu = [r for r in wszystkie if r not in zbior_poza and r not in START_PO_GENEROWANIU and r not in RAPORTY_POBIERANIA]
     # Bezpiecznik: plik drugiego rejonu, do którego odwołuje się kod z klucza (poza ZNANE), wraca do klucza.
     # (Nie wykrywa wywołań bez nazwy typu między plikami jednej klasy częściowej — tylko Typ.Członek i nazwy typów.)
     teksty = {r: czysty((uc / r).read_text(encoding='utf-8', errors='replace')) for r in wszystkie if r.endswith('.cs')}
@@ -247,6 +258,14 @@ def klucz(uc: pathlib.Path, rejon: str, platforma: str, unity: str):
         g[2] += p.stat().st_size if not p.is_symlink() else 0
     for nazwa, (h, n, b) in sorted(grupy.items()):
         log(f'BRAXHORN_KLUCZ grupa={nazwa} plikow={n} MB={b / 1048576:.1f} sha={h.hexdigest()[:12]}')
+    # dane/Source/Claude (ok. 2700 plików, 2 GB) rozbite na podkatalogi — przy różnym kluczu widać, który się zmienił
+    pod = {}
+    for r in w_kluczu:
+        cz = r.split('/')
+        if len(cz) > 4 and cz[1] == 'Source' and cz[2] == 'Claude':
+            h = pod.setdefault(cz[3], hashlib.sha256()); h.update(f'{r}\0{sha(uc / r)}\n'.encode())
+    for nazwa, h in sorted(pod.items()):
+        log(f'BRAXHORN_KLUCZ podgrupa=dane/Source/Claude/{nazwa} sha={h.hexdigest()[:12]}')
     log(f'BRAXHORN_KLUCZ poza kluczem (generator drugiego rejonu): {len([p for p in poza if p.endswith(".cs")])} plików .cs')
     return f'braxhorn-rejon-v{WERSJA}-{rejon}-{platforma}-{calosc.hexdigest()[:40]}'
 

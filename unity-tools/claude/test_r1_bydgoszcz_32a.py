@@ -273,3 +273,21 @@ def test_balkon_dj_na_rynku():
     las = (R / "unity-city/Assets/Claude/Runtime/BraxLaseryBalkonu.cs").read_text(encoding="utf-8")
     assert "JestNoc()" in las and "slonceNoc" in las and "AddComponent<BraxLaseryBalkonu>()" in cs and "Braxhorn/WnetrzaPromien" in cs
     assert (R / "unity-city/Assets/Claude/Shaders/BraxWnetrzaPromien.shader").exists()
+
+
+def test_klucz_rejonu_bez_pokwitowan_pobierania(tmp_path):
+    """24.11 (run 45369837017): drugi przebieg z tego samego commita dostał inny klucz rejonu, bo pokwitowania pobierania
+    tekstur (region-fetch.json, polyhaven-receipt.json) zapisują stan przebiegu („ok”/„already”) — zapisany świat nie
+    pasował. Klucz nie może zależeć od ich treści (etap 1 i etap 2 muszą mieć ten sam klucz)."""
+    import importlib.util
+    from pathlib import Path
+    spec = importlib.util.spec_from_file_location("rejon_buildu_t", Path(__file__).resolve().parent / "rejon_buildu.py")
+    rb = importlib.util.module_from_spec(spec); spec.loader.exec_module(rb)
+    uc = tmp_path / "unity-city"; ph = uc / "Assets/Source/Claude/PolyHaven"; ph.mkdir(parents=True)
+    (ph / "bricks/diffuse.jpg").parent.mkdir(); (ph / "bricks/diffuse.jpg").write_bytes(b"jpg")
+    for n in ("region-fetch.json", "polyhaven-receipt.json"): (ph / n).write_text('{"textures": {"a": "ok", "b": 123}}')
+    k1 = rb.klucz(uc, "miasto", "android", "6000.0.58f2")
+    for n in ("region-fetch.json", "polyhaven-receipt.json"): (ph / n).write_text('{"textures": {"a": "already"}}')
+    assert rb.klucz(uc, "miasto", "android", "6000.0.58f2") == k1
+    (ph / "bricks/diffuse.jpg").write_bytes(b"jpg2")                      # prawdziwe wejście dalej zmienia klucz
+    assert rb.klucz(uc, "miasto", "android", "6000.0.58f2") != k1
