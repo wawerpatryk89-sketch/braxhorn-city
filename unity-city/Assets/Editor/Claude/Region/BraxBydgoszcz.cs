@@ -265,7 +265,7 @@ public static class BraxBydgoszcz
         int barier = Bezpiecznie(przedrostek + " bariery", () => Bariery(root, Swiat, punkty));
         int drzew = Bezpiecznie(przedrostek + " drzewa", () => Drzewa(root, Swiat, punkty));
         int modeli = Bezpiecznie(przedrostek + " modele właściciela", () => ModeleWlasciciela(root, Swiat, punkty));
-        int muzyk = Bezpiecznie(przedrostek + " muzyka", () => Muzyka(root, Swiat, punkty, maty));
+        int muzyk = Bezpiecznie(przedrostek + " muzyka", () => Muzyka(root, Swiat, punkty, maty, katalogSiatek));
         int akcji = Bezpiecznie(przedrostek + " akcje", () => Akcje(root, Swiat, Obok(sciezka, przedrostek, "akcje.json")));
         Bezpiecznie(przedrostek + " maska trawy", () => { TrawaMaska(root, Obok(sciezka, przedrostek, "trawa_maska.bin"), katalogSiatek); return 1; });
         int lodow = Bezpiecznie(przedrostek + " LOD", () => Zasiegi(root));
@@ -309,7 +309,7 @@ public static class BraxBydgoszcz
         int n = 0;
         foreach (Transform g in root)
         {
-            if (!g || g.name.StartsWith("teren") || g.GetComponent<LODGroup>()) continue;
+            if (!g || g.name.StartsWith("teren") || g.GetComponent<LODGroup>() || g.GetComponent<BraxClaudeMuzyka>()) continue;   // lasery: 45 m, ruchome
             var rs = g.GetComponentsInChildren<MeshRenderer>(true); if (rs.Length == 0) continue;
             bool drobne = g.name.StartsWith("wyposazenie") || g.name.StartsWith("budki") || g.name.StartsWith("zielen");
             var lod = g.gameObject.AddComponent<LODGroup>();
@@ -413,7 +413,7 @@ public static class BraxBydgoszcz
     /// g2z, materiał świateł, bpm, faza], metry). 24.11, 14:09 właściciel: balkon z DJ-em na Starym Rynku — „sprzęt DJ, głośniki
     /// i muzyka leci”. BraxClaudeMuzyka (jak dyskoteka osiedla): „sala” = plac przed kamienicą (pełne pasmo, głośniej przy
     /// kolumnach), dalej zza budynków stłumiona; suwak muzyki z ustawień działa (BraxUstawienia). Diody pulsują w rytm.</summary>
-    static int Muzyka(Transform root, Func<float, float, float, Vector3> swiat, string p, Dictionary<string, Material> maty)
+    static int Muzyka(Transform root, Func<float, float, float, Vector3> swiat, string p, Dictionary<string, Material> maty, string katalog)
     {
         if (!File.Exists(p)) return 0;
         string json = File.ReadAllText(p);
@@ -456,10 +456,68 @@ public static class BraxBydgoszcz
                 if (float.TryParse(pola[14], fs, ci, out float bpm)) puls.bpm = bpm;
                 if (float.TryParse(pola[15], fs, ci, out float faza)) puls.faza = faza;
             }
+            // 24.11, 14:40 właściciel: „daj lasery, że w nocy będą odpalać, ruszające się i migające” — dwie głowice na narożnikach
+            // balustrady (pola 16–21), kierunek frontu (22–23); wachlarze promieni (shader klubu NOVA: addytywny, bez głębi)
+            var l = new float[8]; bool okL = pola.Length >= 24;
+            for (int k = 0; okL && k < 8; k++) okL &= float.TryParse(pola[16 + k], fs, ci, out l[k]);
+            if (okL)
+            {
+                var promien = Wachlarz("laser_balkonu_wachlarz", 7, 44f, 45f * K, .012f * K, .14f * K, katalog);
+                var piv = new List<Transform>();
+                for (int i = 0; i < 2 && promien; i++)
+                {
+                    var lm = LaserMaterial("laser_balkonu_" + (i + 1), i == 0 ? new Color(.15f, 1f, .25f) : new Color(1f, .15f, .7f), katalog);
+                    if (!lm) break;
+                    var t = new GameObject("laser balkonu " + (i + 1)).transform; t.SetParent(go.transform, true);
+                    t.position = swiat(l[i * 3], l[i * 3 + 1], l[i * 3 + 2]);
+                    t.rotation = Quaternion.LookRotation(new Vector3(l[6], 0f, l[7]), Vector3.up);
+                    var w = new GameObject("wachlarz promieni"); w.transform.SetParent(t, false);
+                    w.AddComponent<MeshFilter>().sharedMesh = promien;
+                    var wr = w.AddComponent<MeshRenderer>(); wr.sharedMaterial = lm; wr.shadowCastingMode = ShadowCastingMode.Off; wr.receiveShadows = false;
+                    piv.Add(t);
+                }
+                if (piv.Count > 0)
+                {
+                    var las = go.AddComponent<BraxLaseryBalkonu>(); las.lasery = piv.ToArray(); las.bpm = float.TryParse(pola[14], fs, ci, out float bl) ? bl : 138f;
+                    if (float.TryParse(pola[15], fs, ci, out float fl)) las.faza = fl;
+                }
+            }
             licz++;
             Debug.Log("BRAXHORN_BYDGOSZCZ_MUZYKA " + clip.name + " " + clip.length.ToString("F0") + " s, plac " + b.size + ", głośniki " + mz.glosniki.Length);
         }
         return licz;
+    }
+
+    /// <summary>Wachlarz promieni lasera (jak w klubie NOVA): każdy promień = dwa skrzyżowane pasy od głowicy (uv.y 0 → 1 wzdłuż),
+    /// rozpiętość w stopniach wokół osi pionowej, jednostki gry.</summary>
+    static Mesh Wachlarz(string nazwa, int ile, float rozp, float dl, float w0, float w1, string katalog)
+    {
+        var v = new List<Vector3>(); var uv = new List<Vector2>(); var tr = new List<int>();
+        for (int i = 0; i < ile; i++)
+        {
+            float a = ile == 1 ? 0f : Mathf.Lerp(-rozp * .5f, rozp * .5f, i / (float)(ile - 1));
+            var d = Quaternion.Euler(0f, a, 0f) * Vector3.forward;
+            foreach (var bok in new[] { Vector3.Cross(Vector3.up, d).normalized, Vector3.up })
+            {
+                int k = v.Count;
+                v.Add(-bok * w0); v.Add(bok * w0); v.Add(d * dl + bok * w1); v.Add(d * dl - bok * w1);
+                uv.Add(new Vector2(0f, 0f)); uv.Add(new Vector2(1f, 0f)); uv.Add(new Vector2(1f, 1f)); uv.Add(new Vector2(0f, 1f));
+                tr.AddRange(new[] { k, k + 1, k + 2, k, k + 2, k + 3 });
+            }
+        }
+        var m = new Mesh { name = "Bydgoszcz " + nazwa }; m.SetVertices(v); m.SetUVs(0, uv); m.SetTriangles(tr, 0); m.RecalculateBounds();
+        try { BraxZapisAssetu.Utworz(m, katalog + "/" + nazwa + ".asset"); } catch (Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_BYDGOSZCZ laser: " + e.Message); }
+        return m;
+    }
+
+    static Material LaserMaterial(string nazwa, Color c, string katalog)
+    {
+        var sh = Shader.Find("Braxhorn/WnetrzaPromien");
+        if (!sh) { BraxRegion.Note("Bydgoszcz: brak shadera Braxhorn/WnetrzaPromien — balkon bez laserów"); return null; }
+        var m = new Material(sh) { name = "Bydgoszcz: " + nazwa };
+        m.SetColor("_Tint", c); m.SetFloat("_Moc", 1.6f);
+        try { BraxZapisAssetu.Utworz(m, katalog + "/" + nazwa + ".mat"); } catch (Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_BYDGOSZCZ laser: " + e.Message); }
+        return m;
     }
 
     [Serializable] class AkcjaJ { public string id, etykieta, odpowiedz, mowca; public float x, y, z, promien = 1.7f, kier_x, kier_z; }

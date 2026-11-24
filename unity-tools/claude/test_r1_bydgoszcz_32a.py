@@ -257,7 +257,9 @@ def test_balkon_dj_na_rynku():
     pk = json.loads((R / "unity-tools/claude/rynek_bdg/gen/rynek_punkty.json").read_text(encoding="utf-8"))
     assert list(pk)[-1] == "modele" and len(pk["muzyka"]) == 1
     m = pk["muzyka"][0]
-    assert (R / "unity-city/Assets/Claude/Audio" / m[0]).exists() and len(m) == 16
+    assert (R / "unity-city/Assets/Claude/Audio" / m[0]).exists() and len(m) == 24
+    # 14:40 lasery: dwie głowice na balustradzie (wysokość balkonu + ok. 1,1 m), kierunek frontu jednostkowy
+    assert 9 < m[17] < 11 and 9 < m[20] < 11 and abs(m[22] ** 2 + m[23] ** 2 - 1) < 1e-3
     x0, z0, x1, z1 = m[1:5]; assert x1 - x0 > 20 and z1 - z0 > 20                  # plac przed kamienicą
     assert 9 < m[8] < 11 and 9 < m[11] < 11                                         # kolumny na balkonie II piętra
     assert m[13] == "dj_led" and 120 < m[14] < 150
@@ -265,6 +267,9 @@ def test_balkon_dj_na_rynku():
     assert paleta.P["dj_led"]["emisja"] > 0 and paleta.P["dj_baner"]["nakl"] == "dj_baner.png"
     assert (R / "unity-city/Assets/Source/Claude/Bydgoszcz/dj_baner.png").exists()
     cs = (R / "unity-city/Assets/Editor/Claude/Region/BraxBydgoszcz.cs").read_text(encoding="utf-8")
-    assert "Muzyka(root, Swiat, punkty, maty)" in cs and "AddComponent<BraxClaudeMuzyka>()" in cs and "BraxPulsSwiatla" in cs
+    assert "Muzyka(root, Swiat, punkty, maty, katalogSiatek)" in cs and "AddComponent<BraxClaudeMuzyka>()" in cs and "BraxPulsSwiatla" in cs
     assert "d.emisja > 0f" in cs and 'mat.StartsWith("dj_")' in cs
     assert (R / "unity-city/Assets/Claude/Runtime/BraxPulsSwiatla.cs").exists()
+    las = (R / "unity-city/Assets/Claude/Runtime/BraxLaseryBalkonu.cs").read_text(encoding="utf-8")
+    assert "JestNoc()" in las and "slonceNoc" in las and "AddComponent<BraxLaseryBalkonu>()" in cs and "Braxhorn/WnetrzaPromien" in cs
+    assert (R / "unity-city/Assets/Claude/Shaders/BraxWnetrzaPromien.shader").exists()

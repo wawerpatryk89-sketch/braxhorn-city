@@ -127,5 +127,17 @@ def zbuduj(S, P, rynek, g="wyposazenie_balkon_dj"):
     # stłumiona, cichnie do 40 m); prostokąt osiowy (x, z) w metrach
     rog = [c + t * a + n * b for a in (-22, 22) for b in (.5, 45)]
     x0, x1 = min(p[0] for p in rog), max(p[0] for p in rog); z0, z1 = min(p[2] for p in rog), max(p[2] for p in rog)
-    wpis = [UTWOR, round(x0, 2), round(z0, 2), round(x1, 2), round(z1, 2), 14.0, .7] + glosniki[0] + glosniki[1] + ["dj_led", BPM, FAZA]
+    # lasery (24.11, 14:40 właściciel: „daj lasery, że w nocy będą odpalać, ruszające się i migające”): dwie głowice
+    # laserowe na narożnych słupkach balustrady od placu, czarna obudowa 0,22 × 0,14 × 0,3 m, okienko wylotu ku placowi;
+    # wachlarze promieni, ruch i miganie liczy gra (BraxLaseryBalkonu) — tylko nocą (słońce nisko albo zgaszone)
+    lasery = []
+    for s_ in (-1, 1):
+        u = s_ * (W / 2 - .05)
+        o = Q(u - .11, yb + hb + .065, wf - .15)                       # 5 mm nad słupkiem (bez wspólnej płaszczyzny)
+        S.box(g, "dj_czarny", o, t, UP, n, .22, .14, .3)
+        S.quad(g, "dj_led", Q(u - .05, yb + hb + .09, wf + .156), Q(u + .05, yb + hb + .09, wf + .156), Q(u + .05, yb + hb + .17, wf + .156),
+               Q(u - .05, yb + hb + .17, wf + .156), kier=n)
+        lasery.append([round(float(x), 2) for x in Q(u, yb + hb + .13, wf + .16)])
+    wpis = [UTWOR, round(x0, 2), round(z0, 2), round(x1, 2), round(z1, 2), 14.0, .7] + glosniki[0] + glosniki[1] + ["dj_led", BPM, FAZA] \
+        + lasery[0] + lasery[1] + [round(float(n[0]), 4), round(float(n[2]), 4)]
     return wpis, (A, B, t, n, L)
