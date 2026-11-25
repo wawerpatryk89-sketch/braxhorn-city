@@ -221,3 +221,94 @@ def bosna_otwarta(S, P, c, s, g="budki"):
         for k in range(2):
             w_ = nrm(ex + s) if k == 0 else nrm(ex - s); cc = q + UP * .14
             S.quad(g, "zywoplot_galazki", cc - w_ * .14, cc + w_ * .14, cc + w_ * .14 + UP * .26, cc - w_ * .14 + UP * .26, uv_o=cc - w_ * .14)
+
+
+# ---- 25.11 (właściciel 17:06: „cały market na około plus budki z jedzeniem, jak są ustawione i jakie są”; Street View
+# IMG_2145–2149): w rzędzie wzdłuż ulicy na zachód od przystanku — kiosk „BAR”, kosze, przyczepa z burgerami, kontener
+# z kebabem, drewniany pawilon z kawą i lodami; girlanda żarówek na słupach, płotek z palet, hydrant, szafka energetyczna.
+# Napisy ogólne, bez nazw lokali. Układ: o = środek podstawy, t wzdłuż ulicy, n przodem do ulicy.
+
+def kiosk_bar(S, o, t, n, g="budki"):
+    """Kiosk (IMG_2145/2148): granatowe płyty z pomarańczowymi listwami, 3 okienka z białymi roletami, drzwi z boku,
+    płaski biały daszek z pasem napisu „BAR”. 4,2 × 3,0 × 2,6 m."""
+    L, D, H = 4.2, 3.0, 2.55
+    _B(S, g, "kiosk_granat", o, t, n, L, H, D)
+    for k, u in enumerate((-1.35, -.2, .95)):                                   # okienka z roletami od ulicy
+        c = o + t * u + n * (D / 2 + .01)
+        _B(S, g, "roleta_biala", c + UP * .9, t, n, 1.0, 1.3, .03)
+        for (du, dv, w, h) in ((-.53, .85, .06, 1.42), (.53, .85, .06, 1.42), (0, .85, 1.12, .06), (0, 2.21, 1.12, .06)):
+            _B(S, g, "kiosk_listwa", c + t * du + UP * dv, t, n, w, h, .05)
+    d = o + t * (L / 2 + .01) + n * .6                                              # drzwi na boku
+    _B(S, g, "kiosk_granat", d + UP * .05, n, t, .9, 2.05, .04)
+    _B(S, g, "kiosk_listwa", d + UP * 2.1, n, t, 1.0, .06, .05)
+    _B(S, g, "kiosk_bialy", o + UP * H, t, n, L + .6, .55, D + .6)                 # daszek z pasem
+    _szyld(S, g, "szyld_bar", o + UP * (H + .05) + n * (D / 2 + .31), n, L * .7, .45)
+
+
+def przyczepa_burger(S, o, t, n, g="budki"):
+    """Przyczepa gastronomiczna (IMG_2147): żółta, górny pas w czarne pionowe paski, duże okno od boku, na dachu
+    billboard z napisem i okap wyciągu; koła. 6,0 × 2,5 × 2,4 m na wysokości 0,6 m."""
+    L, D, H, Y = 6.0, 2.5, 2.4, .6
+    _B(S, g, "przyczepa_zolta", o + UP * Y, t, n, L, H, D)
+    for k in range(int(L / .35)):                                                   # paski u góry obu długich boków
+        u = -L / 2 + .2 + k * .35
+        for s in (1, -1):
+            _B(S, g, "pas_czarny", o + t * u + n * s * (D / 2 + .01) + UP * (Y + H - .75), t, n, .14, .6, .02)
+    _B(S, g, "szyba_wiata", o + t * 1.3 + n * (D / 2 + .02) + UP * (Y + .7), t, n, 2.4, 1.2, .02)
+    _B(S, g, "kiosk_wnetrze", o + t * 1.3 + n * (D / 2 - .05) + UP * (Y + .7), t, n, 2.3, 1.15, .04)
+    for u in (-1.2, -.4):
+        S.rura(g, "opona", o + t * u - n * (D / 2 + .1) + UP * .35, o + t * u + n * (D / 2 + .1) + UP * .35, .35, seg=12)
+    _B(S, g, "stal", o + t * 1.8 + UP * (Y + H), t, n, 1.1, .5, .8)                # okap wyciągu
+    _B(S, g, "stal", o - t * .8 + UP * (Y + H), t, n, .08, 1.0, .08)
+    c = o - t * .8 + UP * (Y + H + 1.0) + n * .05
+    _B(S, g, "pas_czarny", c, t, n, 3.0, 1.5, .08)
+    _szyld(S, g, "szyld_burger", c + UP * .05 + n * .05, n, 2.9, 1.4)
+
+
+def kontener_kebab(S, o, t, n, g="budki"):
+    """Kontener (IMG_2146/2149): czarny, czerwone pasy u dołu i u góry, drzwi i okienko wydawcze, na dachu napis KEBAB.
+    5,0 × 2,4 × 2,5 m."""
+    L, D, H = 5.0, 2.4, 2.5
+    _B(S, g, "kontener_czarny", o, t, n, L, H, D)
+    for (y, h) in ((.25, .35), (H - .45, .45)):
+        _B(S, g, "przyczepa_czerwona", o + UP * y, t, n, L + .02, h, D + .02)
+    _B(S, g, "kiosk_wnetrze", o + t * -.8 + n * (D / 2 + .01) + UP * 1.0, t, n, 1.6, .9, .03)
+    _B(S, g, "stal", o + t * -.8 + n * (D / 2 + .12) + UP * .98, t, n, 1.7, .04, .25)
+    _B(S, g, "kontener_czarny", o + t * 1.6 + n * (D / 2 + .01), t, n, .9, 2.05, .03)
+    _szyld(S, g, "szyld_kebab", o + UP * H + n * (D / 2 - .2), n, 3.2, .8)
+
+
+def pawilon_kawa(S, o, t, n, g="budki"):
+    """Drewniany pawilon z kawą i lodami (IMG_2149, 2146): deski, przeszklony front, okrągłe logo na boku, pergola
+    z drewnianych słupów przed frontem, napis na dachu. 5,5 × 3,5 × 2,8 m + pergola 3,0 m."""
+    L, D, H = 5.5, 3.5, 2.8
+    _B(S, g, "drewno_pawilon", o, t, n, L, H, D)
+    _B(S, g, "szyba_wiata", o + n * (D / 2 + .01) + UP * .4, t, n, L - 1.0, 2.1, .02)
+    _B(S, g, "kiosk_wnetrze", o + n * (D / 2 - .05) + UP * .4, t, n, L - 1.1, 2.05, .04)
+    S.rura(g, "pas_czarny", o + t * (L / 2) + UP * 1.5, o + t * (L / 2 + .03) + UP * 1.5, .7, seg=20)
+    _B(S, g, "drewno_pawilon", o + UP * H, t, n, L + .4, .2, D + .4)
+    for u in (-L / 2 + .1, 0, L / 2 - .1):                                              # pergola przed frontem
+        _B(S, g, "drewno_pawilon", o + t * u + n * (D / 2 + 2.9), t, n, .14, 2.6, .14)
+    for u in (-L / 2 + .1, L / 2 - .1):
+        _B(S, g, "drewno_pawilon", o + t * u + n * (D / 2 + 1.5) + UP * 2.5, n, t, 3.0, .14, .14)
+    _B(S, g, "drewno_pawilon", o + n * (D / 2 + 2.9) + UP * 2.5, t, n, L, .14, .14)
+    _szyld(S, g, "szyld_kawa", o + UP * (H + .2) + n * (D / 2 - .1), n, 3.4, .7)
+
+
+def girlanda(S, a, b, g="budki"):
+    """Słupy 4,5 m i sznur żarówek (IMG_2146/2149) z ugięciem 0,6 m."""
+    for p in (a, b):
+        S.rura(g, "stal", p, p + UP * 4.5, .05, seg=8)
+    L = float(np.linalg.norm(b - a)); k = max(6, int(L / .8))
+    for i in range(k + 1):
+        s = i / k; p = a + (b - a) * s + UP * (4.35 - .6 * 4 * s * (1 - s))
+        S.rura(g, "zarowka", p - UP * .06, p + UP * .02, .045, seg=6)
+
+
+def palety(S, o, t, n, L, g="budki"):
+    """Płotek z palet 0,8 m (IMG_2149)."""
+    for k in range(int(L / 1.2)):
+        c = o + t * (-L / 2 + .6 + k * 1.2)
+        for y in (.1, .35, .6):
+            _B(S, g, "paleta_drewno", c + UP * y, t, n, 1.15, .12, .1)
+        _B(S, g, "paleta_drewno", c + UP * 0, t, n, .1, .8, .12)

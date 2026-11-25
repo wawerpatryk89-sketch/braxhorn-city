@@ -154,7 +154,11 @@ def szyldy(out):
                               ("szyld_burger.png", [("BURGERY", .58), ("100% WOŁOWINA · FRYTKI", .2)], (236, 196, 40, 255)),
                               ("szyld_zapiekanki.png", [("ZAPIEKANKI", .5), ("HOT-DOG · NAPOJE", .2)], (250, 236, 120, 255)),
                               ("szyld_lody.png", [("LODZIARNIA", .62), ("LODY TRADYCYJNE · KAWA", .2)], (236, 236, 232, 255)),
-                              ("szyld_klub.png", [("KLUB", .62), ("MUZYKA · BAR · DO RANA", .2)], (255, 70, 200, 255))):   # klub w podcieniach Focha 2
+                              ("szyld_klub.png", [("KLUB", .62), ("MUZYKA · BAR · DO RANA", .2)], (255, 70, 200, 255)),
+                              # 25.11 (Street View przed marketem, IMG_2145–2149): napisy ogólne, bez nazw lokali
+                              ("szyld_bar.png", [("BAR", .62), ("ZAPIEKANKI · NAPOJE", .2)], (176, 176, 172, 255)),
+                              ("szyld_kebab.png", [("KEBAB", .7)], (236, 236, 232, 255)),
+                              ("szyld_kawa.png", [("KAWA · LODY", .5), ("CIASTA · DESERY", .2)], (236, 236, 232, 255))):   # klub w podcieniach Focha 2
         W, H = 1024, 256
         img = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(img); y = int(H * .06)
         for txt, wys in napisy:

@@ -14,7 +14,7 @@ from shapely.geometry import box, LineString, Point, Polygon  # noqa: E402
 from shapely.ops import unary_union  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from kit import Siatka, UP, zapisz_bin, zapisz_glb, trojkaty  # noqa: E402
+from kit import Siatka, UP, nrm, zapisz_bin, zapisz_glb, trojkaty  # noqa: E402
 import blok_32a  # noqa: E402
 import blok4  # noqa: E402
 import maly  # noqa: E402
@@ -168,9 +168,26 @@ def budki_market(d, dst):
         if not fr: return 0
         a, bb, t, n, L = max(fr, key=lambda f: f[4])
         S = Siatka()
-        budki.zapiekanki(S, a + t * (L - 21.0) + n * 4.6 + UP * Y_KOSTKI, t, n)        # przy wejściu (zdjęcia 17:25, 18:47)
-        budki.burger_kontener(S, a + t * (L * .82) + n * 15.0 + UP * Y_KOSTKI, t, n)  # przy słupie z szyldem, od ulicy
-        budki.lodziarnia(S, a + t * (L * .30) + n * 17.0 + UP * Y_KOSTKI, t, n)
+        # 25.11 (właściciel 17:06, Street View IMG_2145–2149): budki stoją w rzędzie wzdłuż Skłodowskiej, na zachód od
+        # przystanku przed marketem, między chodnikiem a parkingiem — kiosk „BAR”, kosze, przyczepa z burgerami (głębiej,
+        # na trawie), kontener z kebabem, drewniany pawilon kawa/lody z pergolą; girlanda żarówek, palety, hydrant, szafka.
+        # (Wcześniejsze zapiekanki/kontener/lodziarnia na parkingu były ustawione na oko — usunięte.)
+        ul = [LineString(u["linia"]) for u in d["ulice"] if (u.get("nazwa") or "").startswith("Marii") and len(u["linia"]) > 1]
+        P0 = Point(-201.2, 57.7)                                                   # przystanek (OSM stop_position)
+        L0 = min(ul, key=lambda l: l.distance(P0)); s0 = L0.project(P0)
+        q0, q1 = L0.interpolate(max(0, s0 - 2)), L0.interpolate(min(L0.length, s0 + 2))
+        ts = nrm(np.array([q1.x - q0.x, 0., q1.y - q0.y])); ns = np.array([-ts[2], 0., ts[0]])
+        c_m = b["poly"].centroid
+        if ns @ np.array([c_m.x - P0.x, 0., c_m.y - P0.y]) < 0: ns = -ns       # ns: od ulicy w stronę marketu
+        if ts[0] > 0: ts = -ts                                                   # ts: na zachód (od przystanku)
+        q = L0.interpolate(s0); B0 = np.array([q.x, Y_KOSTKI, q.y]) + ns * 9.0
+        R = lambda s_, g_=0.0: B0 + ts * s_ + ns * g_
+        budki.kiosk_bar(S, R(8.0), -ts, -ns)
+        budki.przyczepa_burger(S, R(15.5, 2.5), -ts, -ns)
+        budki.kontener_kebab(S, R(23.0, 1.0), -ts, -ns)
+        budki.pawilon_kawa(S, R(31.5, 2.0), -ts, -ns)
+        budki.girlanda(S, R(19.0, -1.5), R(27.0, -1.5)); budki.girlanda(S, R(27.0, -1.5), R(36.0, -1.5))
+        budki.palety(S, R(27.5, -.8), ts, ns, 4.8)
         przenies(S, dst, "budki", 0.0, 0.0, 0.0)
         # 22:44 właściciel: bus z bosną (jego model Tripo, paczka szyfrowana bydgoszcz_bosna); 24.11 00:02 „postaw go na
         # parkingu” — pole E4 siatki parkingu (32 m przed frontem marketu), wzdłuż frontu, okienko (bok +z modelu) w stronę

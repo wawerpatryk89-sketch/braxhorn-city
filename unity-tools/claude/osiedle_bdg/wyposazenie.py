@@ -276,13 +276,36 @@ def lawka(S, o, t, n):
 
 
 def paczkomat(S, o, t):
-    g = "wyposazenie"; n = np.array([-t[2], 0, t[0]])
-    B(S, g, "paczkomat", o, t, n, 2.4, 1.9, .65)
-    B(S, g, "paczkomat_ekran", o + UP * 1.05 - n * .33, t, n, .35, .45, .02)
-    # 25.11 (IMG_2128): jasnoszara obudowa, czerwony kwadrat w górnym rogu (bez nazwy firmy), daszek
-    B(S, g, "szlaban_czerwony", o - t * .85 + UP * 1.5 - n * .33, t, n, .4, .3, .02)
-    B(S, g, "paczkomat", o + UP * 1.9, t, n, 2.5, .06, .75)
-
+    """Paczkomat wg zdjęcia właściciela (IMG_2128, 25.11 18:45: „to jest paczkomat? nie wymyślasz”): jasnoszara szafa
+    3,4 × 2,0 × 0,65 m z siatką małych skrytek (10 kolumn × 7 rzędów, szczeliny i uchwyty), moduł z ekranem i czytnikiem,
+    czerwony prostokąt w lewym górnym rogu (bez nazwy firmy), mała niebieska tabliczka, ciemniejsze boki i daszek,
+    przed nim dwa pałąki ochronne (czerwony i ciemny). Front od strony −n."""
+    g = "wyposazenie"; n = np.array([-t[2], 0, t[0]]); Lp, Hp, Dp = 3.4, 2.0, .65
+    B(S, g, "paczkomat", o + UP * .1, t, n, Lp, Hp - .1, Dp)
+    B(S, g, "paczkomat_bok", o, t, n, Lp + .04, .1, Dp + .04)
+    B(S, g, "paczkomat_bok", o + UP * Hp, t, n, Lp + .1, .07, Dp + .12)
+    for s_ in (-1, 1):
+        B(S, g, "paczkomat_bok", o + t * s_ * (Lp / 2 + .01), t, n, .03, Hp, Dp + .02)
+    f = o - n * (Dp / 2 + .005)
+    kol = 10; w = Lp / kol
+    for i in range(kol + 1):                                            # szczeliny pionowe
+        B(S, g, "paczkomat_szczelina", f + t * (-Lp / 2 + i * w) + UP * .12, t, n, .012, Hp - .2, .004)
+    for j in range(8):                                                  # szczeliny poziome
+        B(S, g, "paczkomat_szczelina", f + UP * (.12 + j * (Hp - .2) / 7), t, n, Lp, .012, .004)
+    for i in range(kol):
+        if i == 3: continue
+        for j in range(7):
+            B(S, g, "paczkomat_szczelina", f + t * (-Lp / 2 + (i + .78) * w) + UP * (.12 + (j + .45) * (Hp - .2) / 7), t, n, .02, .05, .006)
+    m = f + t * (-Lp / 2 + 3.5 * w)                                      # moduł z ekranem
+    B(S, g, "paczkomat", m + UP * .12, t, n, w - .02, Hp - .2, .01)
+    B(S, g, "paczkomat_ekran", m + UP * 1.15, t, n, .24, .3, .02)
+    B(S, g, "paczkomat_ekran", m + UP * .95, t, n, .16, .1, .02)
+    B(S, g, "szlaban_czerwony", f + t * (-Lp / 2 + .35) + UP * 1.55, t, n, .48, .36, .01)
+    B(S, g, "tabliczka", f + t * (-Lp / 2 + 1.0) + UP * 1.55, t, n, .32, .12, .01)
+    for (u, mat) in ((-.2, "szlaban_czerwony"), (.6, "paczkomat_bok")):           # pałąki ochronne
+        c = o + t * u - n * (Dp / 2 + .45)
+        S.rura(g, mat, c - t * .45, c - t * .45 + UP * .85, .03, seg=6); S.rura(g, mat, c + t * .45, c + t * .45 + UP * .85, .03, seg=6)
+        S.rura(g, mat, c - t * .45 + UP * .85, c + t * .45 + UP * .85, .03, seg=6)
 
 def kontenery(S, o, t):
     g = "wyposazenie"; n = np.array([-t[2], 0, t[0]])
@@ -445,7 +468,7 @@ def okolice_32(S, d, G, ile):
     A, Bp = np.array([30.8, 0., 20.2]), np.array([41.1, 0., -16.0])
     t = nrm(Bp - A); n = np.array([-t[2], 0., t[0]]); n = n if n[0] < 0 else -n          # n: od drogi na zachód
     zaj = unary_union([G["JEZ"], G["PARK"]])
-    rzad = ((4.0, 7.2), (7.8, .4), (9.3, 1.2), (10.6, 1.2), (12.6, 2.4))          # (u środka, długość): wiata, latarnia, 2 pojemniki, paczkomat
+    rzad = ((3.0, 7.2), (6.8, .4), (8.3, 1.35), (9.7, 1.35), (12.0, 3.4))          # (u środka, długość): wiata, latarnia, 2 pojemniki, paczkomat
     for off in (5.0, 5.5, 6.0, 6.5, 7.0):
         kol = [u for u, L in rzad if Polygon([tuple((A + t * (u + du) + n * (off + dv))[[0, 2]]) for du, dv in
                                             ((-L / 2, -1.3), (L / 2, -1.3), (L / 2, 1.3), (-L / 2, 1.3))]).intersects(zaj)]
@@ -453,10 +476,10 @@ def okolice_32(S, d, G, ile):
     if kol: print("UWAGA: przy 32a na jezdni/parkingu stoją elementy u =", kol)
     print("rząd przy 32a: odsunięcie od osi drogi", off)
     o = lambda u: A + t * u + n * off + UP * .12
-    wiata_smietnikowa(S, o(4.0), t, -n); ile("wiaty_smietnikowe")                       # drzwi od drogi
-    latarnia(S, o(7.8) + n * .8, -n, False); ile("latarnie")
-    for u in (9.3, 10.6): kontener_odziez(S, o(u), t, -n); ile("pojemniki_odziez")
-    paczkomat(S, o(12.6), -t); ile("paczkomaty")
+    wiata_smietnikowa(S, o(3.0), t, -n); ile("wiaty_smietnikowe")                       # drzwi od drogi
+    latarnia(S, o(6.8) + n * .8, -n, False); ile("latarnie")
+    for u in (8.3, 9.7): kontener_odziez(S, o(u), t, -n); ile("pojemniki_odziez")
+    paczkomat(S, o(12.0), -t); ile("paczkomaty")
 
 
 def plot_zielony(S, pts):
@@ -518,8 +541,19 @@ def wiata_smietnikowa(S, o, t, n):
 
 
 def kontener_odziez(S, o, t, n):
-    """Pojemnik na odzież (IMG_2127/2128): beżowa blacha 1,2 × 1,1 × 2,0 m, skośny daszek, klapa wrzutowa od frontu (n)."""
-    g = "wyposazenie"
-    B(S, g, "kontener_odziez", o, t, n, 1.2, 1.85, 1.1)
-    B(S, g, "kontener_odziez", o + UP * 1.85 + n * .05, t, n, 1.26, .12, 1.2)
-    B(S, g, "kontener_odziez_klapa", o + UP * 1.2 + n * .57, t, n, .8, .35, .06)
+    """Pojemnik na odzież (IMG_2128): beżowa blacha 1,35 × 1,2 × 1,85 m, dach dwuspadowy, u góry duży wrzut (wnęka
+    z półką i klapą), niżej drzwiczki serwisowe z kłódką. Front od strony n."""
+    g = "wyposazenie"; L, D, H = 1.35, 1.2, 1.85
+    B(S, g, "kontener_odziez", o, t, n, L, H, D)
+    f = o + n * (D / 2)
+    for s_ in (-1, 1):                                                   # dach dwuspadowy
+        a_ = o + UP * H + t * s_ * (L / 2 + .04) + n * (D / 2 + .04); b_ = o + UP * H + t * s_ * (L / 2 + .04) - n * (D / 2 + .04)
+        c_ = o + UP * (H + .28) - n * (D / 2 + .04); d_ = o + UP * (H + .28) + n * (D / 2 + .04)
+        S.quad(g, "kontener_odziez", a_, b_, c_, d_, kier=nrm(UP * .6 + t * s_))
+    S.quad(g, "kontener_odziez", o + UP * H - t * (L / 2 + .04) + n * (D / 2 + .04), o + UP * H + t * (L / 2 + .04) + n * (D / 2 + .04),
+           o + UP * (H + .28) + n * (D / 2 + .04), o + UP * (H + .28) + n * (D / 2 + .04), kier=n)
+    B(S, g, "kontener_odziez_klapa", f + UP * 1.1 - n * .2, t, n, 1.05, .6, .4)          # wnęka wrzutu
+    B(S, g, "kontener_odziez", f + UP * 1.1 - n * .02, t, n, 1.15, .05, .08)              # półka
+    B(S, g, "kontener_odziez", f + UP * 1.65 - n * .02, t, n, 1.15, .06, .06)
+    B(S, g, "kontener_odziez_klapa", f + UP * .15 + n * .005, t, n, 1.0, .82, .01)        # drzwiczki
+    B(S, g, "stal", f + UP * .55 + t * .38 + n * .02, t, n, .06, .09, .03)
