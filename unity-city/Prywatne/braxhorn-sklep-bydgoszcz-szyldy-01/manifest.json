@@ -1,0 +1,23 @@
+{
+ "source": "wlasciciel 25.11.2026 20:09-20:11: szyldy na pawilon 38B (sklep) i market - pliki wlasciciela",
+ "target": "bydgoszcz_szyldy",
+ "staging": "unity-city/Assets/Source/Prywatne/Miasto/bydgoszcz_szyldy (BraxMiastoAssety.Model)",
+ "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
+ "tarSha256": "61fcdfb97196699a1cea02bf418ca7856fbafcda6f5527f0e72cc1ba765def58",
+ "cmsSha256": "f4fcf9104515376a9ca3b1c4f2fa4eb1ebcb7b332c5adfc6fcc5f6ab73feaef5",
+ "parts": [
+  {
+   "name": "part-000.cms",
+   "bytes": 4311616,
+   "sha256": "f4fcf9104515376a9ca3b1c4f2fa4eb1ebcb7b332c5adfc6fcc5f6ab73feaef5"
+  }
+ ],
+ "files": {
+  "bydgoszcz_szyldy/szyld_market.png": "ed36958674d01dd217fcdc36a1499922940f9c2bd0dadccd5b0319ac9ca4030f",
+  "bydgoszcz_szyldy/szyld_zabka.png": "03aa4ae1627d5ff12a376448adcaa75222e9445f9bfc2b0d954fa988ed4c7fac",
+  "oryginal/m26_szyld_market_wlasciciel.png": "98698ff3c1602ae097c03a955e946bc33052538d03478a139beb717421806b79",
+  "oryginal/o154_szyld_zabka_wlasciciel.png": "1e1669a7f266f291ba0589a72d35f3939d05fdd02588e4191f6bc75571c8e21c",
+  "oryginal/spec.json": "c19255fe1ed7588a828fe2a4029baac3e654b8f37bdf53c7192b98115ae92ba9"
+ },
+ "recipientCertificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5"
+}

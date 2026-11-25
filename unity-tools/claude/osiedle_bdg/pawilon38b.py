@@ -4,7 +4,8 @@ Wg zdjęć właściciela (Street View X.2025, IMG_2152/2153, 25.11 17:32): szary
 słupami (witryny lokali: po lewej sklep spożywczy z zielonym pasem, w środku lokal, po prawej sushi), na piętrze galeria
 z balustradą z ciemnych paneli wzdłuż frontu, ściana piętra z pionowymi żebrami i wąskimi oknami, na attyce napis
 z adresem, schody zewnętrzne na galerię z prawej strony; przed budynkiem słup ogłoszeniowy z kopułką.
-Szyldy bez logo sieci (ZASADY 7.4) — zielony pas z napisem ogólnym; logo sieci tylko decyzją właściciela.
+Szyld sklepu z pliku właściciela (20:09, paczka szyfrowana), lokal sushi: napis „NOVA SUSHI” (20:05). Sklep i sushi będą później
+funkcjonalne (właściciel 20:10).
 Układ lokalny: X wzdłuż frontu (0..L), Z w głąb (0..W), front patrzy na −Z.
 """
 import numpy as np
@@ -39,11 +40,12 @@ def zbuduj(L, W):
         S.box(g, "drzwi_stal", P((x0 + x1) / 2 - .5, .12, COF - .1), ex, UP, ez, 1.0, 2.2, .04)
     for (x0, x1, m, h) in ((xs[0], xs[1], "pas_sklep", .62), (xs[2], xs[3], "szyld_sushi", .7)):
         S.box(g, m if m == "pas_sklep" else "p38_szyld_tlo", P(x0, 2.7, COF - .12), ex, UP, ez, x1 - x0, h, .06)
-    xm = (xs[0] + xs[1]) / 2
-    S.quad(g, "szyld_sklep", P(xm - 1.9, 2.74, COF - .13), P(xm + 1.9, 2.74, COF - .13), P(xm + 1.9, 3.3, COF - .13), P(xm - 1.9, 3.3, COF - .13),
+    xm = (xs[0] + xs[1]) / 2          # 20:09: szyld sklepu z pliku właściciela (paczka szyfrowana), płyta 2,4 × 0,72 m
+    S.box(g, "rama_ciemna", P(xm - 1.25, 2.66, COF - .17), ex, UP, ez, 2.5, .8, .05)
+    S.quad(g, "szyld_zabka", P(xm - 1.2, 2.7, COF - .18), P(xm + 1.2, 2.7, COF - .18), P(xm + 1.2, 3.42, COF - .18), P(xm - 1.2, 3.42, COF - .18),
            uv1=[(0, 0), (1, 0), (1, 1), (0, 1)], kier=-ez)
     xm = (xs[2] + xs[3]) / 2
-    S.quad(g, "szyld_sushi", P(xm - 1.3, 2.72, COF - .13), P(xm + 1.3, 2.72, COF - .13), P(xm + 1.3, 3.36, COF - .13), P(xm - 1.3, 3.36, COF - .13),
+    S.quad(g, "szyld_sushi", P(xm - 2.4, 2.72, COF - .13), P(xm + 2.4, 2.72, COF - .13), P(xm + 2.4, 3.36, COF - .13), P(xm - 2.4, 3.36, COF - .13),
            uv1=[(0, 0), (1, 0), (1, 1), (0, 1)], kier=-ez)
     # galeria piętra: płyta wysunięta 0,3 m przed lico, balustrada z ciemnych paneli 1,1 m
     S.box(g, "p38_elewacja", P(-.1, H1 - .25, -.3), ex, UP, ez, L + .2, .25, .3)

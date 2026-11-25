@@ -161,7 +161,7 @@ def szyldy(out):
                               ("szyld_kawa.png", [("KAWA · LODY", .5), ("CIASTA · DESERY", .2)], (236, 236, 232, 255)),
                               # 25.11 budynek 38B (IMG_2152/2153): adres na attyce, sklep spożywczy (bez logo sieci), sushi
                               ("szyld_sklep.png", [("SKLEP SPOŻYWCZY", .46), ("czynne 6–23", .22)], (255, 255, 255, 255)),
-                              ("szyld_sushi.png", [("SUSHI", .66)], (236, 40, 90, 255))):   # klub w podcieniach Focha 2
+                              ("szyld_sushi.png", [("NOVA SUSHI", .62)], (255, 255, 255, 255))):   # 20:05: nazwa lokalu jak na zdjęciu   # klub w podcieniach Focha 2
         W, H = 1024, 256
         img = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(img); y = int(H * .06)
         for txt, wys in napisy:
@@ -359,7 +359,7 @@ def wypiecz(src, dst_gra, dst_prywatne):
     src, dst_gra, dst_prywatne = Path(src), Path(dst_gra), Path(dst_prywatne)
     dst_gra.mkdir(parents=True, exist_ok=True); dst_prywatne.mkdir(parents=True, exist_ok=True)
     for nazwa, v in paleta.P.items():
-        if not v.get("nakl"): continue
+        if not v.get("nakl") or v.get("prywatny"): continue      # szyldy właściciela: tylko w paczce szyfrowanej
         nk = Image.open(src / v["nakl"]).convert("RGBA")
         tlo = Image.new("RGBA", nk.size, tuple(v["kol"]) + (255,))
         tlo.alpha_composite(nk)

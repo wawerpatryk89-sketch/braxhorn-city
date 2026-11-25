@@ -45,6 +45,8 @@ public static class BraxBydgoszcz
     const string Naklejki = "Assets/Source/Claude/Bydgoszcz/";
     static readonly string[] KioskNoca = { "kp_wystawa", "kp_szyld" };      // kiosk Ruchu: naklejki świecące nocą (BraxLampyNoc)
     const string Prywatne = "Assets/Source/Prywatne/Miasto/bydgoszcz_mural/";
+    const string PrywatneSzyldy = "Assets/Source/Prywatne/Miasto/bydgoszcz_szyldy/";
+    static readonly string[] SzyldyWlasciciela = { "szyld_zabka", "szyld_market" };
     const string Pokoje = "Assets/Source/Claude/Osiedle/detail/pokoje.png";
     static float K => BraxClaudeOsiedle.K;
     static string Out => BraxRegion.Out + "/Bydgoszcz";
@@ -130,7 +132,9 @@ public static class BraxBydgoszcz
         if (!string.IsNullOrEmpty(d.nakl))
         {
             // naklejka wypieczona na barwie ściany (osiedle_bdg/tekstury_32a.py: wypiecz), na UV2; relief tynku z UV1
-            string plik = (nazwa == "mural_zawisza" ? Prywatne : Naklejki) + nazwa + ".png";
+            // 25.11 (właściciel 20:09–20:11): szyldy z jego plików (sklep w 38B, market) — paczka szyfrowana
+            // braxhorn-sklep-bydgoszcz-szyldy-01 -> PrywatneSzyldy; bez klucza: płyta w barwie z palety (poniżej)
+            string plik = (nazwa == "mural_zawisza" ? Prywatne : System.Array.IndexOf(SzyldyWlasciciela, nazwa) >= 0 ? PrywatneSzyldy : Naklejki) + nazwa + ".png";
             var t = Obraz(plik);
             if (!t)
             {

@@ -831,6 +831,14 @@ def market_front(S, g, f, H, att, glowny=True, k_=0):
     S.box(g, "market_niebieski", b - t * 5.8 + n * .1 + UP * 1.5, t, UP, n, 5.6, H + att + 4.5, .12)     # rama pylonu
     S.box(g, "pole_logo", b - t * 5.3 + n * .22 + UP * 2.0, t, UP, n, 4.6, H + att + 3.5, .06)          # puste pole na logo
     S.box(g, "market_szklo", b - t * 15.0 - n * 2.0, t, UP, n, 9.0, H + att + 1.5, 2.6)
+    # 25.11 20:11 (właściciel, zdjęcia IMG_2177/2178, m25): szyld marketu z jego pliku (paczka szyfrowana) na dachu nad
+    # frontem, na lewo od przeszklonej klatki — płyta 11 × 2,4 m na stalowej ramie, przodem do parkingu
+    ws, hs_ = 11.0, 2.42; us = L - 15.6 - ws; ys = H + att + .25
+    for u in (us + 1.0, us + ws / 2, us + ws - 1.0):
+        S.box(g, "rama_ciemna", a + t * (u - .08) - n * .6 + UP * (H + att - .1), t, UP, n, .16, hs_ + .2, .16)
+    S.box(g, "rama_ciemna", a + t * us - n * .55 + UP * ys, t, UP, n, ws, hs_, .08)
+    S.quad(g, "szyld_market", a + t * us - n * .46 + UP * ys, a + t * (us + ws) - n * .46 + UP * ys,
+           a + t * (us + ws) - n * .46 + UP * (ys + hs_), a + t * us - n * .46 + UP * (ys + hs_), uv1=[(0, 0), (1, 0), (1, 1), (0, 1)], kier=n)
     c = a + t * 3.0 - n * 1.0
     S.rura(g, "market_elewacja", c, c + UP * (H + att + .4), 3.0, seg=32)
     # zaokrąglony narożnik (zdjęcia nocne 18:47): pas okien na piętrze i przeszklony parter od frontu i od końca budynku

@@ -278,36 +278,36 @@ def lawka(S, o, t, n):
 
 
 def paczkomat(S, o, t):
-    """Paczkomat wg zdjęcia właściciela (IMG_2128, 25.11 18:45: „to jest paczkomat? nie wymyślasz”): jasnoszara szafa
-    3,4 × 2,0 × 0,65 m z siatką małych skrytek (10 kolumn × 7 rzędów, szczeliny i uchwyty), moduł z ekranem i czytnikiem,
-    czerwony prostokąt w lewym górnym rogu (bez nazwy firmy), mała niebieska tabliczka, ciemniejsze boki i daszek,
-    przed nim dwa pałąki ochronne (czerwony i ciemny). Front od strony −n."""
-    g = "wyposazenie"; n = np.array([-t[2], 0, t[0]]); Lp, Hp, Dp = 3.4, 2.0, .65
-    B(S, g, "paczkomat", o + UP * .1, t, n, Lp, Hp - .1, Dp)
-    B(S, g, "paczkomat_bok", o, t, n, Lp + .04, .1, Dp + .04)
-    B(S, g, "paczkomat_bok", o + UP * Hp, t, n, Lp + .1, .07, Dp + .12)
+    """Paczkomat wg wzoru właściciela (25.11 18:52, IMG_2162): biała szafa 3,4 × 1,95 × 0,6 m, skrytki w kolumnach
+    o różnych wysokościach (małe, średnie, duże) z cienkimi szczelinami, czarny gzyms u góry, czarny cokół na nóżkach,
+    moduł z czarnym terminalem (ekran + czytnik) w drugiej kolumnie, gładkie pole w prawym górnym rogu (bez logo sieci).
+    Front od strony −n."""
+    g = "wyposazenie"; n = np.array([-t[2], 0, t[0]]); Lp, Hp, Dp, Y0 = 3.4, 1.95, .6, .14
+    B(S, g, "paczkomat_bok", o + UP * .02, t, n, Lp - .1, Y0 - .02, Dp - .1)              # cokół
     for s_ in (-1, 1):
-        B(S, g, "paczkomat_bok", o + t * s_ * (Lp / 2 + .01), t, n, .03, Hp, Dp + .02)
-    f = o - n * (Dp / 2 + .005)
-    kol = 10; w = Lp / kol
-    for i in range(kol + 1):                                            # szczeliny pionowe
-        B(S, g, "paczkomat_szczelina", f + t * (-Lp / 2 + i * w) + UP * .12, t, n, .012, Hp - .2, .004)
-    for j in range(8):                                                  # szczeliny poziome
-        B(S, g, "paczkomat_szczelina", f + UP * (.12 + j * (Hp - .2) / 7), t, n, Lp, .012, .004)
+        for v in (-1, 1):
+            B(S, g, "paczkomat_bok", o + t * s_ * (Lp / 2 - .12) + n * v * (Dp / 2 - .1), t, n, .06, .03, .06)   # nóżki
+    B(S, g, "paczkomat", o + UP * Y0, t, n, Lp, Hp - Y0, Dp)
+    B(S, g, "paczkomat_bok", o + UP * Hp, t, n, Lp + .06, .12, Dp + .08)                 # czarny gzyms
+    f = o - n * (Dp / 2 + .004); kol = 8; w = Lp / kol; h0 = Hp - Y0 - .04
+    uklad = ([.18] * 5 + [.36] * 2 + [.18] * 2, [.25, .25, .3, .26, .7], [.18] * 9, [.36, .18, .18, .36, .36, .36],
+             [.36, .36, .36, .36, .36], [.18] * 4 + [.36] * 3 + [.18], [.55, .27, .27, .27, .3], [.36] * 2 + [.18] * 6)
     for i in range(kol):
-        if i == 3: continue
-        for j in range(7):
-            B(S, g, "paczkomat_szczelina", f + t * (-Lp / 2 + (i + .78) * w) + UP * (.12 + (j + .45) * (Hp - .2) / 7), t, n, .02, .05, .006)
-    m = f + t * (-Lp / 2 + 3.5 * w)                                      # moduł z ekranem
-    B(S, g, "paczkomat", m + UP * .12, t, n, w - .02, Hp - .2, .01)
-    B(S, g, "paczkomat_ekran", m + UP * 1.15, t, n, .24, .3, .02)
-    B(S, g, "paczkomat_ekran", m + UP * .95, t, n, .16, .1, .02)
-    B(S, g, "szlaban_czerwony", f + t * (-Lp / 2 + .35) + UP * 1.55, t, n, .48, .36, .01)
-    B(S, g, "tabliczka", f + t * (-Lp / 2 + 1.0) + UP * 1.55, t, n, .32, .12, .01)
-    for (u, mat) in ((-.2, "szlaban_czerwony"), (.6, "paczkomat_bok")):           # pałąki ochronne
-        c = o + t * u - n * (Dp / 2 + .45)
-        S.rura(g, mat, c - t * .45, c - t * .45 + UP * .85, .03, seg=6); S.rura(g, mat, c + t * .45, c + t * .45 + UP * .85, .03, seg=6)
-        S.rura(g, mat, c - t * .45 + UP * .85, c + t * .45 + UP * .85, .03, seg=6)
+        u0 = -Lp / 2 + i * w
+        B(S, g, "paczkomat_szczelina", f + t * u0 + UP * Y0, t, n, .012, h0, .003)
+        hs = list(uklad[i]); sc = h0 / sum(hs); y = Y0 + .02
+        for j, hh in enumerate(hs):
+            hh *= sc
+            if i == 2 and .85 < y + hh / 2 < 1.55: pass                # pod terminalem bez uchwytów
+            elif not (i == kol - 1 and j == 0):
+                B(S, g, "paczkomat_szczelina", f + t * (u0 + w * .82) + UP * (y + hh / 2 - .03), t, n, .015, .06, .006)
+            B(S, g, "paczkomat_szczelina", f + t * (u0 + w / 2) + UP * y, t, n, w, .01, .003)
+            y += hh
+    B(S, g, "paczkomat_szczelina", f + t * (Lp / 2) + UP * Y0, t, n, .012, h0, .003)
+    c = f + t * (-Lp / 2 + 2.5 * w) - n * .006                       # terminal: czarna rama 0,5 m, ekran, czytnik (jak wzór)
+    B(S, g, "paczkomat_bok", c + UP * .92, t, n, w * .9, .55, .012)
+    B(S, g, "paczkomat_ekran", c + UP * 1.12 - n * .008, t, n, w * .62, .3, .006)
+    B(S, g, "paczkomat_szczelina", c + UP * .98 - n * .008, t, n, w * .4, .08, .006)
 
 def kontenery(S, o, t):
     g = "wyposazenie"; n = np.array([-t[2], 0, t[0]])

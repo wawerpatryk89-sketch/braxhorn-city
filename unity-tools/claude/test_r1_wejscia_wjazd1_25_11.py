@@ -150,9 +150,23 @@ def test_pawilon_38b():
     import pawilon38b
     S = pawilon38b.zbuduj(28.5, 13.0)
     mats = {m for (_, m) in S.cz}
-    for m in ("p38_slup", "balustrada_panel", "p38_zebro", "napis_38b", "szyld_sklep", "szyld_sushi"):
+    for m in ("p38_slup", "balustrada_panel", "p38_zebro", "napis_38b", "szyld_zabka", "szyld_sushi"):
         assert m in mats, m
     op = json.loads((ROOT / "unity-tools/claude/osiedle_bdg/gen/osiedle_opis.json").read_text(encoding="utf-8"))["inne"]
     assert any(v.get("nazwa") == "M. Skłodowskiej-Curie 38B" for v in op.values())
     for f in ("napis_38b.png", "szyld_sklep.png", "szyld_sushi.png", "szyld_bar.png", "szyld_kebab.png", "szyld_kawa.png"):
         assert (ROOT / "unity-city/Assets/Source/Claude/Bydgoszcz" / f).exists(), f
+
+
+def test_szyldy_wlasciciela_tylko_w_paczce_szyfrowanej():
+    """25.11 20:09–20:11: szyldy z plików właściciela (sklep w 38B, market) — tylko w paczce szyfrowanej, gra czyta je
+    z Prywatne/Miasto/bydgoszcz_szyldy; jawnie w repo ich nie ma. Paczkomat wg wzoru IMG_2162 (czarny gzyms i cokół)."""
+    import json
+    pk = ROOT / "unity-city/Prywatne/braxhorn-sklep-bydgoszcz-szyldy-01"
+    m = json.loads((pk / "manifest.json").read_text(encoding="utf-8"))
+    assert m["target"] == "bydgoszcz_szyldy" and "bydgoszcz_szyldy/szyld_zabka.png" in m["files"] and "bydgoszcz_szyldy/szyld_market.png" in m["files"]
+    assert not list((ROOT / "unity-city/Assets").rglob("szyld_zabka.png")) and not list((ROOT / "unity-city/Assets").rglob("szyld_market.png"))
+    cs = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxBydgoszcz.cs").read_text(encoding="utf-8")
+    assert 'PrywatneSzyldy = "Assets/Source/Prywatne/Miasto/bydgoszcz_szyldy/"' in cs and '"szyld_zabka", "szyld_market"' in cs
+    w = (ROOT / "unity-tools/claude/osiedle_bdg/wyposazenie.py").read_text(encoding="utf-8")
+    assert "czarny gzyms u góry, czarny cokół na nóżkach" in w

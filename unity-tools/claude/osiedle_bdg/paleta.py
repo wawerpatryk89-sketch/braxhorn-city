@@ -86,7 +86,7 @@ P = {
     "szlaban_bialy": {"tex": None, "kol": [236, 236, 232], "szorst": .45},
     "beton_lawka": {"tex": BET, "m": 1.5, "kol": [160, 158, 152], "szorst": 1.0},
     "lawka_drewno": {"tex": "weathered_brown_planks", "m": 1.2, "kol": [128, 88, 58], "szorst": .8},
-    "paczkomat": {"tex": None, "kol": [214, 214, 208], "szorst": .45, "metal": .4}, "paczkomat_bok": {"tex": None, "kol": [150, 152, 154], "szorst": .45, "metal": .4}, "paczkomat_szczelina": {"tex": None, "kol": [120, 122, 122], "szorst": .5}, "paczkomat_ekran": {"tex": None, "kol": [20, 24, 28], "szorst": .1},
+    "paczkomat": {"tex": None, "kol": [238, 238, 236], "szorst": .35, "metal": .3}, "paczkomat_bok": {"tex": None, "kol": [34, 36, 38], "szorst": .45, "metal": .3}, "paczkomat_szczelina": {"tex": None, "kol": [150, 152, 154], "szorst": .5}, "paczkomat_ekran": {"tex": None, "kol": [44, 52, 60], "szorst": .08, "metal": .3},
     "kontener_zielony": {"tex": None, "kol": [40, 110, 56], "szorst": .6}, "kontener_zolty": {"tex": None, "kol": [222, 186, 40], "szorst": .6},
     "kontener_niebieski": {"tex": None, "kol": [36, 76, 150], "szorst": .6},
     "hydrant": {"tex": None, "kol": [190, 30, 26], "szorst": .5, "metal": .3},
@@ -191,12 +191,15 @@ P["p38_sufit"] = {"tex": None, "kol": [190, 190, 186], "szorst": .9}
 P["p38_slup"] = {"tex": "tynk_plamy", "m": 2.0, "kol": [140, 144, 148], "szorst": 1.0}
 P["rama_ciemna"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [52, 54, 58], "szorst": .6}
 P["balustrada_panel"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [70, 76, 80], "szorst": .6}
-P["pas_sklep"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [30, 120, 50], "szorst": .6}
+P["pas_sklep"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [12, 46, 14], "szorst": .6}
 P["p38_szyld_tlo"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [24, 24, 26], "szorst": .6}
 P["slup_ogloszen"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [200, 180, 150], "szorst": .8}
 P["napis_38b"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [150, 154, 158], "szorst": .9, "nakl": "napis_38b.png"}
 P["szyld_sklep"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [30, 120, 50], "szorst": .6, "nakl": "szyld_sklep.png"}
 P["szyld_sushi"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [24, 24, 26], "szorst": .6, "nakl": "szyld_sushi.png"}
+# 25.11 20:09–20:11 (właściciel): szyldy z jego plików — paczka szyfrowana braxhorn-sklep-bydgoszcz-szyldy-01 (nie w gicie jawnie)
+P["szyld_zabka"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [10, 40, 10], "szorst": .5, "nakl": "szyld_zabka.png", "prywatny": True}
+P["szyld_market"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [235, 236, 240], "szorst": .5, "nakl": "szyld_market.png", "prywatny": True}
 P["kontener_odziez"] = {"tex": None, "kol": [206, 194, 160], "szorst": .6}
 P["kontener_odziez_klapa"] = {"tex": None, "kol": [70, 66, 56], "szorst": .6}
 P["blokada_parking"] = {"tex": None, "kol": [180, 182, 184], "szorst": .4, "metal": .6}

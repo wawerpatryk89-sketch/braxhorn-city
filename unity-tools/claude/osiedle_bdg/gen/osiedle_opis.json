@@ -164,7 +164,7 @@
    "nazwa": "E.Leclerc",
    "kond": 2,
    "zrodlo": "ZDJ IMG_1577 (front od Skłodowskiej: witryny pasażu w parterze, pas okien piętra) i IMG_1730 (tył: biała hala, niebieski pas); bez nazwy i logo (decyzja 16:49)",
-   "trojkatow": 7698
+   "trojkatow": 7748
   },
   "o2": {
    "nazwa": "",
@@ -212,7 +212,7 @@
    "nazwa": "M. Skłodowskiej-Curie 38B",
    "kond": 2,
    "zrodlo": "ZDJ IMG_2152/2153 (pawilon38b.py)",
-   "trojkatow": 1394
+   "trojkatow": 1406
   },
   "o13": {
    "nazwa": "Łużycka 24",
@@ -554,5 +554,5 @@
   "pojemniki_odziez": 2,
   "paliki": 56
  },
- "trojkatow": 867241
+ "trojkatow": 869247
 }
