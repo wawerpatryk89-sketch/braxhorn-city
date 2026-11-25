@@ -129,3 +129,13 @@ def test_parkingi_przy_blokach_kostka_bez_linii():
     t = (ROOT / "unity-tools/claude/osiedle_bdg/teren.py").read_text(encoding="utf-8")
     assert 'if t.get("nawierzchnia") != "asphalt" and not przed_marketem: parkingi_kostka.append(p)' in t
     assert "for q in getattr(PARK_A, \"geoms\", [PARK_A]):" in t
+
+
+def test_zaplecze_marketu_rampy():
+    """25.11 (IMG_2134–2137): zaplecze marketu (o92, przyklejone od południa) — rampy z fartuchami, bramy, schody, czarny
+    płot; plac rozładunku przed nim; bez sztucznego wejścia z daszkiem."""
+    import json
+    o = (ROOT / "unity-tools/claude/osiedle_bdg/ogolny.py").read_text(encoding="utf-8")
+    assert "def market_tyl(" in o and 'if sp.get("zaplecze"):' in o and 'not sp.get("zaplecze")' in o
+    op = json.loads((ROOT / "unity-tools/claude/osiedle_bdg/gen/osiedle_opis.json").read_text(encoding="utf-8"))["inne"]
+    assert any("zaplecze marketu" in v.get("zrodlo", "") for v in op.values())

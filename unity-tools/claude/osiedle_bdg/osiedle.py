@@ -133,12 +133,23 @@ def inne(d, dst):
         if b.get("rodzaj") in ("garages", "garage", "roof"): continue
         if P.intersection(zrobione).area > .3 * P.area: continue
         sp = spec(b)
+        # 25.11 (Street View IMG_2134–2137, plan OSM): o92 przyklejony od południa do hali marketu to zaplecze — biała
+        # hala ok. 6 m z szarym cokołem, rampy i bramy od placu rozładunku (ogolny.market_tyl), bez okien mieszkalnych
+        lec = [q_["poly"] for q_ in d["budynki"] if "Leclerc" in (q_.get("nazwa") or "")]
+        if lec and not (b.get("nazwa") or "") and P.distance(lec[0]) < .5 and P.area > 1000:
+            sp = dict(kond=1, h_kond=6.0, parter=6.0, tynk="market_elewacja", cokol="cokol", h_cokol=.9, okna=(30.0, 1.2, .8, 3.6),
+                      okna_kier=(0, -1), attyka=.6, zaplecze=True,
+                      zr="ZDJ IMG_2134–2137 (zaplecze marketu: biała hala, rampy, bramy segmentowe, schody stalowe, czarny płot)")
         if sp.get("sor"):                       # drogi przy SOR: przerwy w murkach podjazdu
             sp = dict(sp, drogi=[LineString(u["linia"]) for u in d["ulice"] if len(u["linia"]) > 1 and LineString(u["linia"]).distance(P) < 40])
         # 25.11: wejście od strony najbliższej drogi albo chodnika (ogolny.wejscie)
         bl = [LineString(u["linia"]) for u in d["ulice"] if len(u["linia"]) > 1 and LineString(u["linia"]).distance(P) < 60]
         sp = dict(sp, dojscia=unary_union(bl) if bl else None)
         S = ogolny.zbuduj(P, sp, "o%d" % i)
+        if sp.get("zaplecze"):      # 25.11 (IMG_2135–2137): plac rozładunku z kostki za zapleczem — do jezdni
+            c_, a_, L_, W_ = prostokat(P); nn_ = np.array([-a_[1], a_[0]]); nn_ = nn_ if nn_[1] < 0 else -nn_
+            A_ = np.asarray(c_) - a_ * L_ / 2 + nn_ * W_ / 2; B_ = np.asarray(c_) + a_ * L_ / 2 + nn_ * W_ / 2
+            PRZEDPOLA.append((A_, B_, nn_, 30.0, "plac_garazy"))
         przenies(S, dst, "o%d" % i, 0.0, 0.0, 0.0); MODELE.append(P)
         MODELE.extend(getattr(S, "wyciecia", []))
         opis["o%d" % i] = {"nazwa": b.get("nazwa") or ("%s %s" % (b.get("ulica") or "", b.get("nr") or "")).strip(),

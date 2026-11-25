@@ -493,8 +493,8 @@
   "o92": {
    "nazwa": "",
    "kond": 1,
-   "zrodlo": "OSM 1 p.",
-   "trojkatow": 6098
+   "zrodlo": "ZDJ IMG_2134–2137 (zaplecze marketu: biała hala, rampy, bramy segmentowe, schody stalowe, czarny płot)",
+   "trojkatow": 922
   },
   "o93": {
    "nazwa": "Budynek Dydaktyczny Patomorfologii",
@@ -525,14 +525,14 @@
  "teren": {
   "jezdnie": 34103,
   "parkingi": 18937,
-  "chodniki": 42524,
-  "trawa": 143906,
+  "chodniki": 42435,
+  "trawa": 143758,
   "boiska": 3278,
   "place_zabaw": 1594,
   "krawezniki": 2266,
   "boiska_asfalt": 720
  },
- "drzew": 803,
+ "drzew": 788,
  "latarni": 262,
  "wyposazenie": {
   "przystanki": 3,
@@ -554,5 +554,5 @@
   "pojemniki_odziez": 2,
   "paliki": 56
  },
- "trojkatow": 875145
+ "trojkatow": 869959
 }

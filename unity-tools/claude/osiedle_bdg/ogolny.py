@@ -55,7 +55,7 @@ def zbuduj(poly, sp, nazwa="budynek"):
         # z podestem, schodami i daszkiem na ścianie najbliżej drogi/chodnika (długi budynek: klatka co ok. 24 m)
         wejscie_kr = None
         dj = sp.get("dojscia")
-        if dj is not None and not dj.is_empty and not sp.get("market") and not sp.get("sor"):
+        if dj is not None and not dj.is_empty and not sp.get("market") and not sp.get("sor") and not sp.get("zaplecze"):
             best_ = None
             for idx_, ((xa, za), (xb, zb)) in enumerate(zip(pts, pts[1:])):
                 a_ = np.array([xa, 0., za]); b_ = np.array([xb, 0., zb]); L_ = float(np.linalg.norm(b_ - a_))
@@ -198,6 +198,8 @@ def zbuduj(poly, sp, nazwa="budynek"):
                 c3 = [np.array([x, .12, z]) for x, z in list(tri.exterior.coords)[:3]]
                 if np.cross(c3[1] - c3[0], c3[2] - c3[0])[1] < 0: c3[1], c3[2] = c3[2], c3[1]
                 S.tri_list(nazwa, "posadzka", c3, (0., 1., 0.), (1., 0., 0.), [(q[0], q[2]) for q in c3], None, [0, 1, 2])
+        if sp.get("zaplecze"):                     # zaplecze marketu (o92): rampy, bramy, schody od placu rozładunku
+            market_tyl(S, nazwa, P, H, att)
         if sp.get("market") and fronty:
             gl = max(fronty, key=lambda f: f[4])
             for k_, f_ in enumerate(sorted(fronty, key=lambda f: -f[4])):
@@ -839,6 +841,65 @@ def market_front(S, g, f, H, att, glowny=True, k_=0):
     S.luk(g, "pas_zielony", c, t, n, 3.07, 40, 180, 4.2, 5.0, seg=16)       # pas szyldu (pusty, bez nazwy)
     for u in np.arange(4.5, L - 17.0, 1.6):                  # żółte słupki przed podcieniem (zdjęcia 17:25, IMG_1761–1762)
         S.rura(g, "slupek_zolty", a + t * u + n * 3.45, a + t * u + n * 3.45 + UP * .9, .08, seg=8)
+
+
+def market_tyl(S, g, P, H, att):
+    """Tył marketu od Zamenhofa (Street View 09–10.2025, IMG_2134–2137, właściciel 17:06 „cały market na około”):
+    biała hala z szarym cokołem 0,9 m, dwie rampy rozładunkowe z czarnymi fartuchami i białymi bramami segmentowymi
+    na wysokości paki, brama z rzędem okienek, stalowe schody z balustradą do drzwi na rampie, daszki z blachy,
+    żółto-czarne odboje na placu, czarny płot z blachy trapezowej przy zachodnim końcu, bluszcz na ścianie.
+    Budynek: zaplecze o92 (OSM, 1 kond.) przyklejone do hali od południa; krawędź = najdłuższa ściana na południe.""" 
+    pts = list(P.exterior.coords); best = None
+    for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
+        a = np.array([x0, 0., z0]); b = np.array([x1, 0., z1]); L = float(np.linalg.norm(b - a))
+        if L < 15: continue
+        t = (b - a) / L; n = nrm(np.cross(UP, t))
+        if P.contains(shapely.geometry.Point(*(((a + b) / 2 + n * .5)[[0, 2]]))): n = -n
+        if n[2] < -.7 and (best is None or L > best[4]): best = (a, b, t, n, L)
+    if best is None: return
+    a, b, t, n, L = best
+    if t[0] < 0: a, b, t = b, a, -t                       # u rośnie na wschód
+    Q = lambda u, d, y: a + t * u + n * d + UP * y
+    S.box(g, "cokol", Q(0, .02, 0), t, UP, n, L, .9, .04)                                 # szary cokół
+    # rampy: fartuch (czarna rama) wystający 0,6 m, brama segmentowa 2,8 × 2,9 od +1,15, odbojnice, lampa
+    for u in (.40 * L, .40 * L + 4.4):
+        S.box(g, "pas_czarny", Q(u - 1.75, 0, .9), t, UP, n, .25, 3.7, .6)
+        S.box(g, "pas_czarny", Q(u + 1.5, 0, .9), t, UP, n, .25, 3.7, .6)
+        S.box(g, "pas_czarny", Q(u - 1.75, 0, 4.4), t, UP, n, 3.5, .45, .6)
+        S.box(g, "roleta_biala", Q(u - 1.4, .03, 1.15), t, UP, n, 2.8, 2.9, .02)
+        for j in range(2): S.box(g, "szyba_drzwi", Q(u - .6 + j * .8, .06, 3.1), t, UP, n, .5, .3, .01)
+        S.box(g, "beton_schody", Q(u - 1.6, 0, 0), t, UP, n, 3.2, 1.15, .35)
+        for s_ in (-1, 1):
+            S.box(g, "slupek_zolty", Q(u + s_ * 1.2 - .12, .35, .5), t, UP, n, .24, .4, .14)
+            S.box(g, "pas_czarny", Q(u + s_ * 1.2 - .12, .35, .65), t, UP, n, .24, .12, .145)
+    # brama z rzędem okienek + drzwi na podeście ze schodami stalowymi i daszkiem (na wschód od ramp)
+    u = .40 * L + 9.5
+    S.box(g, "roleta_biala", Q(u - 1.6, .03, .9), t, UP, n, 3.2, 3.2, .02)
+    S.box(g, "pas_czarny", Q(u - 1.75, 0, .9), t, UP, n, 3.5, .1, .1)
+    for j in range(4): S.box(g, "szyba_drzwi", Q(u - 1.3 + j * .7, .06, 2.9), t, UP, n, .45, .3, .01)
+    ud = u + 4.0
+    S.box(g, "beton_schody", Q(ud - 1.5, 0, 0), t, UP, n, 3.0, 1.15, 1.6)                  # podest
+    S.box(g, "drzwi_stal", Q(ud - .5, .02, 1.15), t, UP, n, 1.0, 2.1, .03)
+    for k in range(6):                                                                    # schody wzdłuż ściany
+        S.box(g, "stal_ocynk", Q(ud + 1.5 + k * .28, .1, 1.15 - (k + 1) * .19), t, UP, n, .28, .04, 1.3)
+    S.rura(g, "stal_balustrada", Q(ud - 1.5, 1.6, 2.15), Q(ud + 1.5, 1.6, 2.15), .025, seg=6)
+    S.rura(g, "stal_balustrada", Q(ud + 1.5, 1.6, 2.15), Q(ud + 1.5 + 6 * .28, 1.6, 1.0), .025, seg=6)
+    for uu in (ud - 1.5, ud, ud + 1.5):
+        S.rura(g, "stal_balustrada", Q(uu, 1.6, 1.15), Q(uu, 1.6, 2.15), .025, seg=6)
+    S.box(g, "obrobka", Q(ud - 1.6, 0, 3.6), t, UP, n, 3.2, .08, 1.3)                     # daszek z blachy
+    S.box(g, "obrobka", Q(.40 * L - 2.2, 0, 4.95), t, UP, n, 9.2, .08, 1.3)
+    # druga brama (szeroka) i drzwi przy zachodnim końcu
+    u = .22 * L
+    S.box(g, "roleta_biala", Q(u - 2.0, .03, .12), t, UP, n, 4.0, 3.4, .02)
+    for j in range(5): S.box(g, "szyba_drzwi", Q(u - 1.6 + j * .7, .06, 2.2), t, UP, n, .45, .3, .01)
+    S.box(g, "drzwi_stal", Q(u - 4.6, .02, .12), t, UP, n, 1.0, 2.1, .03)
+    # czarny płot z blachy trapezowej 2,2 m przy zachodnim końcu (zasłania plac śmietników)
+    a0 = Q(1.0, 0, 0); a1 = Q(1.0, 8.0, 0); a2 = Q(.20 * L - 3.5, 8.0, 0)
+    for (p0, p1) in ((a0, a1), (a1, a2)):
+        tt = nrm(p1 - p0); nn = nrm(np.cross(UP, tt)); LL = float(np.linalg.norm(p1 - p0))
+        S.box(g, "plot_blacha_czarna", p0 + UP * .08, tt, UP, nn, LL, 2.2, .06)
+        for s_ in np.arange(0, LL + .01, 2.5):
+            S.box(g, "pas_czarny", p0 + tt * s_ + UP * .0, tt, UP, nn, .08, 2.35, .1)
 
 
 def dach_plaski(S, g, P, y, att, mat):
