@@ -146,6 +146,15 @@ def inne(d, dst):
         bl = [LineString(u["linia"]) for u in d["ulice"] if len(u["linia"]) > 1 and LineString(u["linia"]).distance(P) < 60]
         sp = dict(sp, dojscia=unary_union(bl) if bl else None)
         S = ogolny.zbuduj(P, sp, "o%d" % i)
+        if sp.get("market"):        # 25.11 (IMG_2139–2141): pod podcieniem bocznym i do uliczki — kostka od ściany
+            from shapely.geometry.polygon import orient as _or
+            pp_ = list(_or(P.buffer(0).simplify(.15), 1.0).exterior.coords)
+            for (x0_, z0_), (x1_, z1_) in zip(pp_, pp_[1:]):
+                e_ = np.array([x1_ - x0_, z1_ - z0_]); L_ = float(np.linalg.norm(e_))
+                if L_ < 15: continue
+                n_ = np.array([e_[1], -e_[0]]) / L_
+                if P.contains(Point(*((np.array([x0_ + x1_, z0_ + z1_]) / 2 + n_ * .5)))): n_ = -n_
+                if n_[0] < -.7: PRZEDPOLA.append((np.array([x0_, z0_]), np.array([x1_, z1_]), n_, 10.0, "kostka"))
         if sp.get("zaplecze"):      # 25.11 (IMG_2135–2137): plac rozładunku z kostki za zapleczem — do jezdni
             c_, a_, L_, W_ = prostokat(P); nn_ = np.array([-a_[1], a_[0]]); nn_ = nn_ if nn_[1] < 0 else -nn_
             A_ = np.asarray(c_) - a_ * L_ / 2 + nn_ * W_ / 2; B_ = np.asarray(c_) + a_ * L_ / 2 + nn_ * W_ / 2

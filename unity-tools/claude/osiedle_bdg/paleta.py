@@ -183,6 +183,7 @@ P["szyld_kebab"] = {"tex": None, "kol": [40, 40, 44], "szorst": .5, "nakl": "szy
 P["szyld_kawa"] = {"tex": None, "kol": [30, 30, 32], "szorst": .5, "nakl": "szyld_kawa.png"}
 P["plot_blacha_czarna"] = {"tex": "painted_metal_shutter", "m": 1.0, "kol": [40, 42, 46], "szorst": .6}
 P["bluszcz"] = {"tex": None, "kol": [255, 255, 255], "szorst": .9, "alfa": "zywoplot_galazki.png"}
+P["balustrada_biala"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [236, 236, 232], "szorst": .6}
 P["kontener_odziez"] = {"tex": None, "kol": [206, 194, 160], "szorst": .6}
 P["kontener_odziez_klapa"] = {"tex": None, "kol": [70, 66, 56], "szorst": .6}
 P["blokada_parking"] = {"tex": None, "kol": [180, 182, 184], "szorst": .4, "metal": .6}

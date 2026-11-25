@@ -200,6 +200,8 @@ def zbuduj(poly, sp, nazwa="budynek"):
                 S.tri_list(nazwa, "posadzka", c3, (0., 1., 0.), (1., 0., 0.), [(q[0], q[2]) for q in c3], None, [0, 1, 2])
         if sp.get("zaplecze"):                     # zaplecze marketu (o92): rampy, bramy, schody od placu rozładunku
             market_tyl(S, nazwa, P, H, att)
+        if sp.get("market"):
+            market_bok_zach(S, nazwa, P, H, att)
         if sp.get("market") and fronty:
             gl = max(fronty, key=lambda f: f[4])
             for k_, f_ in enumerate(sorted(fronty, key=lambda f: -f[4])):
@@ -841,6 +843,55 @@ def market_front(S, g, f, H, att, glowny=True, k_=0):
     S.luk(g, "pas_zielony", c, t, n, 3.07, 40, 180, 4.2, 5.0, seg=16)       # pas szyldu (pusty, bez nazwy)
     for u in np.arange(4.5, L - 17.0, 1.6):                  # żółte słupki przed podcieniem (zdjęcia 17:25, IMG_1761–1762)
         S.rura(g, "slupek_zolty", a + t * u + n * 3.45, a + t * u + n * 3.45 + UP * .9, .08, seg=8)
+
+
+def market_bok_zach(S, g, P, H, att):
+    """Bok marketu od uliczki ze szlabanem (Street View IMG_2139–2141): podcień — piętro nad chodnikiem na białych
+    okrągłych słupach co 4 m, strop 2,2 m od ściany na +4,4, ściana parteru z płyt, pod podcieniem paczkomat (szary
+    z żółtym pasem, bez nazwy firmy) i ławka rowerowa; na piętrze dwa banery; przy południowym końcu klatka zewnętrzna:
+    stalowe schody dwubiegowe z białą balustradą do drzwi na +3,6."""
+    pts = list(P.exterior.coords); best = None
+    for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
+        a = np.array([x0, 0., z0]); b = np.array([x1, 0., z1]); L = float(np.linalg.norm(b - a))
+        if L < 15: continue
+        t = (b - a) / L; n = nrm(np.cross(UP, t))
+        if P.contains(shapely.geometry.Point(*(((a + b) / 2 + n * .5)[[0, 2]]))): n = -n
+        if n[0] < -.7 and (best is None or L > best[4]): best = (a, b, t, n, L)
+    if best is None: return
+    a, b, t, n, L = best
+    if t[2] < 0: a, b, t = b, a, -t                       # u rośnie na północ
+    Q = lambda u, d, y: a + t * u + n * d + UP * y
+    D, Y = 2.2, 4.4; u0, u1 = 6.0, L - 1.0                 # podcień od 6 m od południa do narożnika frontu
+    S.box(g, "market_elewacja", Q(u0, 0, Y), t, UP, n, u1 - u0, .35, D)
+    S.box(g, "slup_grafit", Q(u0, D - .05, Y - .02), t, UP, n, u1 - u0, .4, .08)
+    for u in np.arange(u0 + 1.0, u1, 4.0):
+        S.rura(g, "market_elewacja", Q(u, D - .3, .12), Q(u, D - .3, Y), .2, seg=16)
+    k = 0
+    for u in np.arange(u0 + 3.0, u1 - 4.0, 7.5):          # banery na piętrze
+        p0 = Q(u, .06, 5.4); w = 4.2
+        S.quad(g, "baner_%d" % (k % 4 + 1), p0, p0 + t * w, p0 + t * w + UP * 1.6, p0 + UP * 1.6, uv1=[(1, 0), (0, 0), (0, 1), (1, 1)], kier=n); k += 1
+    um = u0 + (u1 - u0) * .35                             # paczkomat pod podcieniem, plecami do ściany
+    S.box(g, "paczkomat", Q(um, .05, .12), t, UP, n, 3.2, 1.9, .65)
+    S.box(g, "slupek_zolty", Q(um, .06, 1.6), t, UP, n, 3.2, .35, .65)
+    S.box(g, "paczkomat_ekran", Q(um + 1.3, .71, 1.0), t, UP, n, .3, .4, .02)
+    for j in range(3):                                    # stojak na rowery
+        S.rura(g, "stal_ocynk", Q(um + 5.0 + j * .8, .4, .12), Q(um + 5.0 + j * .8, .4, .8), .02, seg=6)
+        S.rura(g, "stal_ocynk", Q(um + 5.0 + j * .8, 1.2, .12), Q(um + 5.0 + j * .8, 1.2, .8), .02, seg=6)
+        S.rura(g, "stal_ocynk", Q(um + 5.0 + j * .8, .4, .8), Q(um + 5.0 + j * .8, 1.2, .8), .02, seg=6)
+    # klatka zewnętrzna przy południowym końcu: bieg 1 wzdłuż ściany na spocznik +1,8, bieg 2 z powrotem do drzwi +3,6
+    us = 1.0; w = 1.2; hs = .18; ds = .28; n1 = 10
+    for k in range(n1):
+        S.box(g, "stal_ocynk", Q(us + k * ds, .1, (k + 1) * hs - .04), t, UP, n, ds, .04, w)
+        S.box(g, "stal_ocynk", Q(us + (n1 - 1 - k) * ds, w + .3, 1.8 + (k + 1) * hs - .04), t, UP, n, ds, .04, w)
+    S.box(g, "stal_ocynk", Q(us + n1 * ds, .1, 1.76), t, UP, n, 1.3, .06, 2 * w + .2)      # spocznik
+    S.box(g, "stal_ocynk", Q(us - 1.4, w + .3, 3.56), t, UP, n, 1.4, .06, w)                  # podest przy drzwiach
+    S.box(g, "drzwi_stal", Q(us - 1.2, .02, 3.6), t, UP, n, 1.0, 2.1, .03)
+    for (d_, y0, y1, ua, ub) in ((w + .1, 0, 1.8, us, us + n1 * ds), (w + .3 + w, 1.8, 3.6, us + n1 * ds, us)):
+        S.rura(g, "balustrada_biala", Q(ua, d_, y0 + 1.0), Q(ub, d_, y1 + 1.0), .025, seg=6)
+        for f in np.linspace(0, 1, 5):
+            uu = ua + (ub - ua) * f; yy = y0 + (y1 - y0) * f
+            S.rura(g, "balustrada_biala", Q(uu, d_, yy), Q(uu, d_, yy + 1.0), .02, seg=6)
+    S.rura(g, "balustrada_biala", Q(us + n1 * ds + 1.3, .1, 2.8), Q(us + n1 * ds + 1.3, 2 * w + .3, 2.8), .025, seg=6)
 
 
 def market_tyl(S, g, P, H, att):

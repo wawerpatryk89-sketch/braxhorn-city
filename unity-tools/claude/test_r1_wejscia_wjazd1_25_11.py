@@ -137,5 +137,6 @@ def test_zaplecze_marketu_rampy():
     import json
     o = (ROOT / "unity-tools/claude/osiedle_bdg/ogolny.py").read_text(encoding="utf-8")
     assert "def market_tyl(" in o and 'if sp.get("zaplecze"):' in o and 'not sp.get("zaplecze")' in o
+    assert "def market_bok_zach(" in o and "market_bok_zach(S, nazwa, P, H, att)" in o        # podcień boczny, paczkomat, schody
     op = json.loads((ROOT / "unity-tools/claude/osiedle_bdg/gen/osiedle_opis.json").read_text(encoding="utf-8"))["inne"]
     assert any("zaplecze marketu" in v.get("zrodlo", "") for v in op.values())

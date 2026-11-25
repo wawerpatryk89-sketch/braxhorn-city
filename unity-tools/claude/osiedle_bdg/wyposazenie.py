@@ -136,6 +136,8 @@ def zbuduj(d, G, szer, okno, drzewa, latarnie):
             tt = dr[2] if dr else np.array([1., 0, 0])
             lawka(S, X3(p[0], .12, p[1]), tt, np.array([-tt[2], 0, tt[0]])); ile("lawki")
         elif am == "parcel_locker":
+            # 25.11 (IMG_2140): paczkomat przy markecie stoi pod podcieniem bocznym — model w ogolny.market_bok_zach
+            if any("Leclerc" in (b_.get("nazwa") or "") and b_["poly"].distance(Point(*p)) < 10 for b_ in d["budynki"]): continue
             dr = droga_przy(p, ulice, 30); tt = dr[2] if dr else np.array([1., 0, 0])
             paczkomat(S, X3(p[0], .12, p[1]), tt); ile("paczkomaty")
         elif am == "recycling":
