@@ -17,6 +17,9 @@ public sealed class BraxChampionsCasinoT11TextureImport : AssetPostprocessor
         bool casino=assetPath.StartsWith("Assets/Source/Mistrzowie/CasinoT11/Textures2K/",StringComparison.Ordinal);
         bool vegetation=assetPath.StartsWith("Assets/Source/Mistrzowie/CasinoT11/Vegetation2K/",StringComparison.Ordinal);
         if(!casino&&!vegetation)return;
+        // 25.11: images the CI took out of the two embedded vegetation .glb (tekstury_glb_osobno.py) are not provider maps;
+        // their settings are BraxChampionsGlbOsobnoImport's
+        if(assetPath.Contains(BraxChampionsGlbOsobno.Folder))return;
         var importer=(TextureImporter)assetImporter;
         bool diffuse=assetPath.EndsWith("_diff_2k.jpg",StringComparison.Ordinal);
         bool linear=assetPath.EndsWith("_nor_gl_2k.png",StringComparison.Ordinal)

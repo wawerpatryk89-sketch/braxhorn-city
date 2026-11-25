@@ -74,6 +74,23 @@ public static class BraxChampionsBuild
             if(skipWalkChecks)
                 report.checks.Add("OWNER_REQUESTED_DIAGNOSTIC: metro and exterior walking checks SKIPPED; physical colliders unchanged; traversability NOT VALIDATED");
             report.sourceImportErrors=RecordSourceImportDiagnostics(reports);
+            // 25.11 (as Miasto R1): the .glb images are project textures, compressed at import; a model imported before its
+            // images is imported once more here, before anything uses it
+            BraxChampionsGlbOsobno.Sprawdz();
+            // 25.11 stage 2 of 2 (as Miasto R1): the world of this very commit was generated and saved by the previous run
+            // (BraxChampionsEtapy) and restored before Unity started - no generation, the APK only
+            if(apk&&!validationOnly&&BraxChampionsEtapy.SwiatPrzywrocony(report.sourceCommit))
+            {
+                PlayerSettings.colorSpace=ColorSpace.Linear;
+                var gotowa=EditorSceneManager.OpenScene(BraxChampionsExplorer.ScenePath,OpenSceneMode.Single);
+                report.rendererCount=gotowa.GetRootGameObjects().Sum(o=>o.GetComponentsInChildren<Renderer>(true).Length);
+                report.checks.Add("STAGE 2 OF 2: the world of this commit restored from stage 1 ("+BraxChampionsPodzial.Sceny().Length+
+                    " area scenes) - generation skipped, the APK only");
+                BuildExplorationApk();
+                report.status="ANDROID_APK_COMPILED_DEVICE_AND_VISUAL_REVIEW_PENDING";
+                report.checks.Add("ARM64 exploration APK compiled; repository signing certificate verification is still required in CI");
+                return;
+            }
             // Fail fast on 21 original casino maps before generating the world.
             BraxChampionsCasinoPbr2K.VerifyOriginalSourceMaps();
             BraxChampionsHotelSobczakMaterials.VerifySources();
@@ -142,6 +159,14 @@ public static class BraxChampionsBuild
             {
                 CompressGlbTextures(scene,report);
                 SplitIntoAreas(report);
+                // the world is complete: saved, marked, packed by the workflow even if the APK below fails or runs out of time
+                BraxChampionsEtapy.SwiatGotowy(report.sourceCommit);
+                if(BraxChampionsEtapy.KoniecEtapu1(report.sourceCommit))
+                {
+                    report.status="STAGE_1_OF_2_WORLD_GENERATED_AND_SAVED_APK_IN_THE_NEXT_RUN";
+                    report.checks.Add("Stage 1 of 2: the APK would not fit before the Unity step's deadline; the next run of this commit builds it from the saved world");
+                    return;
+                }
                 BuildExplorationApk();
                 report.status="ANDROID_APK_COMPILED_DEVICE_AND_VISUAL_REVIEW_PENDING";
                 report.checks.Add("ARM64 exploration APK compiled; repository signing certificate verification is still required in CI");
@@ -415,8 +440,10 @@ public static class BraxChampionsBuild
             QualitySettings.antiAliasing=2;
         }
         QualitySettings.SetQualityLevel(previousQuality,false);
+        // ZASADA-1 C (9.11): BuildOptions.None - LZ4 raised Miasto R1 from 743 to 1349 MB (the world itself is in the
+        // Addressables bundles, LZ4 per bundle as before)
         var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=new[]{startPath},target=BuildTarget.Android,
-            locationPathName=Path.Combine(output,"braxhorn-mistrzowie.apk"),options=BuildOptions.CompressWithLz4});
+            locationPathName=Path.Combine(output,"braxhorn-mistrzowie.apk"),options=BuildOptions.None});
         if(result.summary.result!=BuildResult.Succeeded)
             throw new InvalidOperationException("APK Miasta Mistrzów: "+result.summary.result+"; błędów="+result.summary.totalErrors);
         // Like the existing city builder: mark only a completed BuildPlayer output.

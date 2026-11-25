@@ -116,6 +116,8 @@ jobs:
           # APK), #46 and #48 ran on /dev/root, where the swap file is on a plain disk (#48 passed generation and reached
           # Gradle). So this build runs only on a /dev/root runner; on a copy-on-write root it stops here and is dispatched
           # again (GitHub hands out runners at random; owner 18.11 15:28: "Puść tak, żeby poszedł").
+          # 25.11: the job's start, for the Unity step's deadline (two runs as Miasto R1, BraxChampionsEtapy)
+          echo "START_ZADANIA=$(date +%s)" >> "$GITHUB_ENV"
           src=$(findmnt -no SOURCE / || true); echo "BRAX_ROOT_DEVICE $src"
           lsblk -o NAME,SIZE,TYPE,MOUNTPOINT 2>/dev/null || true
           df -h 2>/dev/null || true
@@ -527,8 +529,59 @@ jobs:
         run: |
           python3 unity-tools/mistrzowie/isolate_unused_glb_champions.py --apply-runner-only
           echo 'Unused HarborBeach crane original GLB preserved outside Unity Assets in this runner; visual source unchanged.' >> "$GITHUB_STEP_SUMMARY"
+      # Owner 25.11 17:19 ("Wszystko jest w kompresji w grze?"): no. glTFast makes every image inside a .glb an uncompressed
+      # RGBA32 texture (#52: 250 images, ~1.7 GB); the Unity step meant to swap them (BraxChampionsTeksturyGlb) loaded none
+      # in #52 and #57, and #54 / #57 were killed for memory there. Miasto R1's way, which works: before Unity, on this
+      # runner's copy only, each image is written beside its model and the .glb points at it; Unity imports it compressed
+      # (ASTC 6x6, BraxChampionsGlbOsobnoImport) like any texture. The repository's files are not changed.
+      - name: Tekstury z .glb jako osobne pliki (jak Miasto R1, tylko na tej maszynie)
+        run: python3 unity-tools/mistrzowie/tekstury_glb_osobno.py
+      - name: Klucz zapisanego świata (commit, Unity, pipeline, pakiety)
+        id: swiat_klucz
+        run: |
+          k=$(printf '%s|%s|%s|%s' "$SOURCE_SHA" "${{ steps.preflight.outputs.unity }}" "$MISTRZOWIE_PIPELINE" \
+            "$(sha256sum unity-city/Packages/manifest.json | cut -c1-64)" | sha256sum | cut -c1-32)
+          echo "klucz=$k" >> "$GITHUB_OUTPUT"; echo "BRAX_WORLD_KEY $k commit=$SOURCE_SHA"
+      # Stage 2 of 2 (as Miasto R1): the previous run of this very commit generated the world and saved it - restored here,
+      # Unity builds only the APK (BraxChampionsEtapy). A miss or any mismatch = a normal full run.
+      - name: Przywróć zapisany świat tego commitu (etap 2 z 2 - tylko APK)
+        id: world_restore
+        if: ${{ inputs.etap != 'sceny' }}
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rm -f unity-city/mistrzowie-swiat-gotowy.txt unity-city/mistrzowie-swiat-przywrocony.txt
+          bash unity-tools/mistrzowie/world_store.sh restore unity-city "${{ steps.swiat_klucz.outputs.klucz }}"
+          if [ -f unity-city/mistrzowie-swiat-przywrocony.txt ]; then echo 'restored=true' >> "$GITHUB_OUTPUT"; fi
+          df -h /
+      # 25.11 (as Miasto R1, owner 17:22 "Go"): #52, the last APK, needed 4 h 46 min of Unity (import 43 min, generation
+      # 1 h 50 min, the APK 2 h 07 min) - the whole job's limit, so every slower runner was cut with nothing saved. Unity now
+      # gets the step's deadline: when the world is done and less than RESZTA_MIN is left, stage 1 ends cleanly (no APK),
+      # the steps below save the world and the import memory, and the next run of the same commit builds only the APK.
+      - name: Termin kroku Unity i reguła etapów (etap 1 kończy się czysto po zbudowaniu świata)
+        env:
+          LIMIT_ZADANIA_MIN: 355
+          LIMIT_KROKU_MIN: 285
+          ZAPISY_MIN: 40
+          RESZTA_MIN: 140
+        run: |
+          teraz=$(date +%s)
+          a=$(( teraz + (LIMIT_KROKU_MIN - 3) * 60 ))
+          b=$(( ${START_ZADANIA:-$teraz} + (LIMIT_ZADANIA_MIN - ZAPISY_MIN) * 60 ))
+          termin=$(( a < b ? a : b ))
+          printf 'termin=%s\nreszta_min=%s\n' "$termin" "$RESZTA_MIN" > unity-city/mistrzowie-ci.txt
+          echo "BRAX_ETAP termin Unity $(date -u -d "@$termin" +%H:%M:%SZ) (za $(( (termin - teraz) / 60 )) min); APK potrzebuje $RESZTA_MIN min po zbudowaniu świata, inaczej etap 1 kończy się zapisem świata"
+          # what Unity changes from here on is the world (world_store.sh save): the files before, and the moment
+          (cd unity-city && find Assets ProjectSettings -type f | LC_ALL=C sort) > "$RUNNER_TEMP/mistrzowie-przed.txt"
+          touch "$RUNNER_TEMP/mistrzowie-start.marker"
+          wc -l < "$RUNNER_TEMP/mistrzowie-przed.txt"
       - name: Unity 6 - Miasto Mistrzów, Brax i APK do zwiedzania
         id: unity_build
+        # Own limit below the job's 355 (as Miasto R1): a run that does not finish ends here after 285 min and the ~55 min
+        # left save the world and the import memory - the job's own limit would skip every saving step.
+        timeout-minutes: 285
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -549,6 +602,45 @@ jobs:
           # 96 PolyHaven and the rest, 07:40-09:10, 1.5 h. Unity's own switch sets ASTC before the first import, so each
           # texture is imported once, already in the format the APK uses (the build still sets the same ASTC).
           customParameters: -setDefaultPlatformTextureFormat astc
+          # #57 (24.11) killed (exit 137) at 13.7 GB of Unity with 14 GB of swap still free: game-ci gives the container
+          # --memory = 95 % of RAM and Docker the same again of swap, not the 24 GiB swap file. Miasto R1 (12.11, the same
+          # exit 137): 22g -> the container may use RAM + the host's swap.
+          dockerMemoryLimit: 22g
+      - name: Zatrzymaj kontener Unity po przerwanym kroku (żeby nie pisał do Library i świata w czasie zapisu)
+        if: ${{ always() && steps.unity_build.outcome != 'success' }}
+        run: |
+          ids=$(docker ps -q || true)
+          # gently first (SIGTERM, 45 s to close the import database), only then docker kill
+          if [ -n "$ids" ]; then echo "BRAX_KONTENER stop: $ids"; docker stop -t 45 $ids || docker kill $ids || true; sleep 5; else echo "BRAX_KONTENER none running"; fi
+      - name: Etap 1 z 2 - świat zbudowany i zapisywany, APK w następnym przebiegu
+        id: etap
+        if: always()
+        run: |
+          if [ -f build/Android/etap-1.txt ]; then
+            cat build/Android/etap-1.txt
+            echo 'etap1=true' >> "$GITHUB_OUTPUT"
+            echo '::notice title=ETAP 1 z 2::Świat Miasta Mistrzów zbudowany, APK nie powstało w tym przebiegu (nie zmieściłoby się w limicie). Świat i Library są zapisywane - następny przebieg tego samego commitu robi tylko APK.'
+          elif [ -f unity-city/mistrzowie-swiat-przywrocony.txt ]; then
+            echo 'BRAX_ETAP etap 2 z 2: świat przywrócony, ten przebieg robi tylko APK'
+          else
+            echo 'BRAX_ETAP zwykły przebieg (bez znacznika etapu 1): APK z tego buildu albo błąd'
+          fi
+      # The world is saved whenever Unity completed it and no APK came out of this run - stage 1 ended, or the APK failed or
+      # ran out of the step's time (owner: "zapis świata, także po przerwaniu"). Before the import memory and the photos.
+      - name: Zapisz zbudowany świat (zaszyfrowany, magazyn mistrzowie-world-cache)
+        id: world_save
+        if: ${{ always() && !cancelled() && inputs.etap != 'sceny' && steps.world_restore.outputs.restored != 'true' && hashFiles('unity-city/mistrzowie-swiat-gotowy.txt') != '' && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') == '' }}
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+          GH_TOKEN: ${{ github.token }}
+          WORLD_START: ${{ runner.temp }}/mistrzowie-start.marker
+          WORLD_BEFORE: ${{ runner.temp }}/mistrzowie-przed.txt
+        run: |
+          sudo chown -R "$(id -u):$(id -g)" unity-city/Assets unity-city/ProjectSettings unity-city/mistrzowie-swiat-gotowy.txt
+          df -h /
+          bash unity-tools/mistrzowie/world_store.sh save unity-city "${{ steps.swiat_klucz.outputs.klucz }}"
+          echo "### Etap 1 z 2: świat zapisany (klucz ${{ steps.swiat_klucz.outputs.klucz }}). Następny przebieg tego commitu robi tylko APK." >> "$GITHUB_STEP_SUMMARY"
       - name: Save generated scene audit JSON and Markdown as downloadable evidence
         if: ${{ always() && inputs.etap == 'sceny' && inputs.zapisz_audyt }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

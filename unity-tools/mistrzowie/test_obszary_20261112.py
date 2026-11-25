@@ -83,7 +83,10 @@ class Split(unittest.TestCase):
     def test_build_packs_the_area_scenes(self):
         b = src('Editor/Mistrzowie/BraxChampionsBuild.cs')
         self.assertEqual(b.count('SplitIntoAreas(report);'), 2)                                 # scene check and APK
-        self.assertLess(b.index('SplitIntoAreas(report);\n                BuildExplorationApk();'), b.index('static void SplitIntoAreas'))
+        # 25.11: between the split and the player the world is marked complete and stage 1 may end (BraxChampionsEtapy)
+        apk = b.index('                SplitIntoAreas(report);\n                // the world is complete')
+        self.assertLess(apk, b.index('BuildExplorationApk();', apk))
+        self.assertLess(b.index('BuildExplorationApk();', apk), b.index('static void SplitIntoAreas'))
         self.assertIn('new[] { BraxChampionsExplorer.ScenePath }.Concat(areaScenes).ToArray()', b)
         self.assertIn('scenes=new[]{BraxChampionsExplorer.ScenePath}.Concat(BraxChampionsPodzial.Sceny()).ToArray()', b)
         self.assertIn('BraxChampionsPodzial.Wyczysc()', b)                                      # a failed split leaves one whole scene
