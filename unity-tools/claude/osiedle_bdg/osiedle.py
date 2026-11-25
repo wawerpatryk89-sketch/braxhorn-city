@@ -25,8 +25,9 @@ import ogolny  # noqa: E402
 # Budynki z obrysu OSM (ogolny.py). Klucz: fragment nazwy z OSM albo (nr, ulica). zr = źródło liczby kondygnacji i koloru:
 # OSM (building:levels), ZDJ (zdjęcie właściciela), ZAL (założenie — lista do potwierdzenia zdjęciem).
 SPEC = [
+    # 25.11 (właściciel 15:41: „niebieskie gówna”, „okien nie ma”): bez niebieskiego pasa pod attyką, okna piętra od ulic
     ("E.Leclerc", dict(kond=2, h_kond=3.6, parter=4.6, tynk="market_elewacja", witryny=True, okna_kier=(0, 1), okna=(3.6, 3.0, 1.7, .9), market=True,
-                       attyka=1.0, pas_gorny=("market_niebieski", 1.1),
+                       attyka=1.0, okna_ulica=True,
                        zr="ZDJ IMG_1577 (front od Skłodowskiej: witryny pasażu w parterze, pas okien piętra) i IMG_1730 (tył: biała hala, niebieski pas); bez nazwy i logo (decyzja 16:49)")),
     ("Pawilon Łóżkowy", dict(kond=5, h_kond=3.4, parter=3.8, tynk="szpital_krem", cokol="szpital_cegla", h_cokol=3.0, okna=(3.0, 1.6, 1.5, .9), zr="OSM 5 p., lotnicze IMG_1751 (kremowy, parter ceglasty)")),
     ("SOR", dict(kond=4, h_kond=3.8, parter=4.5, tynk="szpital_krem", okna=(2.6, 1.9, 1.5, .9), ladowisko=True, sor=True, front_kier=(0, -1), zr="ZDJ IMG_1727, IMG_1744–1751 (kremowy, szary panel, przeszklone wejście, lamele i lądowisko na dachu)")),
@@ -134,6 +135,9 @@ def inne(d, dst):
         sp = spec(b)
         if sp.get("sor"):                       # drogi przy SOR: przerwy w murkach podjazdu
             sp = dict(sp, drogi=[LineString(u["linia"]) for u in d["ulice"] if len(u["linia"]) > 1 and LineString(u["linia"]).distance(P) < 40])
+        # 25.11: wejście od strony najbliższej drogi albo chodnika (ogolny.wejscie)
+        bl = [LineString(u["linia"]) for u in d["ulice"] if len(u["linia"]) > 1 and LineString(u["linia"]).distance(P) < 60]
+        sp = dict(sp, dojscia=unary_union(bl) if bl else None)
         S = ogolny.zbuduj(P, sp, "o%d" % i)
         przenies(S, dst, "o%d" % i, 0.0, 0.0, 0.0); MODELE.append(P)
         MODELE.extend(getattr(S, "wyciecia", []))
@@ -422,9 +426,10 @@ if __name__ == "__main__":
     przenies(T, D, "teren", 0.0, 0.0, 0.0)
     drzewa, latarnie = teren.punkty(d, G)
     # 25.11 (właściciel 15:16: „chodniki zarośnięte”): trawa 3D 30 cm od krawędzi chodników, jezdni i obrzeży — kępy nie wchodzą na kostkę
-    zapisz_maske_trawy(G["TRAWA"].buffer(-.3), drzewa, out / "osiedle_trawa_maska.bin")
     opis["teren"] = pola; opis["drzew"] = len(drzewa); opis["latarni"] = len(latarnie)
     Wy, opis["wyposazenie"] = wyposazenie.zbuduj(d, G, teren.SZER, teren.OKNO, drzewa, latarnie)
+    # 25.11 (15:43: wiata „zarośnięta trawą”): kępy trawy 3D nie rosną na płycie pod wiatą
+    zapisz_maske_trawy(G["TRAWA"].buffer(-.3).difference(wyposazenie.plyty_wiat()), drzewa, out / "osiedle_trawa_maska.bin")
     przenies(Wy, D, "wyposazenie", 0.0, 0.0, 0.0)
     (out / "osiedle_punkty.json").write_text(json.dumps({"drzewa": drzewa, "latarnie": latarnie, "modele": MODELE_WL}, ensure_ascii=False), encoding="utf-8")
     (out / "osiedle_akcje.json").write_text(json.dumps({"akcje": AKCJE}, ensure_ascii=False, indent=1), encoding="utf-8")

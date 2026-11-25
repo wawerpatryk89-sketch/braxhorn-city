@@ -51,21 +51,54 @@ def lodziarnia(S, o, t, n, g="budki"):
 
 
 def burger_kontener(S, o, t, n, g="budki"):
-    """Budka z burgerami (zdjęcie 18:47): żółty kontener 4,0 × 2,4 m, dwa okienka wydawcze, ciemny billboard z napisem na
-    dachu, kosz, donica; obok słup z obręczą i okrągłym szyldem (pusty — logo BRAXHORN później) i girlanda żarówek."""
+    """Budka z burgerami (zdjęcie 18:47): żółty kontener 4,0 × 2,4 m z blachy falistej, dwa okienka wydawcze, ciemny billboard
+    z napisem na dachu, kosz, donica; obok słup z obręczą i okrągłym szyldem i girlanda żarówek.
+    25.11 (właściciel 15:42: „trzynastolatki robią lepsze w Minecrafcie”): kontener z blachy falistej z ramą i narożnikami,
+    okienka w ramie ze stali nierdzewnej z blatem, roletą zwiniętą w kasecie, oświetlonym wnętrzem (lada, okap, tablica menu),
+    markizy w pasy na wspornikach, tablice menu obok okienek, drzwi z boku ze stopniem, dwa stoliki barowe."""
     W, D, H = 4.0, 2.4, 2.6
     c = o - n * D / 2
-    _B(S, g, "kontener_zolty", c, t, n, W, H, D)
+    r = nrm(np.cross(UP, -n))
+    _B(S, g, "kontener_falisty", c + UP * .05, t, n, W, H - .05, D, bez=("+z",))
+    tp = nrm(np.cross(n, UP))                                                    # ściana frontu z otworami okienek
+    S.sciana(g, "kontener_falisty", o + t * (W / 2) + UP * .05, tp, W, H - .05,
+             [(W / 2 - u - 1.15 / 2, W / 2 - u + 1.15 / 2, .95 - .05, 1.95 - .05) for u in (-1.0, .9)])
+    for s_ in (-1, 1):                                                          # rama i narożniki kontenera
+        for d_ in (.0, -D):
+            _B(S, g, "kontener_rama", o + t * s_ * (W / 2 - .06) + n * (d_ + .06 if d_ == 0 else d_ + .06) - n * 0, t, n, .14, H, .14)
+    for y_ in (.0, H - .12):
+        _B(S, g, "kontener_rama", o + n * .02 + UP * y_, t, n, W + .02, .14, .1)
     for u in (-1.0, .9):
-        _B(S, g, "kiosk_wnetrze", o + t * u + n * .02 + UP * 1.0, t, n, 1.1, .9, .04)
-        _B(S, g, "kiosk_blat", o + t * u + n * .15 + UP * .98, t, n, 1.2, .04, .3)
-        a = o + t * (u - .6) + UP * 2.05; b = o + t * (u + .6) + UP * 2.05
-        S.quad(g, "markiza_pasy", a, b, b + n * .45 - UP * .2, a + n * .45 - UP * .2, kier=nrm(n + UP))
-        S.quad(g, "markiza_pasy", a + n * .45 - UP * .2, b + n * .45 - UP * .2, b, a, kier=nrm(-n - UP))
+        w_, h0, h1 = 1.15, .95, 1.95
+        _B(S, g, "kiosk_wnetrze_jasne", o + t * u - n * .9 + UP * h0, t, n, w_, h1 - h0, .04)             # tył wnętrza (oświetlone)
+        _B(S, g, "tablica_menu", o + t * u - n * .86 + UP * (h0 + .45), t, n, w_ * .8, .45, .02)
+        _B(S, g, "kiosk_blat", o + t * u - n * .6 + UP * (h0 - .05), t, n, w_, .9, .6)                    # lada w środku
+        for (q0, q1) in ((-w_ / 2, w_ / 2),):
+            S.quad(g, "kiosk_wnetrze_jasne", o + t * (u + q0) + UP * h0, o + t * (u + q0) - n * .9 + UP * h0, o + t * (u + q0) - n * .9 + UP * h1, o + t * (u + q0) + UP * h1, kier=r * 1 if False else t)
+            S.quad(g, "kiosk_wnetrze_jasne", o + t * (u + q1) + UP * h0, o + t * (u + q1) + UP * h1, o + t * (u + q1) - n * .9 + UP * h1, o + t * (u + q1) - n * .9 + UP * h0, kier=-t)
+            S.quad(g, "kiosk_wnetrze_jasne", o + t * (u + q0) + UP * h1, o + t * (u + q1) + UP * h1, o + t * (u + q1) - n * .9 + UP * h1, o + t * (u + q0) - n * .9 + UP * h1, kier=-UP)
+        for (x0, x1, y0, y1) in ((-w_ / 2 - .06, -w_ / 2, h0 - .06, h1 + .06), (w_ / 2, w_ / 2 + .06, h0 - .06, h1 + .06),
+                                 (-w_ / 2 - .06, w_ / 2 + .06, h1, h1 + .06)):
+            _B(S, g, "stal_nierdzewna", o + t * (u + (x0 + x1) / 2) + n * .02 + UP * y0, t, n, x1 - x0, y1 - y0, .05)
+        _B(S, g, "stal_nierdzewna", o + t * u + n * .17 + UP * (h0 - .06), t, n, w_ + .14, .05, .34)        # blat wydawczy
+        _B(S, g, "kiosk_dach", o + t * u + n * .08 + UP * (h1 + .08), t, n, w_ + .14, .18, .16)            # kaseta rolety
+        a = o + t * (u - .66) + UP * 2.32; b = o + t * (u + .66) + UP * 2.32
+        S.quad(g, "markiza_pasy", a, b, b + n * .6 - UP * .28, a + n * .6 - UP * .28, kier=nrm(n + UP))
+        S.quad(g, "markiza_pasy", a + n * .6 - UP * .28, b + n * .6 - UP * .28, b, a, kier=nrm(-n - UP))
+        for s2 in (-1, 1):
+            S.rura(g, "stal", o + t * (u + s2 * .62) + UP * 2.32, o + t * (u + s2 * .62) + n * .58 + UP * 2.05, .012, seg=4)
+        S.rura(g, "lampa", o + t * u + n * .3 + UP * 2.16, o + t * u + n * .3 + UP * 2.1, .05, seg=8)       # lampka pod markizą
+    _B(S, g, "tablica_menu", o + t * (-W / 2 + .2) + n * .03 + UP * 1.0, t, n, .3, .9, .02)                 # tablice menu przy okienkach
+    _B(S, g, "tablica_menu", o + t * (W / 2 - .2) + n * .03 + UP * 1.0, t, n, .3, .9, .02)
+    sd = o + t * (W / 2 + .01) - n * (D * .55)                                                           # drzwi z boku
+    S.quad(g, "drzwi_stal", sd - n * .45 + UP * .1, sd + n * .45 + UP * .1, sd + n * .45 + UP * 2.1, sd - n * .45 + UP * 2.1, kier=t)
+    _B(S, g, "beton_schody", sd + t * .35, n, t, 1.1, .15, .7)
     _B(S, g, "kiosk_dach", c + UP * H, t, n, W + .2, .1, D + .2)
     _B(S, g, "kiosk_dach", o + UP * (H + .1) - n * .2, t, n, W + .3, 1.3, .12)                # billboard
     _szyld(S, g, "szyld_burger", o + UP * (H + .15) - n * .13, n, W + .2, 1.2)
     S.rura(g, "opona", o + n * .5 + t * (W / 2 + .4), o + n * .5 + t * (W / 2 + .4) + UP * .95, .25, seg=10)
+    for k in (-1, 1):                                                                                     # stoliki barowe
+        stolik(S, g, o + n * 2.6 + t * k * 1.4)
     # słup z obręczą i okrągłym szyldem
     s0 = o + n * 4.5 - t * (W / 2 + 2.0)
     S.rura(g, "stal", s0, s0 + UP * 9.0, .14, seg=10)

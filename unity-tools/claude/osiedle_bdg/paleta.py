@@ -75,7 +75,7 @@ P = {
     "sygnal_szary": {"tex": None, "kol": [120, 124, 128], "szorst": .5, "metal": .5}, "sygnal_czarny": {"tex": None, "kol": [24, 24, 26], "szorst": .5},
     "swiatlo_czerwone": {"tex": None, "kol": [150, 20, 16], "szorst": .2}, "swiatlo_zolte": {"tex": None, "kol": [120, 90, 20], "szorst": .2},
     "swiatlo_zielone": {"tex": None, "kol": [40, 200, 110], "szorst": .2},
-    "wiata_rama": {"tex": None, "kol": [30, 40, 70], "szorst": .45, "metal": .5}, "szyba_wiata": {"tex": None, "kol": [70, 86, 92], "szorst": .06, "metal": .2},
+    "wiata_rama": {"tex": None, "kol": [30, 40, 70], "szorst": .45, "metal": .5}, "szyba_wiata": {"tex": None, "kol": [150, 168, 174], "szorst": .05, "metal": .1, "przezr": .28},   # 25.11: prawdziwe szkło (przezroczyste)
     "szlaban_pomarancz": {"tex": None, "kol": [226, 112, 28], "szorst": .45}, "szlaban_czerwony": {"tex": None, "kol": [196, 30, 30], "szorst": .45},
     "szlaban_bialy": {"tex": None, "kol": [236, 236, 232], "szorst": .45},
     "beton_lawka": {"tex": BET, "m": 1.5, "kol": [160, 158, 152], "szorst": 1.0},
@@ -104,8 +104,8 @@ P = {
     "asfalt_czerwony": {"tex": "clean_asphalt", "m": 4.0, "kol": [150, 76, 70], "szorst": 1.0},
     # zdjęcia 23.11, 17:07–17:09: szkoła budowlana jasnozielona (IMG_1729–1735), market biały z niebieskim pasem (IMG_1730),
     # SOR biały z lądowiskiem (IMG_1727), przedszkole kremowe (IMG_1736–1737)
-    "szkola_ziel": tynk([166, 192, 146], "brud_32a_wejscie.png"), "market_niebieski": {"tex": None, "kol": [30, 70, 150], "szorst": .45, "metal": .3},
-    "market_rama": {"tex": None, "kol": [190, 192, 194], "szorst": .5, "metal": .2}, "market_szklo": {"tex": None, "kol": [70, 92, 110], "szorst": .06, "metal": .5},
+    "szkola_ziel": tynk([166, 192, 146], "brud_32a_wejscie.png"), "market_niebieski": {"tex": None, "kol": [196, 200, 204], "szorst": .45, "metal": .3},   # 25.11: bez niebieskiego (właściciel 15:41)
+    "market_rama": {"tex": None, "kol": [190, 192, 194], "szorst": .5, "metal": .2}, "market_szklo": {"tex": None, "kol": [112, 126, 136], "szorst": .06, "metal": .55},
     "dach_ciemny": {"tex": "corrugated_iron_02", "m": 2.7, "kol": [70, 74, 80], "szorst": .8},
     "lamele": {"tex": None, "kol": [150, 155, 160], "szorst": .45, "metal": .6}, "szpital_panel": {"tex": "exterior_wall_cladding_03", "m": 1.96, "kol": [112, 116, 122], "szorst": .8},
     "szpital_krem": tynk([226, 216, 196], "brud_32a_wejscie.png"), "szpital_cegla": {"tex": "red_bricks_04", "m": 2.5, "kol": [160, 86, 62], "szorst": 1.0},
@@ -186,7 +186,14 @@ P["menu_bosna"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [26, 28, 28], "szors
 P["szyld_lody"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [44, 44, 46], "szorst": .6, "nakl": "szyld_lody.png"}
 P["deska"] = {"tex": "weathered_brown_planks", "m": 2.0, "kol": [120, 96, 72], "szorst": 1.0}
 P["trawa_ozdobna"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [200, 184, 140], "szorst": 1.0}
-P["market_elewacja"] = {"tex": "plyty_szare", "m": 4.4, "kol": [204, 198, 186], "szorst": 1.0}   # kwadratowe płyty ~1,1 m (zdjęcia 18:47)
+# 25.11: budka z burgerami — kontener z blachy falistej, rama, stal nierdzewna, jasne wnętrze, tablice menu
+P["kontener_falisty"] = {"tex": "corrugated_iron_02", "m": 1.2, "kol": [226, 188, 44], "szorst": .55}
+P["kontener_rama"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [200, 168, 36], "szorst": .6}
+P["stal_nierdzewna"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [196, 198, 200], "szorst": .3}
+P["kiosk_wnetrze_jasne"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [228, 226, 220], "szorst": .5}
+P["tablica_menu"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [34, 34, 36], "szorst": .5}
+P["napis_sor"] = {"tex": None, "kol": [96, 102, 110], "szorst": .3, "nakl": "napis_sor.png"}   # 25.11: nazwa szpitala na panelu SOR
+P["market_elewacja"] = {"tex": "plyty_szare", "m": 4.4, "kol": [226, 226, 222], "szorst": 1.0}   # 25.11: biała jak na Street View   # kwadratowe płyty ~1,1 m (zdjęcia 18:47)
 P["slup_grafit"] = {"tex": "granite_tile", "m": 2.3, "kol": [72, 74, 76], "szorst": .35}   # 20:34: słupy podcienia — polerowany ciemny granit (płyty z fugami)
 P["posadzka"] = {"tex": BET, "m": 2.0, "kol": [168, 166, 160], "szorst": .8}
 P["pas_zielony"] = {"tex": "lakier_blacha", "m": 2.5, "kol": [40, 120, 70], "szorst": .6}

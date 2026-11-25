@@ -49,7 +49,7 @@ public static class BraxBydgoszcz
     static float K => BraxClaudeOsiedle.K;
     static string Out => BraxRegion.Out + "/Bydgoszcz";
 
-    [Serializable] class Mat { public string tex; public float m; public float[] kol; public float[] tint; public float szorst; public float metal; public string nakl; public string alfa; public bool okno; public string gra; public string woda; public float emisja; }
+    [Serializable] class Mat { public string tex; public float m; public float[] kol; public float[] tint; public float szorst; public float metal; public string nakl; public string alfa; public bool okno; public string gra; public string woda; public float emisja; public float przezr; }
 
     static string Sciezka(string plik = Plik)
     {
@@ -165,6 +165,8 @@ public static class BraxBydgoszcz
         }
         // 24.11: świecące diody (balkon z DJ-em na Rynku) — sama emisja, bez światła czasu rzeczywistego; pulsuje BraxPulsSwiatla
         if (d.emisja > 0f) return BraxRegionMeble.Swiecacy(n, C(d.tint), d.emisja);
+        // 25.11 (właściciel 15:43, wiata „to nie jest wiata”): szkło wolnostojące (wiaty) przezroczyste — alfa z palety
+        if (d.przezr > 0f && string.IsNullOrEmpty(d.tex)) { var c = C(d.tint); c.a = Mathf.Clamp(d.przezr, .05f, .95f); return BraxRegionMeble.Gladki(n, c, d.szorst, d.metal); }
         if (!string.IsNullOrEmpty(d.tex))
             return BraxRegionMeble.Tex(n, d.m, C(d.tint), d.szorst, d.tex);
         return BraxRegionMeble.Gladki(n, C(d.tint), d.szorst, d.metal);

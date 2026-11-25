@@ -318,6 +318,22 @@ def balustrada_most(out, px=512):
     Image.fromarray(rgba, "RGBA").save(out)
 
 
+def napis_sor(out, W=1536, H=652):
+    """25.11 (właściciel 15:44: „nie ma napisane, że to jest Jurasza Szpital […] tak jak jest oryginalnie”): napis na szarym
+    szklanym panelu frontu SOR — jak na zdjęciu ulicy (o95, Skłodowskiej-Curie 9): białe wersaliki, u góry nazwa szpitala,
+    u dołu nazwa oddziału. Przezroczyste tło (wypiekane na barwę panelu)."""
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    for txt, y, frac in (("SZPITAL UNIWERSYTECKI NR 1 im. dr. A. JURASZA", .13, .80), ("SZPITALNY ODDZIAŁ RATUNKOWY", .74, .62)):
+        size = 200
+        while size > 10:
+            f = ImageFont.truetype(FONT_B, size)
+            if d.textlength(txt, font=f) <= W * frac: break
+            size -= 2
+        w = d.textlength(txt, font=f)
+        d.text(((W - w) / 2, int(H * y)), txt, font=f, fill=(246, 247, 248, 255))
+    im.save(out)
+
+
 def wypiecz(src, dst_gra, dst_prywatne):
     """Do gry: naklejka nałożona na barwę ściany (paleta) — jedna tekstura na UV2. Mural (plik właściciela) do katalogu
     prywatnego (paczka szyfrowana), reszta (nasze napisy i graffiti) do Assets/Source/Claude/Bydgoszcz."""

@@ -17,7 +17,7 @@ from pathlib import Path
 
 import numpy as np
 from shapely.ops import unary_union
-from shapely.geometry import LineString, Point
+from shapely.geometry import LineString, Point, Polygon
 
 from kit import Siatka, UP, nrm
 
@@ -79,13 +79,14 @@ def zebry(pkt, ulice, szer):
 
 
 WIATY = []
+PLOTY = []
 
 
 def zbuduj(d, G, szer, okno, drzewa, latarnie):
     """Siatka wyposażenia + lista nazw (opis). G = geometria terenu z teren.zbuduj (jezdnie, chodniki, budynki)."""
     S = Siatka(); R = random.Random(23); opis = {}
     pkt, linie = osm()
-    WIATY.clear()
+    WIATY.clear(); PLOTY.clear()
     pkt = sorted(pkt, key=lambda pt: 0 if pt[1].get("highway") == "bus_stop" else 1)    # perony przed punktami zatrzymania
     W = lambda p: okno.buffer(-1).contains(Point(*p))
     ulice = d["ulice"]
@@ -160,7 +161,21 @@ def zbuduj(d, G, szer, okno, drzewa, latarnie):
             elif t.get("barrier") == "wall":                         # 24.11 01:14: mur to mur — z cegły, nie płot z prętów
                 h = float(t.get("height", "1.6").split()[0]) if str(t.get("height", "1.6")).split()[0].replace(".", "").isdigit() else 1.6
                 mur(S, list(g.coords), h, R.choice(("c_czerwona", "c_mieszana", "c_stara")), .12); ile("mury")
-            else: plot(S, list(g.coords)); ile("ploty")
+            else: plot(S, list(g.coords)); ile("ploty"); PLOTY.append(g)
+    # 25.11 (właściciel 15:44: „teren szpitala nieogrodzony […] było na filmie, na zdjęciach”; Street View Skłodowskiej 9:
+    # płot z prętów, rdzawoczerwony): płot po obwodzie terenu szpitala z mapy, z przerwą na każdej jezdni, parkingu
+    # i chodniku (wjazdy, wejścia), bez dublowania płotów z mapy i bez wchodzenia na budynki
+    from shapely.ops import unary_union as _uu
+    juz = _uu(PLOTY).buffer(1.5) if PLOTY else Polygon()
+    for tr in d["tereny"]:
+        if tr["rodzaj"] != "hospital" or len(tr["linia"]) < 3: continue
+        try: obw = LineString(list(Polygon(tr["linia"]).buffer(0).exterior.coords))
+        except Exception: continue
+        Lh = obw.intersection(okno).difference(zajete).difference(przejscia).difference(juz)
+        geoms = [Lh] if Lh.geom_type == "LineString" else [g for g in getattr(Lh, "geoms", []) if g.geom_type == "LineString"]
+        for g in geoms:
+            if g.length < 2.0: continue
+            plot(S, list(g.coords)); ile("ploty_szpital")
     latarnie = [q for q in latarnie if not zajete.contains(Point(q[0], q[1]))]
     for (x, z, typ) in latarnie:
         dr = droga_przy((x, z), ulice, 20)
@@ -190,6 +205,18 @@ def sygnalizator(S, o, t, n):
         B(S, g, m, h + UP * (.72 - k * .28) + n * .12, t, n, .2, .2, .03)
 
 
+def plyty_wiat():
+    """Obrysy płyt pod wiatami (te same wymiary co w wiata()) — maska trawy 3D je omija."""
+    from shapely.geometry import Polygon as _P
+    from shapely.ops import unary_union as _u
+    L, G = 4.6, 1.5; out = []
+    for (o, n) in WIATY:
+        n = nrm(n); t = np.array([-n[2], 0., n[0]])
+        c = [o - t * (L / 2 + .5) - n * .3, o + t * (L / 2 + .5) - n * .3, o + t * (L / 2 + .5) + n * (G + .4), o - t * (L / 2 + .5) + n * (G + .4)]
+        out.append(_P([(float(q[0]), float(q[2])) for q in c]).buffer(.3))
+    return _u(out) if out else _P()
+
+
 def wiata(S, o, t, n, nazwa=""):
     """Wiata przystankowa 4,6 x 1,5 x 2,5 m: granatowa rama, szkło z tyłu i z boków, dach, ławka (IMG_1670, IMG_1672).
     24.11: tablica z nazwą przystanku na czole dachu, rozkład jazdy na bocznej szybie, słupek ze znakiem D-15 przy krawężniku
@@ -205,7 +232,8 @@ def wiata(S, o, t, n, nazwa=""):
     r0 = o + t * (L / 2 - .02) + n * .25 + UP * .9                         # rozkład jazdy na bocznej szybie (od środka)
     S.quad(g, "rozklad", r0, r0 + n * .55, r0 + n * .55 + UP * .75, r0 + UP * .75, uv1=[(0, 0), (1, 0), (1, 1), (0, 1)], kier=-t)
     d_ = np.array([-n[2], 0., n[0]])                                     # kierunek jazdy pasa przy wiacie (prawostronny)
-    sp = o - n * 1.7 + d_ * (L / 2 + 1.2)
+    # 25.11 (15:43: „znak na środku kostki”): słupek 35 cm od krawężnika (wiata stoi 2,4 m od krawędzi jezdni)
+    sp = o - n * 2.05 + d_ * (L / 2 + 1.2)
     S.rura(g, "stal_ocynk", sp, sp + UP * 2.75, .03, seg=6)
     z0 = sp + UP * 2.15 - d_ * .04
     S.quad(g, "znak_d15", z0 - n * .3, z0 + n * .3, z0 + n * .3 + UP * .6, z0 - n * .3 + UP * .6, uv1=[(0, 0), (1, 0), (1, 1), (0, 1)], kier=-d_)

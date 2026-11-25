@@ -202,7 +202,8 @@ def blok(z_terenem=True):
              uv1_skala=(NAP[1] - NAP[0], NAP[3] - NAP[2]))
     skrzynka_gaz(o2, t)
     # ---- uskok północny: ściana zachodnia połówki wschodniej (X = SZ_POL, Z od DL-0.12 do DL+USKOK) ----
-    ou = np.array([SZ_POL, -0.3, DL - .12]); tu = ez                          # patrzy na zachód: t = +Z
+    # 25.11: było t = +Z → normalna na wschód (do środka) — ściana niewidoczna z zewnątrz, prześwit na wylot przez blok
+    ou = np.array([SZ_POL, -0.3, DL + USKOK]); tu = -ez                       # patrzy na zachód: t = −Z
     S.sciana("uskok_N", "cokol", ou, tu, USKOK + .12, COKOL_Z + .3, [])
     S.sciana("uskok_N", "tynk", ou + UP * (COKOL_Z + .3), tu, USKOK + .12, ATTYKA - COKOL_Z, [])
     # ---- długie ściany z balkonami: zachodnia (połówka zachodnia), wschodnia (połówka wschodnia) ----

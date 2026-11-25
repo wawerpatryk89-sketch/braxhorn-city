@@ -51,7 +51,21 @@ def zbuduj(poly, sp, nazwa="budynek"):
                 if n_[0] * fk_[0] + n_[2] * fk_[1] > .5: Lmax_front = max(Lmax_front, L_)
         wolne = []                                  # krawędzie obrysu bez sąsiada (dach kamienicy: okap tylko na nich)
         ulica_kr = []                               # krawędzie od ulicy/placu (lukarny, ozdoby)
-        for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
+        # 25.11 (właściciel 15:40–15:52: „pudełka”, „sztuczka, żeby postawić budynek”): każdy budynek ma wejście — drzwi
+        # z podestem, schodami i daszkiem na ścianie najbliżej drogi/chodnika (długi budynek: klatka co ok. 24 m)
+        wejscie_kr = None
+        dj = sp.get("dojscia")
+        if dj is not None and not dj.is_empty and not sp.get("market") and not sp.get("sor"):
+            best_ = None
+            for idx_, ((xa, za), (xb, zb)) in enumerate(zip(pts, pts[1:])):
+                a_ = np.array([xa, 0., za]); b_ = np.array([xb, 0., zb]); L_ = float(np.linalg.norm(b_ - a_))
+                if L_ < 5.0: continue
+                t_ = (b_ - a_) / L_; n_ = nrm(np.cross(UP, t_)); m_ = (a_ + b_) / 2
+                if P.contains(shapely.geometry.Point(*((m_ + n_ * .5)[[0, 2]]))): n_ = -n_
+                sc_ = dj.distance(shapely.geometry.Point(*((m_ + n_ * 3.0)[[0, 2]]))) - .15 * L_
+                if best_ is None or sc_ < best_[0]: best_ = (sc_, idx_)
+            wejscie_kr = best_[1] if best_ else None
+        for idx_kr, ((x0, z0), (x1, z1)) in enumerate(zip(pts, pts[1:])):
             a = np.array([x0, 0., z0]); b = np.array([x1, 0., z1]); L = float(np.linalg.norm(b - a))
             wolne.append(True)
             if L < .3: ulica_kr.append(False); continue
@@ -75,12 +89,20 @@ def zbuduj(poly, sp, nazwa="budynek"):
             ulica_kr.append(pub and udz_slepe < .5)
             oz = sp.get("ozdoby") if (pub and udz_slepe < .5) else None
             wyk_osie, balk_os, k, off = set(), None, 0, 0.0
-            if L >= 2.2 and sp.get("okna_on", True) and (kier_ok is None or n[0] * kier_ok[0] + n[2] * kier_ok[1] > .5):
+            # 25.11 (właściciel 15:41, market: „elewacja, okien nie ma”): okna także na ścianach od ulicy (do 22 m od drogi)
+            ulica_ok = bool(sp.get("okna_ulica")) and dj is not None and not dj.is_empty and \
+                dj.distance(shapely.geometry.Point(*(((a + b) / 2 + n * 6.0)[[0, 2]]))) < 22.0
+            front_ok = kier_ok is None or n[0] * kier_ok[0] + n[2] * kier_ok[1] > .5
+            if L >= 2.2 and sp.get("okna_on", True) and (front_ok or ulica_ok):
                 k = int((L - .8) // rozst)
                 if oz and k >= 3 and kond >= 3 and oz.get("wykusz"):         # wykusz na środkowych osiach (1 albo 2)
                     wyk_osie = {k // 2 - 1, k // 2} if k % 2 == 0 else {k // 2}
                 elif oz and k >= 2 and kond >= 2 and oz.get("balkon"):
                     balk_os = k // 2
+                osie_wej = set()
+                if k >= 1 and idx_kr == wejscie_kr:
+                    nw_ = max(1, int(round(L / 24.0)))
+                    osie_wej = {int((j + .5) * k / nw_) for j in range(nw_)}
                 if k >= 1:
                     off = (L - k * rozst) / 2
                     for i in range(k):
@@ -91,6 +113,10 @@ def zbuduj(poly, sp, nazwa="budynek"):
                         rodz = ("okno_l" if od_ulicy else "okno_t") if sp.get("okno_lekkie") else "okno"
                         for f in range(kond):
                             fl = 0 if f == 0 else p0 + (f - 1) * hk
+                            if f == 0 and i in osie_wej:
+                                okna.append((c - .6, c + .6, .45, 2.65, "drzwi", 0)); continue
+                            if f == 0 and sp.get("market") and not front_ok:
+                                continue                           # bok marketu od ulicy: pas okien piętra, parter pełny
                             if f == 0 and sp.get("witryny") and od_ulicy:
                                 drzwi = sp.get("market") and abs(L - Lmax_front) < .01 and abs(c - L / 2) < rozst / 2
                                 rw = "otwor" if drzwi else ("witryna_k" if sp.get("okno_lekkie") else "witryna")
@@ -107,7 +133,12 @@ def zbuduj(poly, sp, nazwa="budynek"):
                                 okna.append((c - ow / 2, c + ow / 2, fl + opar, fl + opar + oh, rodz, f))
             cok = sp.get("h_cokol", .5)
             S.sciana(nazwa, sp.get("cokol", "cokol4"), a + UP * -.25, t, L, cok + .25,
-                     [(u0, u1, .25 + .12, cok + .25) for (u0, u1, v0, v1, r, pp) in okna if r == "otwor"])   # próg wejścia na posadzce
+                     [(u0, u1, .25 + .12, cok + .25) for (u0, u1, v0, v1, r, pp) in okna if r == "otwor"] +   # próg wejścia na posadzce
+                     [(u0, u1, .25 + v0, .25 + min(v1, cok)) for (u0, u1, v0, v1, r, pp) in okna if r == "drzwi" and v0 < cok] +
+                     # 25.11: okna parteru w wysokim cokole (szpital: parter z cegły 3 m) — otwór także w cokole, inaczej
+                     # za cegłą zostawała sama biała opaska bez okna
+                     [((u0 - B.OPASKA, u1 + B.OPASKA) if r in ("okno", "okno_l") else (u0, u1)) + (.25 + v0, .25 + min(v1 + (B.OPASKA if r in ("okno", "okno_l") else 0), cok))
+                      for (u0, u1, v0, v1, r, pp) in okna if r in ("okno", "okno_l", "okno_t", "witryna", "witryna_k") and v0 < cok - .02])
             gora = [(u0, u1, v0 - cok, v1 - cok, r, pp) for (u0, u1, v0, v1, r, pp) in okna]
             if sp.get("pola_kolorow") and L > 4:
                 import blok4, random
@@ -130,6 +161,8 @@ def zbuduj(poly, sp, nazwa="budynek"):
                 sciana(nazwa, sp["szczyt_mat"], a + UP * cok, t, n, L, H + att - cok, gora, (L, H + att))
             else:
                 sciana(nazwa, sp["tynk"], a + UP * cok, t, n, L, H + att - cok, gora, (L, H + att), "szklo" if sp.get("market") else None)
+            for (u0, u1, v0, v1, r, pp) in okna:
+                if r == "drzwi": wejscie(S, nazwa, a, t, n, u0, u1, v0, v1, sp)
             if sp.get("mur_pruski") and L >= 1.0:
                 mur_pruski(S, nazwa, a, t, n, L, okna, p0, hk, kond, H + att, rozst, off, k)
             if oz:
@@ -236,11 +269,13 @@ def sciana(g, mat, o, t, n, L, H, okna, uv1, styl=None):
                 S.box(g, fr, P(u - .03, v0, d0), t, UP, n, .06, v1 - v0, .06)
             if r == "witryna": S.box(g, fr, P(u0, v0 + 2.35, d0), t, UP, n, u1 - u0, .06, .06)          # nadświetle
         return
-    dz = [(u0 - B.OPASKA, u1 + B.OPASKA, v0, v1 + B.OPASKA) for (u0, u1, v0, v1, r, p) in okna if r not in ("witryna", "okno_t", "witryna_k")] + \
-         [(u0, u1, v0, v1) for (u0, u1, v0, v1, r, p) in okna if r in ("witryna", "okno_t", "witryna_k")]
+    dz = [(u0 - B.OPASKA, u1 + B.OPASKA, v0, v1 + B.OPASKA) for (u0, u1, v0, v1, r, p) in okna if r not in ("witryna", "okno_t", "witryna_k", "drzwi")] + \
+         [(u0, u1, v0, v1) for (u0, u1, v0, v1, r, p) in okna if r in ("witryna", "okno_t", "witryna_k")] + \
+         [(u0, u1, max(v0, 0.0), v1) for (u0, u1, v0, v1, r, p) in okna if r == "drzwi" and v1 > .05]
     S.sciana(g, mat, o, t, L, H, dz, uv1_skala=uv1)
     P = lambda u, v, d=0.0: o + t * u + UP * v - n * d
     for (u0, u1, v0, v1, r, pp) in okna:
+        if r == "drzwi": continue                                  # wejście — wejscie() rysuje je od poziomu terenu
         if r == "witryna_k":                                       # kamienica: witryna sklepu/lokalu na parterze
             witryna_kamienica(g, P, t, n, u0, u1, v0, v1, pp); continue
         if r == "okno_t":                                          # od podwórza: ościeże, parapet, szyba — bez opaski
@@ -254,6 +289,33 @@ def sciana(g, mat, o, t, n, L, H, okna, uv1, styl=None):
             else: B.okno(g, o, t, n, u0, u1, v0, v1, "okno", pp)
         else:
             B.okno(g, o, t, n, u0, u1, v0, v1, "klatka", 0)        # witryna: jedno pole, bez parapetu mieszkaniowego
+
+
+def wejscie(S, g, a, t, n, u0, u1, v0, v1, sp):
+    """Wejście do budynku (25.11): otwór z ościeżem 25 cm, drzwi aluminiowe z szybą i naświetlem, daszek betonowy,
+    podest na wysokości progu (+0,45) i 3 stopnie od chodnika. a — narożnik ściany na poziomie terenu, n — na zewnątrz."""
+    P = lambda u, v, d=0.0: a + t * u + UP * v - n * d
+    G = .25; osc = sp.get("osc_mat") or STYL.get("opaska", "opaska")
+    for q, kk in (((P(u0, v0), P(u0, v1), P(u0, v1, G), P(u0, v0, G)), t), ((P(u1, v0), P(u1, v0, G), P(u1, v1, G), P(u1, v1)), -t),
+                  ((P(u0, v1), P(u1, v1), P(u1, v1, G), P(u0, v1, G)), -UP)):
+        S.quad(g, osc, *q, kier=kk)
+    ramy, w = "drzwi_stal", u1 - u0
+    S.box(g, ramy, P(u0, v0, G), t, UP, n, w, v1 - v0, .03, bez=("-z",))                        # tło skrzydeł (ościeżnica)
+    for (x0, x1) in ((u0, u0 + .07), (u1 - .07, u1), ((u0 + u1) / 2 - .035, (u0 + u1) / 2 + .035)):
+        S.box(g, ramy, P(x0, v0, G - .03), t, UP, n, x1 - x0, v1 - v0, .05)
+    for y in (v0 + .95, v1 - .55, v1 - .07):
+        S.box(g, ramy, P(u0, y, G - .03), t, UP, n, w, .07, .05)
+    for (x0, x1) in ((u0 + .07, (u0 + u1) / 2 - .035), ((u0 + u1) / 2 + .035, u1 - .07)):
+        S.quad(g, "szyba_drzwi", P(x0, v0 + 1.02, G - .04), P(x1, v0 + 1.02, G - .04), P(x1, v1 - .62, G - .04), P(x0, v1 - .62, G - .04), t=t, kier=n)
+    S.quad(g, "szyba_drzwi", P(u0 + .07, v1 - .48, G - .04), P(u1 - .07, v1 - .48, G - .04), P(u1 - .07, v1 - .07, G - .04), P(u0 + .07, v1 - .07, G - .04), t=t, kier=n)
+    S.box(g, "stal", P(u0 + w / 2 - .25, v0 + 1.0, G - .09), t, UP, n, .18, .03, .05)             # klamki
+    S.box(g, "stal", P(u0 + w / 2 + .07, v0 + 1.0, G - .09), t, UP, n, .18, .03, .05)
+    m = .6; dd = 1.2
+    S.box(g, "beton_daszek", P(u0 - m, v1 + .35, 0), t, UP, n, w + 2 * m, .14, dd)                 # daszek
+    S.box(g, "obrobka", P(u0 - m - .02, v1 + .49, 0), t, UP, n, w + 2 * m + .04, .03, dd + .02)
+    S.box(g, "beton_schody", P(u0 - m, -.25, 0), t, UP, n, w + 2 * m, v0 + .25, 1.3)               # podest
+    for s_ in range(1, 4):
+        S.box(g, "beton_schody", P(u0 - m, -.25, -1.3 - .3 * (s_ - 1)), t, UP, n, w + 2 * m, v0 + .25 - .15 * s_, .3)
 
 
 def okno_lekkie(g, P, t, n, u0, u1, v0, v1, pietro, rama):
@@ -672,18 +734,19 @@ def sor_front(S, g, f, H, sp_drogi=None):
     us = np.linspace(u0, u1, 25)
     dd = lambda u: 2 * (wys - .25) * (u - um) / pol ** 2          # pochodna łuku
     luk = np.concatenate([[0.], np.cumsum([math.hypot(q - p, d(q) - d(p)) for p, q in zip(us, us[1:])])])
-    for (v0, v1, mat) in ((7.2, H - 3.4, "szpital_panel"), (H - 3.4, H - 1.6, "market_szklo"), (H - 1.6, H + .6, "szpital_krem")):
-        pts, nn, tt, uv = [], [], [], []
+    for (v0, v1, mat) in ((7.2, H - 3.4, "napis_sor"), (H - 3.4, H - 1.6, "market_szklo"), (H - 1.6, H + .6, "szpital_krem")):
+        pts, nn, tt, uv, uv1 = [], [], [], [], []
         for k_, u in enumerate(us):
             T_ = nrm(t + n * dd(u)); N_ = nrm(n - t * dd(u))
             for v in (v0, v1):
                 pts.append(a + t * u + n * d(u) + UP * v); nn.append(N_); tt.append(T_); uv.append((luk[k_], v))
+                uv1.append((luk[k_] / luk[-1], (v - v0) / (v1 - v0)))      # napis na całym panelu (tekstury_32a.napis_sor)
         idx = []
         for k_ in range(len(us) - 1):
             i0, i1, i2, i3 = 2 * k_, 2 * k_ + 2, 2 * k_ + 3, 2 * k_ + 1
             if np.dot(np.cross(pts[i1] - pts[i0], pts[i3] - pts[i0]), nn[i0]) < 0: idx += [i0, i3, i2, i0, i2, i1]
             else: idx += [i0, i1, i2, i0, i2, i3]
-        S.tri_list(g, mat, pts, nn, tt, uv, None, idx)
+        S.tri_list(g, mat, pts, nn, tt, uv, uv1, idx)
     for p, q in zip(us, us[1:]):                              # spód i góra łuku
         A = a + t * p; B_ = a + t * q
         for yy, kk in ((7.2, -UP), (H + .6, UP)):

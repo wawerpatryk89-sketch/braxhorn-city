@@ -64,3 +64,30 @@ def test_aleja_polnocna_w_wjazd1_bez_parkingu():
     os_ = (ROOT / "unity-tools/claude/osiedle_bdg/osiedle.py").read_text(encoding="utf-8")
     assert '"szer": 2 * 4.5 / 1.294' in os_, "jezdnia wjazdu 1 = jezdnia alei (2 × AH)"
     assert "public const float AX = -126f, AH = 4.5f;" in cs
+
+
+def test_uskok_wiezowca_sciana_na_zewnatrz():
+    """Uskok między połówkami wieżowca (15:39–15:40 „klatki, wszędzie”): ściana patrzy na zachód (na zewnątrz)."""
+    S, _ = B.zbuduj("28a", 0)
+    for (g, m), c in S.cz.items():
+        if g != "uskok_N": continue
+        v = np.array(c["v"]); i = np.array(c["i"]).reshape(-1, 3)
+        n = np.cross(v[i[:, 1]] - v[i[:, 0]], v[i[:, 2]] - v[i[:, 0]])
+        assert (n[:, 0] < 0).all(), "normalne uskoku na −X (zachód)"
+
+
+def test_budynek_ogolny_ma_wejscie():
+    import ogolny
+    from shapely.geometry import box as _box, LineString as _LS
+    S = ogolny.zbuduj(_box(0, 0, 30, 12), dict(kond=4, h_kond=3.0, tynk="tynk_szary", dojscia=_LS([(-5, -6), (40, -6)])), "t")
+    assert ("t", "drzwi_stal") in S.cz and ("t", "beton_daszek") in S.cz and ("t", "beton_schody") in S.cz
+    v = np.array(S.cz[("t", "beton_daszek")]["v"])
+    assert v[:, 2].max() <= 1e-6, "wejście od strony drogi (−z)"
+
+
+def test_wiata_szklo_przezroczyste_i_napis_szpitala():
+    import paleta
+    assert 0 < paleta.P["szyba_wiata"].get("przezr", 0) < 1
+    assert (ROOT / "unity-city/Assets/Source/Claude/Bydgoszcz/napis_sor.png").exists()
+    cs = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxBydgoszcz.cs").read_text(encoding="utf-8")
+    assert "public float przezr;" in cs and "d.przezr > 0f" in cs
