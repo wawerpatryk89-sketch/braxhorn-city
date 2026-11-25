@@ -47,7 +47,7 @@ public sealed class BraxObrazRejonu : MonoBehaviour
     {
         stan = -1; mgielkaPrzed = Shader.GetGlobalFloat(IdMgielka); Shader.SetGlobalFloat(IdMgielka, 0f);
         otNiebo = RenderSettings.ambientSkyColor; otHoryzont = RenderSettings.ambientEquatorColor; otZiemia = RenderSettings.ambientGroundColor;
-        odbicia = RenderSettings.reflectionIntensity; zapamietane = true; ostatnieS = -1f;
+        odbicia = RenderSettings.reflectionIntensity; zapamietane = doba; ostatnieS = -1f;
         Ustaw(false);
     }
 
@@ -79,6 +79,17 @@ public sealed class BraxObrazRejonu : MonoBehaviour
 
     void Ustaw(bool wewnatrz)
     {
+        if (!doba)
+        {
+            // 25.11 (właściciel 15:13: „znowu budynki czarne”, 15:24: bez nocy): bez doby dokładnie to, co było przed nią
+            // (43dfcbe) — tylko ekspozycja i moc słońca; otoczenie, odbicia, barwa słońca i _BraxSwiatlo* nietknięte
+            // (shadery bez ustawienia liczą dzień ×1)
+            int st = wewnatrz ? 1 : 0; if (st == stan) return;
+            stan = st;
+            Shader.SetGlobalFloat(Id, wewnatrz ? 1f : ekspozycja);
+            if (slonce) slonce.intensity = wewnatrz ? slonceWewnatrz : slonceZewnatrz;
+            return;
+        }
         float s = 1f; Color barwa = barwaDnia;
         if (doba) Doba(startMin + Time.time / 60f, out s, out barwa);
         int nowy = wewnatrz ? 1 : 0;
@@ -114,6 +125,6 @@ public sealed class BraxObrazRejonu : MonoBehaviour
             RenderSettings.ambientSkyColor = otNiebo; RenderSettings.ambientEquatorColor = otHoryzont; RenderSettings.ambientGroundColor = otZiemia;
             RenderSettings.reflectionIntensity = odbicia; zapamietane = false;
         }
-        if (slonce) slonce.color = barwaDnia;
+        if (doba && slonce) slonce.color = barwaDnia;
     }
 }
