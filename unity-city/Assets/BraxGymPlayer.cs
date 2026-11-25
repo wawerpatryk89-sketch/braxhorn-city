@@ -45,7 +45,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     // Słuchają worki, liny ringu i piłki osiedla (BraxWorek, BraxLina, BraxPilka) — bez zależności gracza od nich.
     public static event Action<Vector3,Vector3,bool> OnCios;
     private Vector2 move;
-    private float yaw, pitch = 19f, distance = 5.8f, vertical, speed;
+    private float yaw, pitch = 19f, distance = BraxKameraStandard.Pieszo, vertical, speed;   // ZASADY 10.8 (K1): kamera bliżej, jak w GTA — liczba tylko w BraxKameraStandard
     private float actionEnd, hitAt, stateAt;
     private string action = "Idle";
     private bool hitPending, doorOpen, paused, runEnabled = true, soundEnabled = true;
@@ -146,7 +146,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
             ClearSwimming();
             body.enabled=false;transform.position=cityWorld?worldSpawn:Spawn;transform.rotation=Quaternion.Euler(0,180,0);body.enabled=true;
             vertical=0;speed=0;move=Vector2.zero;actionEnd=0;hitPending=false;hitAt=0;
-            yaw=0;pitch=19;distance=5.8f;cameraTarget=transform.position+Vector3.up*1.65f;
+            yaw=0;pitch=19;distance=BraxKameraStandard.Pieszo;cameraTarget=transform.position+Vector3.up*1.65f;
             action="Idle";clips.Play("Idle");UpdateCamera(1f);Report();return;
         }
         if(key=="run"){runEnabled=!runEnabled;Report();return;}

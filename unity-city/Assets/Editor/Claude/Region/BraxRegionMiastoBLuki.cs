@@ -120,8 +120,12 @@ public static partial class BraxRegionMiastoB
         // zakręt ul. Warsztatowa → ul. Wiaduktowa (L): łuk wewnętrzny tu, łuk zewnętrzny w UliceBoczne (LukZew)
         Luk("Wiaduktowa × Warsztatowa (pn.-zach.)", WX - WH, SZ + SH, -1, 1);
         // wjazd z Alei Północnej na parking supermarketu (jezdnia alei wchodzi w kwadrat parkingu)
-        Luk("Aleja Płn. → parking supermarketu (wsch.)", AX + AH, PetlaZ - PetlaPlac, 1, -1);
-        Luk("Aleja Płn. → parking supermarketu (zach.)", AX - AH, PetlaZ - PetlaPlac, -1, -1);
+        // 25.11: z wjazdem 1 osiedla parkingu nie ma — aleja idzie prosto dalej (bez łuków)
+        if (!BraxBydgoszcz.Wlaczone)
+        {
+            Luk("Aleja Płn. → parking supermarketu (wsch.)", AX + AH, PetlaZ - PetlaPlac, 1, -1);
+            Luk("Aleja Płn. → parking supermarketu (zach.)", AX - AH, PetlaZ - PetlaPlac, -1, -1);
+        }
         // Aleja Południowa × ul. Warsztatowa (T od wsch.)
         Luk("Aleja Płd. × Warsztatowa (pn.-wsch.)", AX + AH, SZ + SH, 1, 1);
         Luk("Aleja Płd. × Warsztatowa (pd.-wsch.)", AX + AH, SZ - SH, 1, -1);

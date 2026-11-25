@@ -98,7 +98,10 @@ def wjazd1(d):
             if best is None or dd < best[0]: best = (dd, (q.x, q.y))
     cel = best[1] if best else (p0[0], -150)
     d["ulice"].append({"osm": "wjazd1", "klasa": "residential", "nazwa": "wjazd z miasta 1", "pasy": None, "jednokier": None,
-                       "rondo": False, "nawierzchnia": "asphalt", "linia": [p0, (p0[0], -212.0), (cel[0] * .5 + p0[0] * .5, (cel[1] - 212) * .5), cel]})
+                       "rondo": False, "nawierzchnia": "asphalt",
+                       "szer": 2 * 4.5 / 1.294,   # 25.11: jezdnia jak Aleja Północna miasta (2 × AH = 9 j.), styk bez uskoku
+                       "chodnik": (12.0 - 4.5) / 1.294,   # chodnik do lica alei (12 j. od osi) — przedłużenie chodników alei
+                       "linia": [p0, (p0[0], -212.0), (cel[0] * .5 + p0[0] * .5, (cel[1] - 212) * .5), cel]})
     return cel
 
 
@@ -261,6 +264,34 @@ def front_ze_wystepow(poly, c, a):
     return None
 
 
+_JEZDNE = None
+
+
+def front_garazy(d, c, a, L, W):
+    """25.11 (właściciel 15:19: „garaże chyba powinny być w drugą stronę […] nie ma dojazdu do garaży”): bramy na ten dłuższy bok,
+    przed którym jest bliżej do jezdni albo parkingu (mediana z 5 promieni prostopadłych do boku, do 40 m); plac przed bramami
+    sięga do jezdni (przedpole do 25 m) — dojazd."""
+    global _JEZDNE
+    if _JEZDNE is None:
+        g = [LineString(u["linia"]).buffer((u.get("szer") or teren.SZER.get(u["klasa"], 4.6)) / 2) for u in d["ulice"]
+             if u["klasa"] in ("service", "residential", "living_street", "unclassified", "tertiary", "secondary") and len(u["linia"]) > 1]
+        for t in d["tereny"]:
+            if t["rodzaj"] == "parking" and len(t["linia"]) > 2:
+                try: g.append(Polygon(t["linia"]).buffer(0))
+                except Exception: pass
+        _JEZDNE = unary_union(g)
+    n = np.array([-a[1], a[0]]); best = None
+    for s_ in (1.0, -1.0):
+        nn = n * s_; dl = []
+        for u in np.linspace(-.4, .4, 5):
+            p0 = np.asarray(c) + a * (u * L) + nn * (W / 2 + .3)
+            x = LineString([tuple(p0), tuple(p0 + nn * 40)]).intersection(_JEZDNE)
+            dl.append(40.0 if x.is_empty else Point(*p0).distance(x))
+        m = float(np.median(dl))
+        if best is None or m < best[0]: best = (m, nn)
+    return best[1]
+
+
 def front_do_drogi(d, c, a, klasy=("service", "residential", "tertiary")):
     n = np.array([-a[1], a[0]]); p = Point(*c); best = None
     for u in d["ulice"]:
@@ -297,8 +328,8 @@ def wiezowce(dst):
         B = blok_32a
         # ściana wejściowa (północ połówki zachodniej) i ślepa ściana z napisem — przed nimi kostka do uliczki (IMG_1427)
         PRZEDPOLA.append((swiat(kat, tx, tz, 0, B.DL), swiat(kat, tx, tz, B.SZ_POL, B.DL), kier(kat, 0, 1), 16.0, "kostka"))
-        # doświetle piwnicy przed ścianą wejściową (x lokalne −0,4…7,85, do 1,39 m od ściany): teren je omija
-        MODELE.append(Polygon([tuple(swiat(kat, tx, tz, x, z)) for x, z in ((-.4, B.DL), (7.85, B.DL), (7.85, B.DL + 1.39), (-.4, B.DL + 1.39))]))
+        # doświetle piwnicy przed ścianą wejściową: od 25.11 teren pod nim zostaje (żwir leży na kostce, nic na wylot)
+        # (do 24.11 wycinano tu teren x lokalne −0,4…7,85, do 1,39 m od ściany — w grze dawało to prześwit pod spód)
         PRZEDPOLA.append((swiat(kat, tx, tz, B.SZ_POL, B.DL + B.USKOK), swiat(kat, tx, tz, 2 * B.SZ_POL, B.DL + B.USKOK), kier(kat, 0, 1), 14.0, "kostka"))
         opis[nr] = {"trojkatow": trojkaty(S), "okien": okien, "kat": kat, "x": tx, "z": tz}
     return opis
@@ -357,7 +388,7 @@ def male(d, dst):
         if w_lesie(b["poly"].centroid) or not teren.OKNO.contains(b["poly"].centroid): continue
         c, a, L, W = prostokat(b["poly"])
         if rodzaj == "garages":
-            f = front_do_drogi(d, c, a, ("service",)); k, ox, oz, X = ustaw(c, a, L, W, f)
+            f = front_garazy(d, c, a, L, W); k, ox, oz, X = ustaw(c, a, L, W, f)
             S = maly.garaze(L, W, seed=i, kolor="garaz_a" if i % 2 else "garaz_b"); nazwa = "garaze_%d" % i
         elif nr == "34b":
             n = np.array([-a[1], a[0]]); f = n if n @ PN > 0 else -n       # front na północ (uliczka), mural na zachód
@@ -370,7 +401,7 @@ def male(d, dst):
             continue
         przenies(S, dst, nazwa, k, ox, oz); MODELE.append(b["poly"])
         if nazwa.startswith("garaze"):
-            PRZEDPOLA.append((swiat(k, ox, oz, 0, 0), swiat(k, ox, oz, L, 0), kier(k, 0, -1), 10.0, "plac_garazy"))
+            PRZEDPOLA.append((swiat(k, ox, oz, 0, 0), swiat(k, ox, oz, L, 0), kier(k, 0, -1), 25.0, "plac_garazy"))   # do jezdni (dojazd)
         else:   # bar i pawilony: kostka dookoła (IMG_1631–1634)
             for (a0, a1, nn) in (((0, 0), (L, 0), (0, -1)), ((L, 0), (L, W), (1, 0)), ((0, W), (0, 0), (-1, 0)), ((L, W), (0, W), (0, 1))):
                 PRZEDPOLA.append((swiat(k, ox, oz, *a0), swiat(k, ox, oz, *a1), kier(k, *nn), 6.0 if nn == (0, -1) else 3.0, "kostka"))
@@ -390,7 +421,8 @@ if __name__ == "__main__":
     T, pola, G = teren.zbuduj(d, MODELE, PRZEDPOLA, boiska_asfalt(d), wyposazenie.zebry(pkt_osm, d["ulice"], teren.SZER), las=las_poly())
     przenies(T, D, "teren", 0.0, 0.0, 0.0)
     drzewa, latarnie = teren.punkty(d, G)
-    zapisz_maske_trawy(G["TRAWA"], drzewa, out / "osiedle_trawa_maska.bin")
+    # 25.11 (właściciel 15:16: „chodniki zarośnięte”): trawa 3D 30 cm od krawędzi chodników, jezdni i obrzeży — kępy nie wchodzą na kostkę
+    zapisz_maske_trawy(G["TRAWA"].buffer(-.3), drzewa, out / "osiedle_trawa_maska.bin")
     opis["teren"] = pola; opis["drzew"] = len(drzewa); opis["latarni"] = len(latarnie)
     Wy, opis["wyposazenie"] = wyposazenie.zbuduj(d, G, teren.SZER, teren.OKNO, drzewa, latarnie)
     przenies(Wy, D, "wyposazenie", 0.0, 0.0, 0.0)

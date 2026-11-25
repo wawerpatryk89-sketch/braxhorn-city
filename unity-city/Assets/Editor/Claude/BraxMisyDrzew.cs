@@ -20,6 +20,7 @@ public static class BraxMisyDrzew
     static readonly Regex NieDrzewo = new Regex(@"donic|doniczk|\bpot\b|kwiat|krzew|bush|shrub|kolizja|collider|misa|krata|sylwet|pierścień|pierscien", RegexOptions.IgnoreCase);
     static readonly Regex Zielen = new Regex(@"traw|grass|ziel|lawn|gleb|ziemi|soil|forest|leaf|okryw|piasek|piask|sand|terrain|teren|plaż|plaz|wyspa", RegexOptions.IgnoreCase);
     static readonly Regex Twarda = new Regex(@"chodnik|płyt|plyt|granit|bruk|kostk|paving|pavement|sidewalk|asfalt|asphalt|jezdni|road|beton|concrete|plac|tile|kamie|stone|nawierzch|deptak|promenad|bulwar", RegexOptions.IgnoreCase);
+    static readonly Regex Jezdnia = new Regex(@"asfalt|asphalt|jezdni|road|droga|parking|lane|pas ruchu", RegexOptions.IgnoreCase);
     const string Folder = "Assets/PlayableGenerated/MisyDrzew";
 
     public static void Wykonaj(Scene scena)
@@ -28,8 +29,13 @@ public static class BraxMisyDrzew
         Physics.SyncTransforms();
         var wszystkie = scena.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<MeshRenderer>(true)).Where(r => r && r.enabled).ToArray();
         // drzewa: najwyższy pasujący węzeł (bez pasującego przodka), z rendererami
+        // 25.11 (właściciel, zdjęcie z telefonu 15:12: „co wy odpierdalacie na tych drogach… to jest wszędzie” — białe kwadraty
+        // z trawą na jezdni i chodnikach, bez drzew): misy powstawały też pod drzewami UKRYTYMI wcześniej (BraxRegionOldTrees,
+        // BraxClaudeTrees wyłączają renderery starych drzew, a tu brane były renderery z includeInactive i bez sprawdzenia
+        // enabled). Teraz tylko drzewo, które naprawdę widać: aktywne i z co najmniej jednym włączonym rendererem.
+        bool Widoczne(Transform t) => t.gameObject.activeInHierarchy && t.GetComponentsInChildren<Renderer>(false).Any(r => r.enabled);
         var kand = scena.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Transform>(true))
-            .Where(t => Drzewo.IsMatch(t.name) && !NieDrzewo.IsMatch(t.name) && t.GetComponentInChildren<Renderer>(true)).ToList();
+            .Where(t => Drzewo.IsMatch(t.name) && !NieDrzewo.IsMatch(t.name) && Widoczne(t)).ToList();
         var zb = new HashSet<Transform>(kand);
         var drzewa = kand.Where(t => { for (var q = t.parent; q; q = q.parent) if (zb.Contains(q)) return false; return true; }).ToList();
 
@@ -38,14 +44,15 @@ public static class BraxMisyDrzew
         var biezace = new Dictionary<MeshFilter, Mesh>();   // renderer nawierzchni → aktualna (wycięta) siatka
         var korzen = new GameObject("CLAUDE misy drzew (trawnik w wycięciu nawierzchni)").transform;
         SceneManager.MoveGameObjectToScene(korzen.gameObject, scena);
-        int zrobione = 0, naTrawie = 0, nieznane = 0, bezCiecia = 0, juzMisa = 0, budzet = 0; var nieWyciete = new List<string>();
+        int zrobione = 0, naTrawie = 0, nieznane = 0, bezCiecia = 0, juzMisa = 0, budzet = 0, naJezdni = 0; var nieWyciete = new List<string>(); var drzewaNaJezdni = new List<string>();
         float a = .8f * K, bw = .12f * K;
         var srodki = new List<Vector3>();   // misy już zrobione (dwa drzewa obok siebie — jedna misa, bez nachodzenia krawężników)
 
         foreach (var t in drzewa)
         {
             if (zrobione >= 400 || stoper.Elapsed.TotalSeconds > 150) { budzet++; continue; }
-            var rs = t.GetComponentsInChildren<Renderer>(true);
+            var rs = t.GetComponentsInChildren<Renderer>(false).Where(r => r.enabled).ToArray();
+            if (rs.Length == 0) continue;
             var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
             if (b.size.y < 2f) continue;                                         // nie drzewo (sadzonka, dekoracja)
             var wlasne = new HashSet<Collider>(t.GetComponentsInChildren<Collider>(true));
@@ -63,6 +70,8 @@ public static class BraxMisyDrzew
             if (pod.Any(r => Zielen.IsMatch(Nazwy(r)))) { naTrawie++; continue; }
             var twarde = pod.Where(r => Twarda.IsMatch(Nazwy(r))).ToList();
             if (twarde.Count == 0) { nieznane++; continue; }
+            // 25.11: nigdy misy w jezdni (zdjęcie właściciela: kwadrat z trawą na środku pasa ruchu) — drzewo na jezdni do logu
+            if (twarde.Any(r => Jezdnia.IsMatch(Nazwy(r)))) { naJezdni++; if (drzewaNaJezdni.Count < 20) drzewaNaJezdni.Add(t.name + " @" + p.ToString("F0")); continue; }
             if (wszystkie.Any(r => r && (r.name.IndexOf("misa", StringComparison.OrdinalIgnoreCase) >= 0 || r.name.IndexOf("krata", StringComparison.OrdinalIgnoreCase) >= 0)
                                  && (r.bounds.center - p).sqrMagnitude < 1.5f * 1.5f)) { juzMisa++; continue; }
             // wycięcie kwadratu a × a w każdej twardej nawierzchni w płaszczyźnie y (± 1.5 cm)
@@ -118,7 +127,7 @@ public static class BraxMisyDrzew
                 kv.Key.sharedMesh = kv.Value;
             }
         }
-        string linia = "BRAXHORN_MISY_DRZEW drzew=" + drzewa.Count + " misy=" + zrobione + " na_trawie=" + naTrawie + " już_misa=" + juzMisa + " nieznane_podłoże=" + nieznane
+        string linia = "BRAXHORN_MISY_DRZEW drzew=" + drzewa.Count + " misy=" + zrobione + " na_jezdni_bez_misy=" + naJezdni + (drzewaNaJezdni.Count > 0 ? " [" + string.Join("; ", drzewaNaJezdni) + "]" : "") + " na_trawie=" + naTrawie + " już_misa=" + juzMisa + " nieznane_podłoże=" + nieznane
             + " bez_wycięcia=" + bezCiecia + " poza_budżetem=" + budzet + " siatek_wyciętych=" + biezace.Count + " czas=" + stoper.Elapsed.TotalSeconds.ToString("F0") + " s"
             + (nieWyciete.Count > 0 ? " [nie wycięte: " + string.Join("; ", nieWyciete) + "]" : "");
         if (bezCiecia > 0) Debug.LogWarning(linia); else Debug.Log(linia);

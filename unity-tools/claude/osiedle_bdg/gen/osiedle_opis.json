@@ -1,28 +1,28 @@
 {
  "wiezowce": {
   "28a": {
-   "trojkatow": 36572,
+   "trojkatow": 36584,
    "okien": 352,
    "kat": 11.5,
    "x": -141.55,
    "z": -53.05
   },
   "30a": {
-   "trojkatow": 36572,
+   "trojkatow": 36584,
    "okien": 352,
    "kat": 12.25,
    "x": -68.99,
    "z": -33.14
   },
   "32a": {
-   "trojkatow": 36572,
+   "trojkatow": 36584,
    "okien": 352,
    "kat": 11.5,
    "x": -12.29,
    "z": -13.7
   },
   "34a": {
-   "trojkatow": 36572,
+   "trojkatow": 36584,
    "okien": 352,
    "kat": 11.0,
    "x": 21.03,
@@ -89,7 +89,7 @@
   "garaze_23": {
    "L": 24.95,
    "W": 7.1,
-   "kat": 166.14,
+   "kat": -13.86,
    "trojkatow": 448
   },
   "pawilon_32B": {
@@ -143,13 +143,13 @@
   "garaze_80": {
    "L": 20.39,
    "W": 5.75,
-   "kat": 157.7,
+   "kat": -22.3,
    "trojkatow": 300
   },
   "garaze_81": {
    "L": 19.2,
    "W": 7.03,
-   "kat": 155.76,
+   "kat": -24.24,
    "trojkatow": 348
   },
   "pawilon_91": {
@@ -523,10 +523,10 @@
  },
  "budki": 4,
  "teren": {
-  "jezdnie": 38540,
+  "jezdnie": 38683,
   "parkingi": 14142,
-  "chodniki": 41960,
-  "trawa": 146382,
+  "chodniki": 42547,
+  "trawa": 143906,
   "boiska": 3278,
   "place_zabaw": 1594,
   "krawezniki": 2266,
@@ -537,16 +537,16 @@
  "wyposazenie": {
   "przystanki": 3,
   "sygnalizacje": 10,
-  "hydranty": 26,
+  "hydranty_pominiete": 26,
   "lawki": 14,
   "szlabany": 6,
   "kontenery": 3,
   "paczkomaty": 6,
-  "ploty": 19,
-  "zywoploty": 20,
+  "ploty": 30,
+  "zywoploty_pominiete": 20,
   "slupki": 3,
   "latarnie": 262,
   "paliki": 56
  },
- "trojkatow": 857994
+ "trojkatow": 849841
 }

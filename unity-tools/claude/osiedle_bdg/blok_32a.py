@@ -246,33 +246,36 @@ def klatka(o, t):
         S.sciana(g, "plycina", P(0, w1, G), t, W, (fl + KOND) - w1 if k < N_KOND - 1 else DACH - w1, [])
         okno(g, o - n * G, t, n, u0, u1, w0, w1, "klatka", k)
     # daszek: płyta 2,15 x 1,3 x 0,15 na +3,40 nad terenem, z obróbką
-    S.box(g, "beton_daszek", P(-.0, 3.40, -1.30), t, UP, n, 2.15, .15, 1.30)
-    S.box(g, "parapet", P(-.0, 3.55, -1.32), t, UP, n, 2.17, .03, 1.32)
-    S.box(g, "lampa", P(.75, 3.33, -.55), t, UP, n, .3, .07, .2)
+    S.box(g, "beton_daszek", P(-.0, 3.40, 0), t, UP, n, 2.15, .15, 1.30)
+    S.box(g, "parapet", P(-.0, 3.55, 0), t, UP, n, 2.17, .03, 1.32)
+    S.box(g, "lampa", P(.75, 3.33, -.45), t, UP, n, .3, .07, .2)
     # numer i domofon po prawej od drzwi
-    S.box(g, "tabliczka_32a", P(1.05, 2.95, -.015), t, UP, n, .22, .16, .015)
-    S.box(g, "domofon", P(1.05, 2.15, -.03), t, UP, n, .14, .26, .03)
+    S.box(g, "tabliczka_32a", P(1.05, 2.95, 0), t, UP, n, .22, .16, .015)
+    S.box(g, "domofon", P(1.05, 2.15, 0), t, UP, n, .14, .26, .03)
     # schody: 6 stopni od terenu do podestu +1,00; podest 1,0 m, szer. 1,3; dalej 5 stopni po 0,24
     st = 6; h = COKOL_Z / st
-    S.box(g, "beton_schody", P(-.0, 0 - .3, -1.0), t, UP, n, 1.30, COKOL_Z + .3, 1.0)
+    S.box(g, "beton_schody", P(-.0, 0 - .3, 0), t, UP, n, 1.30, COKOL_Z + .3, 1.0)
     for i in range(1, st):
-        S.box(g, "beton_schody", P(0, -.3, -1.0 - .24 * i), t, UP, n, 1.30, COKOL_Z - h * i + .3, .24)
+        S.box(g, "beton_schody", P(0, -.3, -1.0 - .24 * (i - 1)), t, UP, n, 1.30, COKOL_Z - h * i + .3, .24)
     # poręcz po prawej (rura 4 cm): ze schodów w dół + pozioma wzdłuż cokołu (barierka nad doświetlem piwnicy)
     a = P(1.38, COKOL_Z + .9, -.3); b = P(1.38, h + .9, -1.0 - .24 * (st - 1) - .1)
     S.rura(g, "stal", a, b, .022)
-    for pp in (a, b): S.rura(g, "stal", pp - UP * .95, pp, .022)
+    S.rura(g, "stal", P(1.38, .42, -.3), a, .022)          # słupek na murku doświetla
+    S.rura(g, "stal", b - UP * .95, b, .022)
     # doświetle piwnicy (IMG_1427): murek 14 cm, 30 cm nad chodnikiem (+0,12), barierka na murku; teren omija doświetle
     # (osiedle.DOSWIETLA) — chodnik zaczyna się za murkiem, nic go nie przecina (uwaga właściciela 23.11, 16:26)
     bar_d = 1.25; mur = .42
     S.box(g, "beton_schody", P(1.45, -.3, -bar_d), t, UP, n, SZ_POL + .4 - 1.45, mur + .3, .14)
-    S.box(g, "beton_schody", P(SZ_POL + .25, -.3, -bar_d), t, UP, n, .15, mur + .3, bar_d - .02)
+    S.box(g, "beton_schody", P(SZ_POL + .25, -.3, 0), t, UP, n, .15, mur + .3, bar_d)
+    S.box(g, "beton_schody", P(1.30, -.3, 0), t, UP, n, .15, mur + .3, bar_d)   # koniec przy schodach (25.11: tu był prześwit)
     for y in (mur + .85, mur + .45):
-        S.rura(g, "stal", P(1.38, y, -bar_d + .07), P(SZ_POL + .32, y, -bar_d + .07), .02)
+        S.rura(g, "stal", P(1.38, y, -bar_d - .07), P(SZ_POL + .32, y, -bar_d - .07), .02)
     for u in np.arange(1.38, SZ_POL + .4, 1.6):
-        S.rura(g, "stal", P(u, mur, -bar_d + .07), P(u, mur + .85, -bar_d + .07), .02)
-    S.rura(g, "stal", P(1.38, COKOL_Z + .9, -.3), P(1.38, mur + .85, -bar_d + .07), .022)
-    # dno doświetla: żwir tuż nad dolną krawędzią cokołu i murka (bez szczeliny pod ścianami)
-    S.quad(g, "zwir", P(1.45, -.28, -bar_d + .0), P(SZ_POL + .25, -.28, -bar_d), P(SZ_POL + .25, -.28, 0), P(1.45, -.28, 0), kier=UP)
+        S.rura(g, "stal", P(u, mur, -bar_d - .07), P(u, mur + .85, -bar_d - .07), .02)
+    S.rura(g, "stal", P(1.38, COKOL_Z + .9, -.3), P(1.38, mur + .85, -bar_d - .07), .022)
+    # dno doświetla: żwir 3 cm nad kostką (+0,12). 25.11: teren pod doświetlem już nie jest wycinany — w grze pod osiedlem
+    # leży podłoże miasta, które zakrywało żwir na −0,28, a niedomknięty bok dawał prześwit; teraz nic nie jest na wylot
+    S.quad(g, "zwir", P(1.45, .15, -bar_d + .0), P(SZ_POL + .25, .15, -bar_d), P(SZ_POL + .25, .15, 0), P(1.45, .15, 0), kier=UP)
 
 
 def drzwi(g, P, t, n, G, D0):
@@ -312,7 +315,7 @@ def piwnica(o, t, otwory, n=None):
 
 def skrzynka_gaz(o2, t):
     n = np.array([0., 0, 1]); P = lambda u, v, d=0.0: o2 + t * u + UP * v - n * d
-    S.box("sciana_N_wsch", "skrzynka_gaz", P(4.4, .32, -.24), t, UP, n, .5, .55, .24, bez=("-z",))
+    S.box("sciana_N_wsch", "skrzynka_gaz", P(4.4, .32, 0), t, UP, n, .5, .55, .24, bez=("-z",))
     S.rura("sciana_N_wsch", "rura_gaz", P(4.95, -.2, -.08), P(4.95, .62, -.08), .025)
     S.rura("sciana_N_wsch", "rura_gaz", P(4.9, .62, -.08), P(5.2, .62, -.08), .025)
 

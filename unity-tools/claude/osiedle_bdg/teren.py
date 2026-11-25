@@ -145,7 +145,7 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
         if len(u["linia"]) < 2: continue
         ln = LineString(u["linia"])
         if u["klasa"] in SZER:
-            w = SZER[u["klasa"]]
+            w = (u.get("szer") or SZER[u["klasa"]])
             if u.get("jednokier") == "yes" and (u.get("pasy") or "").isdigit(): w = int(u["pasy"]) * 3.4
             g = ln.buffer(w / 2, cap_style=2, join_style=1)
             jezdnie.append(g)
@@ -161,8 +161,8 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
         except Exception: continue
         if t["rodzaj"] == "parking":
             parkingi.append(p)
-            if t.get("nawierzchnia") in (None, "paving_stones", "sett", "concrete:plates"): parkingi_kostka.append(p)
-            if t.get("nawierzchnia") is None and p.area <= 450: parkingi_czerwone.append(p)   # zatoki przy blokach
+            if t.get("nawierzchnia") in ("paving_stones", "sett", "concrete:plates"): parkingi_kostka.append(p)   # bez znacznika: szary asfalt (25.11)
+            # 25.11 (właściciel 15:18/15:22: „kort tenisowy?”, „parkingi z dupy wzięte, czerwone”): bez czerwonych zatok
         elif t["rodzaj"] == "pitch": boiska.append(p)
         elif t["rodzaj"] == "playground": place.append(p)
     bud = unary_union(budynki_poly)
@@ -174,7 +174,7 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
     opaska = bud.buffer(1.2, join_style=2).difference(bud)
     wzdluz = GLOW.buffer(2.3, join_style=2).difference(GLOW)
     # chodniki 1,8 m wzdłuż uliczek osiedlowych po obu stronach (IMG_1427, IMG_1630: kostka przy każdej uliczce)
-    uliczki = [LineString(u["linia"]).buffer(SZER[u["klasa"]] / 2 + 1.8, cap_style=2, join_style=1)
+    uliczki = [LineString(u["linia"]).buffer((u.get("szer") or SZER[u["klasa"]]) / 2 + (u.get("chodnik") or 1.8), cap_style=2, join_style=1)
                for u in d["ulice"] if u["klasa"] in ("service", "residential") and len(u["linia"]) >= 2]
     przy_uliczkach = unary_union(uliczki).difference(JEZ) if uliczki else Polygon()
     prz_k = [przedpole(A, B, n, m, POZIOM0) for (A, B, n, m, mat) in przedpola if mat == "kostka"]
@@ -196,6 +196,10 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
     # krawężnik: pas 0,15 m po stronie chodnika/trawnika wzdłuż krawędzi jezdni i parkingów
     KRAW = POZIOM0.buffer(.15, join_style=2).difference(POZIOM0).difference(bud).intersection(OKNO)
     CHOD = CHOD.difference(KRAW); TRAWA = TRAWA.difference(KRAW)
+    # 25.11 (właściciel 15:16: „chodniki zarośnięte, bez krawężników”): obrzeże betonowe 6 cm wzdłuż każdego chodnika przy
+    # trawniku, 2 cm nad kostką (na zdjęciach osiedla obrzeża są przy wszystkich alejkach); trawa 3D odsunięta od krawędzi (osiedle.py)
+    OBRZ = CHOD.buffer(.06, join_style=2).difference(CHOD).intersection(TRAWA).buffer(0)
+    TRAWA = TRAWA.difference(OBRZ)
     LIN = linie_glownej(d, GLOW)
     if zebry: LIN = unary_union([LIN, unary_union(zebry).intersection(JEZ)])   # przejścia z OSM, wycięte z asfaltu
     ASF = JEZ.difference(LIN)
@@ -243,13 +247,14 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
     plaski(S, "teren", "linia_biala", LINP.simplify(.01), Y_JEZDNIA)
     plaski(S, "teren", "asfalt_parking", PARK.difference(PARK_K).simplify(.05), Y_JEZDNIA)
     plaski(S, "teren", "kostka_jezdnia", PARK_K.difference(PARK_C).simplify(.05), Y_JEZDNIA)
-    plaski(S, "teren", "kostka_parking", PARK_C.simplify(.05), Y_JEZDNIA)
     plaski(S, "teren", "asfalt_parking", PLAC_G.difference(KRAW_PRE := POZIOM0.buffer(.15, join_style=2)).simplify(.05), Y_JEZDNIA + .01)
     plaski(S, "teren", "kostka", CHOD.simplify(.05), Y_CHODNIK)
     plaski(S, "teren", "asfalt_czerwony", ROW.simplify(.05), Y_CHODNIK)
     plaski(S, "teren", "kraweznik", KRAW.simplify(.02), Y_CHODNIK + .01)
     boki(S, "teren", "kraweznik", KRAW.simplify(.02), Y_CHODNIK + .01, Y_JEZDNIA - .02)
     boki(S, "teren", "kostka", CHOD.simplify(.05), Y_CHODNIK, Y_TRAWA - .02)
+    plaski(S, "teren", "kraweznik", OBRZ.simplify(.01), Y_CHODNIK + .02)
+    boki(S, "teren", "kraweznik", OBRZ.simplify(.01), Y_CHODNIK + .02, Y_TRAWA - .02)
     plaski(S, "teren", "boisko", BOI.simplify(.05), Y_CHODNIK - .02)
     for (pole, lin, bramki) in BA:
         pl = pole.difference(POZIOM0).difference(bud)
@@ -280,7 +285,7 @@ def punkty(d, G, seed=5):
         if ln.is_empty or ln.geom_type != "LineString": continue
         if u["klasa"] in GLOWNE:
             for strona in ("left", "right"):
-                try: lo = ln.parallel_offset(SZER[u["klasa"]] / 2 + 3.2, strona)
+                try: lo = ln.parallel_offset((u.get("szer") or SZER[u["klasa"]]) / 2 + 3.2, strona)
                 except Exception: continue
                 if lo.geom_type != "LineString": continue
                 s = 4.0
@@ -294,7 +299,7 @@ def punkty(d, G, seed=5):
                     if not bud.buffer(1).contains(p) and not jez.contains(p): latarnie.append((p.x, p.y, "ulica"))
                     s += 32.0
         elif u["klasa"] in ("service", "residential"):
-            try: lo = ln.parallel_offset(SZER.get(u["klasa"], 4.6) / 2 + .8, "left")
+            try: lo = ln.parallel_offset((u.get("szer") or SZER.get(u["klasa"], 4.6)) / 2 + .8, "left")
             except Exception: continue
             if lo.geom_type != "LineString": continue
             s = 6.0

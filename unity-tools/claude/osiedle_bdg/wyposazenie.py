@@ -16,6 +16,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import numpy as np
+from shapely.ops import unary_union
 from shapely.geometry import LineString, Point
 
 from kit import Siatka, UP, nrm
@@ -140,14 +141,21 @@ def zbuduj(d, G, szer, okno, drzewa, latarnie):
             dr = droga_przy(p, ulice, 30); tt = dr[2] if dr else np.array([1., 0, 0])
             kontenery(S, X3(p[0], .12, p[1]), tt); ile("kontenery")
         elif t.get("emergency") == "fire_hydrant":
-            hydrant(S, X3(p[0], .12, p[1])); ile("hydranty")
+            ile("hydranty_pominiete")                 # 25.11, 15:27 właściciel: „hydranty […] w ogóle nie chcę ich widzieć”
+    # 25.11 (właściciel, zdjęcia 15:15–15:16: „drogi pozamykane jakimiś płotami”, płot po chodniku): płoty i mury z mapy
+    # przecięte wszędzie, gdzie przechodzą przez jezdnię, parking albo chodnik (+0,4 m) — w tych miejscach przejście
+    przejscia = unary_union([G["JEZ"], G["PARK"], G["CHOD"]]).buffer(.4)
     for (pts, t) in linie:
+        if t.get("barrier") == "hedge":                 # 25.11, 15:21/15:23: „w ogóle nie ma być tego” — żywopłoty usunięte
+            ile("zywoploty_pominiete"); continue
         L = LineString(pts).intersection(okno).difference(zajete)
+        if t.get("barrier") in ("fence", "wall", None) or t.get("barrier") not in ("bollard", "kerb"):
+            L = L.difference(przejscia)
         if L.is_empty: continue
         geoms = [L] if L.geom_type == "LineString" else [g for g in getattr(L, "geoms", []) if g.geom_type == "LineString"]
+        geoms = [g for g in geoms if g.length >= .6]     # resztki po wycięciu przejść
         for g in geoms:
-            if t.get("barrier") == "hedge": zywoplot(S, list(g.coords), R); ile("zywoploty")
-            elif t.get("barrier") == "bollard": slupki(S, g); ile("slupki")
+            if t.get("barrier") == "bollard": slupki(S, g); ile("slupki")
             elif t.get("barrier") in ("kerb",): continue
             elif t.get("barrier") == "wall":                         # 24.11 01:14: mur to mur — z cegły, nie płot z prętów
                 h = float(t.get("height", "1.6").split()[0]) if str(t.get("height", "1.6")).split()[0].replace(".", "").isdigit() else 1.6

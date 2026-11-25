@@ -105,7 +105,7 @@ def klatka4(g, o, t, c):
     # boki wysunięcia
     S.quad(g, "klatka4", P(a, 0, 0), P(a, 0, -d), P(a, ATTYKA, -d), P(a, ATTYKA, 0), kier=-t)
     S.quad(g, "klatka4", P(b, 0, -d), P(b, 0, 0), P(b, ATTYKA, 0), P(b, ATTYKA, -d), kier=t)
-    o2 = o - n * d
+    o2 = o + n * d          # lico wysunięcia 0,35 m PRZED ścianą (do 25.11 było w środku bloku: drzwi niewidoczne)
     okna = []
     for k in range(1, N_KOND):
         fl = POZIOM0 + k * KOND - KOND / 2
@@ -128,15 +128,15 @@ def klatka4(g, o, t, c):
     S.quad(g, "drzwi_braz", Q(c - .55, POZIOM0, .25), Q(c + .55, POZIOM0, .25), Q(c + .55, POZIOM0 + 2.2, .25), Q(c - .55, POZIOM0 + 2.2, .25), t=t, kier=n)
     S.quad(g, "szyba_drzwi", Q(c - .4, POZIOM0 + 1.0, .24), Q(c + .4, POZIOM0 + 1.0, .24), Q(c + .4, POZIOM0 + 2.0, .24), Q(c - .4, POZIOM0 + 2.0, .24), t=t, kier=n)
     # daszek i schody (4 stopnie po 0,225 do podestu)
-    S.box(g, "beton_daszek", Q(c - 1.2, POZIOM0 + 2.75, -1.2), t, UP, n, 2.4, .14, 1.2)
-    S.box(g, "obrobka", Q(c - 1.22, POZIOM0 + 2.89, -1.22), t, UP, n, 2.44, .03, 1.22)
-    S.box(g, "beton_schody", Q(c - .8, -.2, -1.0), t, UP, n, 1.6, POZIOM0 + .2, 1.0)
+    S.box(g, "beton_daszek", Q(c - 1.2, POZIOM0 + 2.75, 0), t, UP, n, 2.4, .14, 1.2)
+    S.box(g, "obrobka", Q(c - 1.22, POZIOM0 + 2.89, 0), t, UP, n, 2.44, .03, 1.22)
+    S.box(g, "beton_schody", Q(c - .8, -.2, 0), t, UP, n, 1.6, POZIOM0 + .2, 1.0)   # podest od drzwi (25.11: był odsunięty o 1 m)
     for i in range(1, 4):
-        S.box(g, "beton_schody", Q(c - .8, -.2, -1.0 - .28 * i), t, UP, n, 1.6, POZIOM0 + .2 - .225 * i, .28)
-    S.rura(g, "stal", Q(c + .85, POZIOM0 + .9, -.1), Q(c + .85, .9, -1.0 - .28 * 3), .022)
-    S.rura(g, "stal", Q(c + .85, .0, -1.0 - .28 * 3), Q(c + .85, .9, -1.0 - .28 * 3), .022)
-    S.rura(g, "stal", Q(c + .85, POZIOM0, -.1), Q(c + .85, POZIOM0 + .9, -.1), .022)
-    S.box(g, "tabliczka", Q(c + .65, POZIOM0 + 2.3, -.015), t, UP, n, .22, .16, .015)
+        S.box(g, "beton_schody", Q(c - .8, -.2, -1.0 - .28 * (i - 1)), t, UP, n, 1.6, POZIOM0 + .2 - .225 * i, .28)
+    S.rura(g, "stal", Q(c + .72, POZIOM0 + .9, -.1), Q(c + .72, .9, -1.0 - .28 * 3), .022)
+    S.rura(g, "stal", Q(c + .72, .0, -1.0 - .28 * 3), Q(c + .72, .9, -1.0 - .28 * 3), .022)
+    S.rura(g, "stal", Q(c + .72, POZIOM0, -.1), Q(c + .72, POZIOM0 + .9, -.1), .022)
+    S.box(g, "tabliczka", Q(c + .65, POZIOM0 + 2.3, 0), t, UP, n, .22, .16, .015)
 
 
 def tyl(L, W, nr_kol, seed):

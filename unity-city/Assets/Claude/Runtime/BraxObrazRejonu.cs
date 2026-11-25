@@ -28,7 +28,7 @@ public sealed class BraxObrazRejonu : MonoBehaviour
     public Bounds[] bezZmian = new Bounds[0];
 
     [Header("Doba (noc i dzień)")]
-    public bool doba = true;
+    public bool doba = false;   // 25.11, 15:24 właściciel: „obecnie żadnej nocy nie chcę […] do testów niepotrzebne” — zawsze dzień
     public float dzienMin = 12f, nocMin = 5f, przejscieMin = 1.5f, nocSwiatlo = .1f, startMin = 2f;
     public Color barwaDnia = new Color(1f, .955f, .875f), barwaZmierzchu = new Color(1f, .62f, .38f), barwaNocy = new Color(.55f, .66f, 1f);
 

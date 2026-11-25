@@ -490,7 +490,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         }
         if (Rect.MinMaxRect(-104.5f, 23.7f, 66f, 33.3f).Contains(q)) return true;
         if (WLukuAsfalt(q, .3f)) return true;   // asfalt narożników łukiem
-        foreach (var c in new[] { new Vector2(RX, RZ), new Vector2(AX, PetlaZ), new Vector2(PetlaZX, RZ) }) { float d = Vector2.Distance(q, c); if (d >= RWyspa - .3f && d <= RJezdnia + .3f) return true; }
+        foreach (var c in (Wjazd1 ? new[] { new Vector2(RX, RZ), new Vector2(PetlaZX, RZ) } : new[] { new Vector2(RX, RZ), new Vector2(AX, PetlaZ), new Vector2(PetlaZX, RZ) })) { float d = Vector2.Distance(q, c); if (d >= RWyspa - .3f && d <= RJezdnia + .3f) return true; }
         // wloty w kwadratach placów (od pierścienia do krawędzi placu, pół jezdni + 0.3 m)
         foreach (var (c, kat, hj) in WlotyPlacow())
         {
@@ -504,7 +504,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     static IEnumerable<(Vector2 c, float kat, float hj)> WlotyPlacow()
     {
         foreach (var k in WlotyRonda) yield return (new Vector2(RX, RZ), k, AH);
-        yield return (new Vector2(AX, PetlaZ), 270f, AH);
+        if (!Wjazd1) yield return (new Vector2(AX, PetlaZ), 270f, AH);
         yield return (new Vector2(PetlaZX, RZ), 0f, AH);
         yield return (new Vector2(PetlaZX, RZ), 180f, AH);   // wlot zachodni (Aleja Centralna)
     }
@@ -874,10 +874,32 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     static float LicoW => AX - AH - Kr - Ziel - Chod;   // −138: lico pierzei zachodniej
     static float LicoE => AX + AH + Kr + Ziel + Chod;   // −114: lico pierzei wschodniej
 
+    // 25.11: z osiedlem bydgoskim (BraxBydgoszcz.Wlaczone) aleja przechodzi w wjazd 1 osiedla — bez parkingu starego sklepu
+    static bool Wjazd1 => BraxBydgoszcz.Wlaczone;
+
     static void AlejaPolnocna()
     {
         float z0 = RZ + RPlac;                // 50.5
-        float z1 = PetlaZ - PetlaPlac;        // 95
+        float z1 = PetlaZ - PetlaPlac;        // 82
+        if (Wjazd1)
+        {
+            // 25.11 (właściciel 15:14: „sklep usunięty… po co ten parking tu został… gdzie jest połączenie drogi z drugim
+            // osiedlem”): parking starego supermarketu zdjęty; Aleja Północna idzie dalej na północ przez działkę po sklepie
+            // do z 162, gdzie przechodzi w wjazd 1 osiedla (osiedle_bdg: ta sama jezdnia 2 × AH, kostka do lica alei).
+            float zK = BraxMiastoGranice.DzialkaSupermarketu.yMax;                 // 162
+            float zZ = z1 - ZebraParkingu;                                         // zebra jak dotąd (76,5)
+            PrzekrojZ("Aleja Północna", AX, AH, Ziel, Chod, z0, zK, true, (z0, z0 + 6f), (zZ - 2f * K - 1f, zZ + 2f * K + 1f));
+            float xW = AX - PetlaPlac - 3f, xE = AX + PetlaPlac + 3f;              // −151 / −101: dawne krawędzie chodników parkingu
+            var dz = BraxMiastoGranice.DzialkaSupermarketu; float zP = PetlaZ + PetlaPlac;   // 126: dawna północna krawędź parkingu
+            Chodnik("Aleja Północna: przejście od alei A1 do chodnika alei", xW, LicoW, PrzejscieCentrumPetla.yMin, PrzejscieCentrumPetla.yMax);
+            Trawa("Aleja Północna: trawnik zach. (dawny parking)", xW, LicoW, PrzejscieCentrumPetla.yMax, zP, true);
+            Chodnik("Aleja Północna: chodnik przed narożnikiem wsch. (KAWIARNIA, schody)", LicoE, xE, z1, z1 + 4f);
+            Trawa("Aleja Północna: trawnik wsch. (dawny parking)", LicoE, xE, z1 + 4f, zP, true);
+            Trawa("Aleja Północna: trawnik zach. (działka po sklepie)", dz.xMin, LicoW, zP, zK, true);
+            Trawa("Aleja Północna: trawnik wsch. (działka po sklepie)", LicoE, dz.xMax, zP, zK, true);
+            Debug.Log("BRAXHORN_ALEJA_PN_WJAZD1 parking_starego_sklepu=zdjęty aleja_z=" + z0 + "…" + zK + " jezdnia=" + (2f * AH) + " lico=" + LicoW + "/" + LicoE);
+            return;
+        }
         PrzekrojZ("Aleja Północna", AX, AH, Ziel, Chod, z0, z1, true, (z0, z0 + 6f), (z1 - ZebraParkingu - 2f * K - 1f, z1));   // przejście przez zieleń przy zebrze parkingu
         // WŁAŚCICIEL 7.11: zamiast ronda PÓŁNOC przy SUPERMARKET
         // BRAXHORN (sklep #1 x=-120,z=132) — prawdziwy parking.
@@ -1289,10 +1311,13 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         for (float x = WX - osOd - 19f; x - 3f > -98f; x -= 7f) farbaB.MinMax(new Vector3(x - 3f, YA + .02f, GZ - .06f), new Vector3(x, YA + .021f, GZ + .06f));
         // osie alej: przerywane, przed skrzyżowaniami ciągłe
         for (float z = RZ + RPlac + 10f; z + 3f < PetlaZ - PetlaPlac - 7f; z += 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z), new Vector3(AX + .06f, YA + .021f, z + 3f));
+        if (Wjazd1)   // dalej za zebrą do wjazdu 1 osiedla (z 162)
+            for (float z = PetlaZ - PetlaPlac + 2f; z + 3f < BraxMiastoGranice.DzialkaSupermarketu.yMax - 4f; z += 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z), new Vector3(AX + .06f, YA + .021f, z + 3f));
         for (float z = RZ - RPlac - 10f; z > SZ + SH + 18f; z -= 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z - 3f), new Vector3(AX + .06f, YA + .021f, z));
         for (float z = SZ - SH - 18f; z > AS1 + 16f; z -= 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z - 3f), new Vector3(AX + .06f, YA + .021f, z));
         // Linie stanowisk wierzchnią farbą W WYCIĘCIACH asfaltu, bez z-fightingu.
         // Parkowanie prostopadłe do osi alei, po obydwu bokach. Brak znaków ronda.
+        if (!Wjazd1)
         for (int i = 0; i <= 9; i++)
         {
             float z = PetlaZ - 17.75f + i * 3.5f;

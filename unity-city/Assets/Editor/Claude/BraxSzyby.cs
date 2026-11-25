@@ -49,6 +49,9 @@ public static class BraxSzyby
                     string sh = m.shader.name;
                     if (sh != Pbr && sh != "Standard") continue;                   // shadery okien z pokojami, napisy, woda — bez zmian
                     string n = m.name;
+                    // 25.11 (właściciel, zdjęcia z telefonu 15:22/15:28: niebo przez balkony wieżowca 32a, białe witryny): szkło
+                    // Bydgoszczy ma własny wygląd z palety (BraxBydgoszcz) i budynki bez wnętrz — nie robić z niego szyb przezroczystych
+                    if (n.StartsWith("Bydgoszcz:", StringComparison.Ordinal)) continue;
                     if (!Szklo.IsMatch(n) || Nie.IsMatch(n)) continue;
                     if (!uzycia.TryGetValue(m, out var l)) uzycia[m] = l = new List<Renderer>();
                     if (!l.Contains(r)) l.Add(r);
