@@ -381,8 +381,11 @@ def szyby_malowane(mod, okna, farby, cien=.10, krok=.01, przyciemniane=True, pro
     namalowane = np.zeros((mod.h, mod.w), bool)                               # the texels made glass or seal so far
     for okno in okna:
         widok, box = okno[0], okno[1]; obrys = okno[2] if len(okno) > 2 else None
+        op = okno[3] if len(okno) > 3 else {}
+        do, gesto = op.get("do"), op.get("gesto", False)                # a wing before the window left out; a coarse raked glass
+        cale = op.get("cale", False)                                    # all in the outline glass (Tripo's crumpled sheet there)
         uvf = T.WIDOKI[widok][1]
-        vis = mod.widoczne(widok, box, cos=.15, glebia=.12, margines=0)
+        vis = mod.widoczne(widok, box, cos=.15, glebia=.12, margines=0, do=do, gesto=gesto)
         u, v = uvf(mod.cen)
         vis &= (u >= box[0]) & (u <= box[1]) & (v >= box[2]) & (v <= box[3])
         f = vis & (d > 10) & (kol.max(1) > cien)
@@ -434,7 +437,7 @@ def szyby_malowane(mod, okna, farby, cien=.10, krok=.01, przyciemniane=True, pro
         # the faces seen there - where the outline is measured, at the window's edge aslant too (the frame's slope left its
         # colour as notches in the outline) and 10 cm round it (the paint beside it cleaned)
         dv = T.WIDOKI[widok][0]; eu, ev = (np.array(x, float) for x in uvf(np.eye(3)))
-        kand = vis | (mod.widoczne(widok, (g0, g1, h0, h1), cos=.02, glebia=.12, margines=0) & (u >= g0) & (u <= g1) & (v >= h0) & (v <= h1)) if obrys else vis
+        kand = vis | (mod.widoczne(widok, (g0, g1, h0, h1), cos=.02, glebia=.12, margines=0, do=do, gesto=gesto) & (u >= g0) & (u <= g1) & (v >= h0) & (v <= h1)) if obrys else vis
         wb_f = (u >= u0) & (u <= u1) & (v >= v0) & (v <= v1)
         # the window's surface: a smooth sheet fitted to the depth of the faces inside it (a raked windscreen curving into
         # the roof); what stands 4 cm proud of it is not glass (a mirror), nor what lies behind it (seen through a gap); the
@@ -459,7 +462,7 @@ def szyby_malowane(mod, okna, farby, cien=.10, krok=.01, przyciemniane=True, pro
         pu, pv = uvf(pts); od = odl(pu, pv); wyst = pts @ dv - plaszcz(pu, pv)
         # at the window's surface (not behind it, not a mirror): where its outline is measured; Tripo's own glass painting
         # elsewhere taken whole, as found
-        blisko = ((wyst < .04) & (wyst > -.08)) if obrys else np.ones(len(ys), bool)
+        blisko = ((wyst < .04) & (wyst > -.08)) if obrys and not cale else np.ones(len(ys), bool)
         wbox = (pu >= u0) & (pu <= u1) & (pv >= v0) & (pv <= v1) & blisko
         # the glass inside (all that lies at its surface: Tripo's faces turn every way), 1.5 cm of rubber round it
         szk = wbox & (od > .015)
@@ -694,13 +697,15 @@ def przygotuj_model(name, m, src, out, podglad=None):
     mod = T.Model(P, I, U, d["base"], d["normal"], d["mr"])
     try: mod.kola = kola_wstepnie(P, m)                         # where the wheels stand (a recipe keeps its paint off them)
     except SystemExit: mod.kola = []
-    przepis = przepisy.PRZEPISY.get(name)
+    przepis = przepisy.PRZEPISY.get(name); mod.nazwa = name
+    img0 = mod.img.copy(); mr0 = mod.mapy["mr"].copy() if "mr" in mod.mapy else None
     info = przepis(mod) if przepis else {}
     info = info or {}
+    wnetrze_jak_bylo(mod, img0, mr0, info.get("otwory", ()), info.get("okna", ()), log=mod.log)
     przepisy._bez_metalu(mod, przepisy._maska(mod, info.get("okna", ())))  # a body never metal-black in the city's shade
     log = list(mod.log)
     # the glass
-    szklo = np.zeros(len(I), bool); panes = []
+    szklo = np.zeros(len(I), bool); panes = []; ciemne = []
     if info.get("okna"):
         szklo = szyby_malowane(mod, info["okna"], info.get("farby_okien", info.get("farby", [])), przyciemniane=info.get("przyciemniane", True),
                                prostokatne=info.get("okna_prostokatne", False))
@@ -708,14 +713,22 @@ def przygotuj_model(name, m, src, out, podglad=None):
         log.append("szyby malowane: %d faces" % szklo.sum())
     if info.get("otwory"):
         for o in info["otwory"]:
-            widok, box = o[0], o[1]
-            r = szyba_otwarta(mod, widok, box, **(o[2] if len(o) > 2 else {}))
+            widok, box = o[0], o[1]; op = dict(o[2]) if len(o) > 2 else {}
+            # ciemna: the pane the tinted glass (dark, opaque) - a back window over Tripo's garbled light boot
+            ciemna = op.pop("ciemna", False)
+            r = szyba_otwarta(mod, widok, box, **op)
             if r is None: log.append("szyba %s %s: no opening found" % (widok, box)); continue
-            panes.append(r); log.append("szyba %s %s: %.2f m2, %d tris" % (widok, box, r[3], len(r[2])))
+            (ciemne if ciemna else panes).append(r)
+            log.append("szyba %s %s: %.2f m2, %d tris%s" % (widok, box, r[3], len(r[2]), ", przyciemniana" if ciemna else ""))
     znaczki = []
     for zn, widok, uc, vc in przepisy.ZNACZKI_NA_AUTACH.get(name, []):
         z = osadz_znaczek(mod, zn, widok, uc, vc)
         if z: znaczki.append(z); log.append("znaczek %s %s (%.2f, %.2f): wystaje %.1f mm" % (zn, widok, uc, vc, ZNACZKI[zn]["gleb"] * 1000))
+    tablice = []
+    for tekst, rodzaj, widok, uc, vc, w, h in mod.tablice3d:
+        z = osadz_tablice(mod, widok, uc, vc, w, h)
+        if z: z.update(tekst=tekst, rodzaj=rodzaj, w=w, h=h); tablice.append(z)
+        else: log.append("UWAGA tablica %s %s: brak powierzchni" % (tekst, widok))
     for lam in przepisy.REFLEKTORY.get(name, []): mod.reflektor("F", *lam)
     mapa_swiatel(mod, m, log, info.get("farby", ()))
     # the body on its own centre line (a Tripo model can stand off it; the recipes read the views as they are): moved
@@ -723,7 +736,8 @@ def przygotuj_model(name, m, src, out, podglad=None):
     if abs(cx) > .005:
         P[:, 0] -= cx
         panes = [(p[0] - np.array([cx, 0, 0]),) + tuple(p[1:]) for p in panes]
-        for z in znaczki: z["pos"][0] -= cx
+        ciemne = [(p[0] - np.array([cx, 0, 0]),) + tuple(p[1:]) for p in ciemne]
+        for z in znaczki + tablice: z["pos"][0] -= cx
         log.append("środek: przesunięty o %.3f m w x" % -cx)
     # the wheels (the glass and the body first: a wheel never takes glass)
     FF = sasiedztwo(P, I)
@@ -742,7 +756,14 @@ def przygotuj_model(name, m, src, out, podglad=None):
     if name in KOLA and m["typ"] != "motor":
         # Tripo's wheels out, each a new one at its hub: its tyre's outer face where Tripo's was (flush with the arch)
         styl, cale, szer, kolor = KOLA[name]
-        stare = part > 0; P2, N2, U2, I2, pa = [P], [N], [U], [I[~stare]], [part[~stare]]; n = len(P)
+        stare = part > 0
+        # (and what the cut left of Tripo's old tyre on the body: its lettered foot hanging beside the new wheel)
+        cc = P[I].mean(1); n0 = int(stare.sum())
+        for k in kola:
+            rk = np.hypot(cc[:, 2] - k["hz"], cc[:, 1] - k["hy"])
+            stare |= (part == 0) & (rk < .97 * k["R"]) & (np.abs(cc[:, 0] - k["hx"]) < k["szer"] / 2 + .02)
+        if stare.sum() > n0: log.append("resztki starych opon: %d trójkątów" % (int(stare.sum()) - n0))
+        P2, N2, U2, I2, pa = [P], [N], [U], [I[~stare]], [part[~stare]]; n = len(P)
         for i, k in enumerate(kola):
             sg = 1.0 if k["hx"] > 0 else -1.0
             hx = sg * max(abs(k["hx"]) + k["szer"] / 2 - szer / 2, szer / 2)
@@ -757,8 +778,8 @@ def przygotuj_model(name, m, src, out, podglad=None):
     for k in kola:
         if k["bok"] == 0: nazwy.append("kolo_przod" if k["pol"] > 0 else "kolo_tyl")
         else: nazwy.append("kolo_%s_%s" % ("przod" if k["pol"] > 0 else "tyl", "lewe" if k["bok"] > 0 else "prawe"))
-    return dict(name=name, m=m, P=P, N=N, U=U, I=I, mod=mod, part=part, kola=kola, nazwy=nazwy, panes=panes, info=info, log=log, skala=d["skala"],
-                znaczki=znaczki, nowe_kola=nowe_kola)
+    return dict(name=name, m=m, P=P, N=N, U=U, I=I, mod=mod, part=part, kola=kola, nazwy=nazwy, panes=panes, ciemne=ciemne, info=info, log=log, skala=d["skala"],
+                znaczki=znaczki, nowe_kola=nowe_kola, tablice=tablice)
 
 
 def osadz_znaczek(mod, zn, widok, uc, vc):
@@ -779,6 +800,24 @@ def osadz_znaczek(mod, zn, widok, uc, vc):
     R = np.stack([xv, yv, n], 1)
     q = _kwaternion(R)
     return {"znaczek": zn, "pos": p.tolist(), "rot": q, "widok": widok}
+
+
+def osadz_tablice(mod, widok, uc, vc, w, h):
+    """where a plate is screwed on (glTF metres): its centre at (uc, vc) in the view, 4 mm off the front-most surface
+    there, turned to that surface (tipped at most 6 degrees down or back, as a plate on its bracket), its up kept up"""
+    u, v = T.WIDOKI[widok][1](mod.cen); dv = T.WIDOKI[widok][0]
+    box = (uc - w / 2, uc + w / 2, vc - h / 2, vc + h / 2)
+    f = mod.widoczne(widok, box, cos=.3, glebia=.04, margines=0) & (u >= box[0]) & (u <= box[1]) & (v >= box[2]) & (v <= box[3])
+    if not f.any(): return None
+    a = mod.area[f]; n = (mod.n[f] * a[:, None]).sum(0); n /= np.linalg.norm(n)
+    if n @ dv < 0: n = -n
+    n = n - dv * (n @ dv) * 0; n[1] = np.clip(n[1], -.10, .10); n /= np.linalg.norm(n)
+    # its plane through the front-most point of the surface behind it, along its own normal
+    d = float(np.max(mod.cen[f] @ n)) + .004
+    eu, ev = (np.array(x, float) for x in T.WIDOKI[widok][1](np.eye(3)))
+    p = eu * uc + ev * vc; t = (d - p @ n) / max(dv @ n, .2); p = p + dv * t
+    yv = np.array([0, 1.0, 0]) - n * n[1]; yv /= np.linalg.norm(yv); xv = np.cross(yv, n)
+    return {"pos": p.tolist(), "rot": _kwaternion(np.stack([xv, yv, n], 1))}
 
 
 def _kwaternion(R):
@@ -834,6 +873,78 @@ def przygotuj_znaczek(zn, src, out):
     zapisz_glb(out / (base + ".glb"), base, P, N, U, I)
     return {"znaczek": zn, "plik": base, "kolor": base + "_kolor", "normal": base + "_normal__lin", "mr": base + "_mr__lin",
             "szerokosc": Z["szer"], "trojkaty": int(len(I))}
+
+
+TAB_KOL, TAB_W, TAB_H = 6, 340, 100                  # the plates' atlas: 6 x 20 slots of 340 x 100 px in 2048 x 2048
+
+
+def atlas_tablic(modele, out):
+    """every classic's plates in one atlas (the game's one material for them): each plate's picture in a slot, its uv
+    written into its catalogue entry; the black of a plate's edges in the last slot"""
+    A = 2048; im = Image.new("RGB", (A, A), (14, 14, 16)); k = 0
+    for e in modele:
+        for t in e.get("tablice", []):
+            if k >= TAB_KOL * 20 - 1: raise SystemExit("KLASYKI: the plates' atlas is full")
+            x0, y0 = (k % TAB_KOL) * TAB_W + 2, (k // TAB_KOL) * TAB_H + 2
+            ph = min(TAB_H - 4, int(round((TAB_W - 4) * t["h"] / t["w"]))); pw = int(round(ph * t["w"] / t["h"])) if ph < TAB_H - 4 else TAB_W - 4
+            pw = min(pw, TAB_W - 4); ph = int(round(pw * t["h"] / t["w"]))
+            p = T.tablica_obraz(t["tekst"], t["rodzaj"], t["w"], t["h"], ppm=int(pw / t["w"] * 3)).convert("RGB").resize((pw, ph), Image.LANCZOS)
+            im.paste(p, (x0, y0))
+            t["uv"] = [round(x0 / A, 6), round(1 - (y0 + ph) / A, 6), round((x0 + pw) / A, 6), round(1 - y0 / A, 6)]
+            k += 1
+    tex = out / "_tekstury"; tex.mkdir(parents=True, exist_ok=True)
+    im.save(tex / "tablice_kolor.jpg", quality=94)
+    mr = np.zeros((A, A, 3), np.uint8); mr[..., 0] = 255; mr[..., 1] = 90               # a plate's paint, a little gloss
+    Image.fromarray(mr).save(tex / "tablice_mr__lin.jpg", quality=95)
+    Image.new("RGB", (64, 64), (128, 128, 255)).save(tex / "tablice_normal__lin.jpg", quality=95)
+    return {"kolor": "tablice_kolor", "normal": "tablice_normal__lin", "mr": "tablice_mr__lin", "ile": k,
+            "czern": [round((A - 8) / A, 6), round(4 / A, 6)]}
+
+
+def wnetrze_jak_bylo(mod, img0, mr0, otwory, okna, log):
+    """the inside seen through a window as Tripo painted it: a new coat of the body's paint reached the seats, the parcel
+    shelf, the pillars' inner sides (Tripo paints them the body's colour) - in each open window's box every face more
+    than 10 cm behind the row's outermost surface there (the frame), and in a painted window measured off the painting
+    every face inside its outline (the glass, painted later) get their texels back as they were"""
+    n = 0
+    # the body's top skin (the roof, the bonnet, the boot lid: facing up, the highest in its 2 cm column) is the outside
+    c = mod.cen; key = np.floor(c[:, 0] / .02).astype(np.int64) * 100003 + np.floor(c[:, 2] / .02).astype(np.int64)
+    o = np.argsort(key); kk = key[o]; first = np.r_[True, kk[1:] != kk[:-1]]; ks = kk[first]
+    ymax = np.maximum.reduceat(c[o, 1], np.nonzero(first)[0]); jj = np.clip(np.searchsorted(ks, key), 0, len(ks) - 1)
+    wierzch = (mod.n[:, 1] > .3) & (c[:, 1] > ymax[jj] - .06)
+    w_obrysie = przepisy._w_oknie(mod, [o for o in okna if len(o) > 2])
+    if w_obrysie.any():
+        ys, xs, _ = mod.teksele(w_obrysie); mod.img[ys, xs] = img0[ys, xs]; n += len(ys)
+    for o in otwory:
+        widok, (u0, u1, v0, v1) = o[0], o[1]
+        dv = T.WIDOKI[widok][0]; u, v = T.WIDOKI[widok][1](mod.cen); dep = mod.cen @ dv
+        w = (u >= u0) & (u <= u1) & (v >= v0) & (v <= v1)
+        if w.sum() < 10: continue
+        # the outermost surface per 2 cm row (the frame or the glass there; across a hole, the pillars at its ends)
+        rz = np.clip(((v - v0) / .02).astype(int), 0, int((v1 - v0) / .02))
+        ref = np.full(rz.max() + 1, -np.inf); np.maximum.at(ref, rz[w], dep[w])
+        # (only where the opening is: a 2 cm cell whose nearest surface lies 10 cm behind its row's frame - the roof or a
+        # boot lid sloping away above or below the window is no opening, its far part never the inside)
+        kc = np.clip(((u - u0) / .02).astype(int), 0, 100000) * 1000 + rz
+        o = np.argsort(kc[w]); kk = kc[w][o]; dd = dep[w][o]; first = np.r_[True, kk[1:] != kk[:-1]]
+        ks = kk[first]; dmax = np.maximum.reduceat(dd, np.nonzero(first)[0])
+        j = np.clip(np.searchsorted(ks, kc), 0, len(ks) - 1); otwor = (ks[j] == kc) & (dmax[j] < ref[rz] - .10)
+        # (and the inside seen there: the nearest 15 cm through the opening - a fastback's roof far behind it is no inside)
+        gl = w & (dep < ref[rz] - .10) & otwor & (dep > dmax[j] - .15)
+        # (a hollow car: through the windscreen its back window's surround, the far side's skin - what the opposite
+        # view sees as the outside is never the inside)
+        przeciw = {"L": "P", "P": "L", "F": "T", "T": "F"}.get(widok)
+        if przeciw: gl &= ~mod.widoczne(przeciw, (-9.0, 9.0, -1.0, 9.0), cos=.15, glebia=.04, margines=0, zewn=True)
+        gl &= ~wierzch
+        if not gl.any(): continue
+        ys, xs, _ = mod.teksele(gl)
+        mod.img[ys, xs] = img0[ys, xs]
+        if mr0 is not None:
+            # (its roughness as it was; never metal: Tripo's metal there, lit by the sky alone, showed as chrome)
+            mp = mod.mapy["mr"]; hh, ww = mp.shape[:2]; yy = np.clip(ys * hh // mod.h, 0, hh - 1); xx = np.clip(xs * ww // mod.w, 0, ww - 1)
+            mp[yy, xx, 1] = np.maximum(mr0[yy, xx, 1], 120); mp[yy, xx, 2] = np.minimum(mr0[yy, xx, 2], 20)
+        n += len(ys)
+    if n: log.append("wnętrze za szybami jak u Tripo: %d texels" % n)
 
 
 def mapa_swiatel(mod, m, log, farby=()):
@@ -920,15 +1031,17 @@ def zapisz_model(r, out):
     szyby = None
     if (part == -1).any():
         e = czesc("szyby", I[part == -1], np.zeros(3), None); szyby = {"plik": e["plik"], "rodzaj": "przyciemniane"}
-    if r["panes"]:
-        pos = np.concatenate([p[0] for p in r["panes"]]); nrm = np.concatenate([p[1] for p in r["panes"]])
-        off = np.cumsum([0] + [len(p[0]) for p in r["panes"]])[:-1]
-        tri = np.concatenate([p[2] + o for p, o in zip(r["panes"], off)])
+    # the new panes: the clear ones (the open windows) and the tinted ones (a back window given dark glass)
+    for klucz, nazwa in (("panes", "szyby_otwarte"), ("ciemne", "szyby_ciemne")):
+        if not r.get(klucz): continue
+        pos = np.concatenate([p[0] for p in r[klucz]]); nrm = np.concatenate([p[1] for p in r[klucz]])
+        off = np.cumsum([0] + [len(p[0]) for p in r[klucz]])[:-1]
+        tri = np.concatenate([p[2] + o for p, o in zip(r[klucz], off)])
         tri = np.concatenate([tri, tri[:, ::-1]])                                  # both sides (the inside looks out)
-        plik = "%s_szyby_otwarte" % base
+        plik = "%s_%s" % (base, nazwa)
         zapisz_glb(out / (plik + ".glb"), plik, pos, nrm, np.zeros((len(pos), 2)), tri)
-        czesci.append({"nazwa": "szyby_otwarte", "plik": plik, "pivot": [0.0, 0.0, 0.0], "trojkaty": int(len(tri)), "promien": 0.0, "szerokosc": 0.0, "lody": []})
-        szyby = dict(szyby or {}, otwarte=plik)
+        czesci.append({"nazwa": nazwa, "plik": plik, "pivot": [0.0, 0.0, 0.0], "trojkaty": int(len(tri)), "promien": 0.0, "szerokosc": 0.0, "lody": []})
+        szyby = dict(szyby or {}, **{"otwarte" if klucz == "panes" else "ciemne": plik})
     lo, hi = P.min(0), P.max(0)
     kp = [k for k in r["kola"] if k["pol"] > 0]; kt = [k for k in r["kola"] if k["pol"] < 0]
     rozstaw = float(np.mean([k["hz"] for k in kp]) - np.mean([k["hz"] for k in kt]))
@@ -938,6 +1051,9 @@ def zapisz_model(r, out):
             "rozstaw_osi": round(rozstaw, 3), "trojkaty": int(sum(c["trojkaty"] for c in czesci)), "napisy": r["info"].get("napisy", []),
             "znaczki": [{"znaczek": z["znaczek"], "plik": "znaczek_" + z["znaczek"], "pos": [round(-z["pos"][0], 5), round(z["pos"][1], 5), round(z["pos"][2], 5)],
                          "rot": [z["rot"][0], -z["rot"][1], -z["rot"][2], z["rot"][3]]} for z in r.get("znaczki", [])],
+            "tablice": [{"tekst": z["tekst"], "rodzaj": z["rodzaj"], "w": z["w"], "h": z["h"],
+                         "pos": [round(-z["pos"][0], 5), round(z["pos"][1], 5), round(z["pos"][2], 5)],
+                         "rot": [z["rot"][0], -z["rot"][1], -z["rot"][2], z["rot"][3]]} for z in r.get("tablice", [])],
             "log": r["log"]}
 
 
@@ -976,18 +1092,19 @@ def spakuj(lib, zrodla, pack_dir, opis):
     pack = Path(pack_dir); pack.mkdir(parents=True, exist_ok=True)
     for f in ("recipient.crt", "recipient.pem.enc"): shutil.copy2(wzor / f, pack / f)
     with tempfile.TemporaryDirectory() as tmp:
-        st = Path(tmp) / "st"; (st / "oryginal").mkdir(parents=True)
-        for model, p in zrodla.items(): shutil.copy2(p, st / "oryginal" / ("%s_tripo.glb" % model))
-        shutil.copytree(lib, st / TARGET)
-        files = {str(f.relative_to(st)): sha256(f) for f in sorted(st.rglob("*")) if f.is_file()}
+        # (tarred straight from where the files are: a staged copy of them would need the disk twice over)
+        skad = {"oryginal/%s_tripo.glb" % model: Path(p) for model, p in zrodla.items()}
+        skad.update({"%s/%s" % (TARGET, f.relative_to(lib).as_posix()): f for f in Path(lib).rglob("*") if f.is_file()})
+        files = {rel: sha256(skad[rel]) for rel in sorted(skad)}
         tar = Path(tmp) / "pack.tar"
         with tarfile.open(tar, "w") as t:
-            for rel in files: t.add(st / rel, arcname=rel)
+            for rel in files: t.add(skad[rel], arcname=rel)
         cms = Path(tmp) / "pack.cms"
         subprocess.run(["openssl", "cms", "-encrypt", "-binary", "-aes256", "-outform", "DER", "-in", str(tar), "-out", str(cms),
                         str(pack / "recipient.crt")], check=True)
         # (a short write - the disk full - must never leave a broken pack behind)
         if cms.stat().st_size < tar.stat().st_size: raise SystemExit("KLASYKI_PACK: the encrypted pack is shorter than its tar - disk full?")
+        tar_sha = sha256(tar); tar.unlink()                                    # (its room for the parts)
         for old in pack.glob("part-*.cms"): old.unlink()
         data = cms.read_bytes(); parts = []; S = 90 * 1024 * 1024
         for i in range(0, len(data), S):
@@ -996,7 +1113,7 @@ def spakuj(lib, zrodla, pack_dir, opis):
         manifest = {"source": opis, "target": TARGET,
                     "staging": "unity-city/Assets/Source/Prywatne/Miasto/" + TARGET + " (BraxMiastoAssety.Model)",
                     "format": "tar -> openssl cms -encrypt -aes256 (DER) to recipient.crt (Braxhorn camp input transfer; its private key recipient.pem.enc is protected by KLUCZ in Actions) -> split 90 MB",
-                    "tarSha256": sha256(tar), "cmsSha256": sha256(cms), "parts": parts, "files": files,
+                    "tarSha256": tar_sha, "cmsSha256": sha256(cms), "parts": parts, "files": files,
                     "recipientCertificateSha256": sha256(pack / "recipient.crt")}
         (pack / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=1) + "\n")
     print("KLASYKI_PACK %s: %d files, %d parts" % (pack, len(files), len(parts)))
@@ -1030,6 +1147,7 @@ def main(a):
     ak.save(tex / "kola_kolor.jpg", quality=92); an.save(tex / "kola_normal__lin.jpg", quality=95); am.save(tex / "kola_mr__lin.jpg", quality=95)
     katalog["kola"] = {"kolor": "kola_kolor", "normal": "kola_normal__lin", "mr": "kola_mr__lin"}
     katalog["modele"].sort(key=lambda x: list(MODELE).index(x["model"]))
+    katalog["tablice"] = atlas_tablic(katalog["modele"], out)
     kat_path.write_text(json.dumps(katalog, ensure_ascii=False, indent=1))
     if "--pack" in a:
         zrodla = {n: znajdz(src, MODELE[n]["id"]) for n in MODELE}

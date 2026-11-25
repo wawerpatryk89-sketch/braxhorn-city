@@ -56,12 +56,15 @@ class Model:
         self.log = []
         self.ramki = []                                      # (kind, view, box): what was done where (the recipe's picture)
         self.swiatla = []                                    # (view, box, kind): lamps a recipe laid or marked
+        self.tablice3d = []                                  # (text, kind, view, u, v, w, h): the plates, as parts
 
     # ---- which faces are seen in a view's box
-    def widoczne(self, widok, box, cos=.35, glebia=.06, margines=.05, zewn=False):
+    def widoczne(self, widok, box, cos=.35, glebia=.06, margines=.05, zewn=False, do=None, gesto=False):
         d, uv = WIDOKI[widok]; u, v = uv(self.cen); dep = self.cen @ d
         u0, u1, v0, v1 = box
         inb = (u > u0 - margines) & (u < u1 + margines) & (v > v0 - margines) & (v < v1 + margines)
+        # do: what stands nearer the viewer than that depth left out (a wing on its struts before the back window)
+        if do is not None: inb &= dep < do
         nd = self.n @ d
         # Tripo's shells are two layers ~1 cm apart: the outer facing out, the inner facing in. Both take the same paint
         # (the inner one shows through wherever the layers cross); only what lies at the front-most surface does
@@ -73,6 +76,16 @@ class Model:
         out = inb & (nd > cos)
         for k, z in zip(key[out], dep[out]):
             if z > best.get(k, -1e9): best[k] = z
+        if gesto:
+            # a coarse surface (faces of 4-5 cm over a 2 cm grid: a cell without a face's centre would see through it to
+            # the inside): its faces' corners and edges' middles mark the cells too
+            t = self.P[self.I[out]]; pts = np.concatenate([t[:, 0], t[:, 1], t[:, 2], (t[:, 0] + t[:, 1]) / 2, (t[:, 1] + t[:, 2]) / 2,
+                                                          (t[:, 2] + t[:, 0]) / 2, (t[:, 0] * 2 + t[:, 1] + t[:, 2]) / 4,
+                                                          (t[:, 0] + t[:, 1] * 2 + t[:, 2]) / 4, (t[:, 0] + t[:, 1] + t[:, 2] * 2) / 4])
+            pu, pv = uv(pts); pd = pts @ d
+            kk = np.floor((pu - u0) / .02).astype(int) * 100000 + np.floor((pv - v0) / .02).astype(int)
+            for k, z in zip(kk, pd):
+                if z > best.get(k, -1e9): best[k] = z
         idx = np.nonzero(ok)[0]
         front = np.zeros(len(dep), bool)
         front[idx] = [dep[i] > best.get(key[i], 1e9) - glebia for i in idx]
@@ -177,9 +190,11 @@ class Model:
         else: self.swiatla.append((widok, (uc - r / 2, uc + r / 2, vc - h / 2, vc + h / 2), "przod_p"))
 
     def tablica(self, widok, tekst, uc, vc, w=.52, h=.12, nowa=False):
-        """nowa: False the black plate of 1976-2000, True today's white, "zabytkowa" today's yellow (a historic car)"""
-        rgba = tablica_nowa_rgba(tekst, w, h, tlo=(246, 200, 24)) if nowa == "zabytkowa" else (tablica_nowa_rgba if nowa else tablica_rgba)(tekst, w, h)
-        self.naklej(widok, rgba, uc, vc, w, h, "tablica " + tekst)
+        """a plate - a flat plate of its own, screwed on where (uc, vc) is in the view (owner 25.11 08:17: painted onto
+        Tripo's curved panels the plates bent and broke): nowa False the black plate of 1976-2000, True today's white,
+        "zabytkowa" today's yellow"""
+        self.tablice3d.append((tekst, "stara" if not nowa else "zabytkowa" if nowa == "zabytkowa" else "nowa", widok, uc, vc, w, h))
+        self.ramki.append(("tablica", widok, (uc - w / 2, uc + w / 2, vc - h / 2, vc + h / 2)))
 
     # ---- the restoration: the paint's own colour where rust, dirt and scratches are, its shading kept
     def odnow(self, farby, tol=.20, rdza=.10, sigma=10, maska_ciala=None):
@@ -209,7 +224,7 @@ class Model:
         self.log.append("odnow %d colours: %d texels cleaned" % (len(farby), total))
         return total
 
-    def lakiery(self, pary, tol=14.0, sigma=2.5, maska=None, plamy=None, odcien=None, kontrast=1.0):
+    def lakiery(self, pary, tol=14.0, sigma=2.5, maska=None, plamy=None, odcien=None, kontrast=1.0, obszary=False, szare=False):
         """new coats: [(paint sampled (sRGB 0-255), its new colour, roughness, metal), ...] - each texel to the paint
         nearest it (Lab, half-weight lightness) when under tol (soft at the edge), taking the new colour while keeping its
         own light and shade (the luminance against the old paint's, smoothed over a few texels: Tripo's speckle off, the
@@ -221,20 +236,43 @@ class Model:
             q = cv2.cvtColor((np.array(zr, np.float32) / 255).reshape(1, 1, 3), cv2.COLOR_RGB2LAB).reshape(3)
             dd = lab - q; dd[:, 0] *= .5; D.append(np.sqrt((dd ** 2).sum(1)).reshape(a.shape[:2]))
         D = np.stack(D)
-        for i, (zr, cel, ch, me, *mk) in enumerate(pary):                       # a paint only where its mask lets it
-            if mk and mk[0] is not None: D[i][mk[0] <= 0] = np.inf
-        kto = D.argmin(0); dmin = D.min(0)
+        Lz = np.array([max(float(lin(np.array(p[0], np.float32) / 255) @ Y), 1e-4) for p in pary], np.float32)
+        if obszary:
+            # each paint over its region (the masks): a texel there of any of the paints takes it, its light against the
+            # paint it was (Tripo's ragged edge of the other colour made this one)
+            zrodlo = D.argmin(0); dmin = D.min(0); Lsrc = Lz[zrodlo]
+            kto = np.full(a.shape[:2], -1)
+            for i, (zr, cel, ch, me, *mk) in enumerate(pary):
+                if mk and mk[0] is not None: kto[mk[0] > 0] = i
+        else:
+            for i, (zr, cel, ch, me, *mk) in enumerate(pary):                   # a paint only where its mask lets it
+                if mk and mk[0] is not None: D[i][mk[0] <= 0] = np.inf
+            kto = D.argmin(0); dmin = D.min(0); Lsrc = None
         if odcien:
             # a body Tripo painted in two shades of one hue: every texel of that hue (degrees, saturated) is paint
             hsv = cv2.cvtColor(np.clip(a, 0, 1).astype(np.float32), cv2.COLOR_RGB2HSV)
-            h0, h1 = odcien; dmin = np.where((hsv[..., 0] >= h0) & (hsv[..., 0] <= h1) & (hsv[..., 1] > .18) & (hsv[..., 2] > .04), 0.0, dmin)
+            h0, h1 = odcien; hh = hsv[..., 0]
+            w_odcieniu = ((hh >= h0) & (hh <= h1)) if h0 <= h1 else ((hh >= h0) | (hh <= h1))      # (a red wraps round 0)
+            dmin = np.where(w_odcieniu & (hsv[..., 1] > .18) & (hsv[..., 2] > .04), 0.0, dmin)
+        if szare:
+            # a white coat's region: Tripo's grey dirt and reflections painted on it are the paint too (the trim kept apart)
+            hsv = cv2.cvtColor(np.clip(a, 0, 1).astype(np.float32), cv2.COLOR_RGB2HSV)
+            biale = [i for i, p in enumerate(pary) if (max(p[0]) - min(p[0])) / max(max(p[0]), 1) < .15]
+            dmin = np.where((hsv[..., 1] < .22) & (hsv[..., 2] > .25) & np.isin(kto, biale), 0.0, dmin)
         L = lin(a) @ Y; out = a.copy(); maski = []
         for i, (zr, cel, ch, me, *mk) in enumerate(pary):
             w = (np.clip((tol - dmin) / 5.0, 0, 1) * (kto == i)).astype(np.float32)
             if maska is not None: w *= maska
             if mk and mk[0] is not None: w *= mk[0]
-            Lc = max(float(lin(np.array(zr, np.float32) / 255) @ Y), 1e-4)
+            Lc = Lsrc if Lsrc is not None else Lz[i]
             r = np.clip(L / Lc, .12, 2.4)
+            if obszary:
+                # what was not this paint in its region (the other colour's ragged edge, Tripo's rust along the line
+                # between them): the light of this paint round it
+                obcy = (w > 0) & ((zrodlo != i) | (D.min(0) >= tol))
+                dobre = (w > .5) & ~obcy
+                rf = cv2.GaussianBlur(r * dobre, (0, 0), 8) / np.maximum(cv2.GaussianBlur(dobre.astype(np.float32), (0, 0), 8), 1e-4)
+                r = np.where(obcy, np.where(rf > 0, rf, 1.0), r)
             if plamy:
                 # Tripo's dark blotches in the paint (patches, not the thin panel gaps): taken in and given the light of
                 # the paint round them - a gap of 1-3 texels keeps its shade
@@ -289,6 +327,13 @@ def tekst_rgba(tekst, cap, kolor, ppm=2400):
     a = a[max(ys.min() - 4, 0):ys.max() + 5, max(xs.min() - 4, 0):xs.max() + 5]
     rgba = np.zeros(a.shape + (4,), np.float32); rgba[..., :3] = np.array(kolor, np.float32) / 255; rgba[..., 3] = a
     return rgba, a.shape[1] / ppm, a.shape[0] / ppm
+
+
+def tablica_obraz(tekst, rodzaj, w, h, ppm=2400):
+    """a plate's picture by its kind (stara / nowa / zabytkowa): a PIL image"""
+    if rodzaj == "zabytkowa": a = tablica_nowa_rgba(tekst, w, h, ppm=ppm, tlo=(246, 200, 24))
+    else: a = (tablica_nowa_rgba if rodzaj == "nowa" else tablica_rgba)(tekst, w, h, ppm=ppm)
+    return Image.fromarray((np.clip(np.asarray(a)[..., :3], 0, 1) * 255 + .5).astype(np.uint8)) if isinstance(a, np.ndarray) else a
 
 
 def tablica_rgba(tekst, w=.52, h=.12, ppm=2400):

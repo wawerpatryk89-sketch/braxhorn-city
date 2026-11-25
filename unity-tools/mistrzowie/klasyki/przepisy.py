@@ -14,6 +14,9 @@ Plates: 1976-2000, black with white characters - a private car 3 letters + 4 dig
 "MO - wyróżnik milicji")."""
 
 
+import numpy as np
+
+
 class _Skala:
     """a recipe read off views drawn at another length (the first look at a model, 4 m long): its places scaled by k
     (the views are centred on z and stand on y = 0, so u and v scale alike); a plate keeps its real size"""
@@ -34,6 +37,8 @@ def _dwa(mod, boxes, farba, progi=((.07, 4), (.06, 3))):
 
 
 def milicja(mod):
+    """the Polonez Truck of the militia: deep blue, its white stripe at the waist straight and clean (as Tripo drew it,
+    measured: 8 cm from the cab back, narrowing to 5.5 cm over the bonnet's flank), MILICJA in clean letters, MO plates"""
     NIEB = (20, 64, 100)
     Z = [("L", (-0.84, -0.06, 0.575, 0.835)), ("L", (0.24, 1.84, 0.985, 1.13)), ("L", (1.50, 1.90, 1.16, 1.54)), ("L", (0.38, 0.68, 0.60, 0.88)),
          ("P", (-1.96, -0.34, 0.985, 1.13)), ("P", (-1.90, -1.46, 1.16, 1.54)), ("P", (-0.80, -0.50, 0.60, 0.88)), ("P", (-0.04, 0.66, 0.575, 0.835)),
@@ -41,18 +46,53 @@ def milicja(mod):
     _dwa(mod, Z, NIEB)
     mod.zmaz("T", (-0.32, 0.30, 0.40, 0.56), prog=.5)                         # the rear plate
     mod.zmaz("F", (-0.30, 0.30, 0.33, 0.49), prog=.5)                         # the front plate
-    for w, u in (("L", -0.42), ("P", 0.32)): mod.napis(w, "MILICJA", u, 0.71, .10)
-    for w, u in (("L", 1.05), ("P", -1.15)): mod.napis(w, "MILICJA", u, 1.04, .11)
     mod.zmaz("F", (-0.64, 0.64, 1.56, 1.80), farba=NIEB, prog=.035, rozszerz=3, cos=.1, glebia=.15)   # the old letters' last trace
-    mod.napis("F", "MILICJA", 0, 1.66, .085); mod.napis("T", "MILICJA", 0, 1.045, .075)
-    for w in ("F", "T"): mod.napis(w, "MILICJA", 0, 1.915, .045)
+    _zmaz_gora(mod, 1.20, 2.40, NIEB)                                          # the bonnet's garbled letters
+    _zmaz_gora(mod, 0.40, 1.05, NIEB)                                          # and the cab roof's front, over its letters
+    mod.zmaz("G", (-0.62, 0.62, 1.92, 2.36), farba=NIEB, prog=.07, rozszerz=2, cos=.3, glebia=.10)    # the bonnet's lip
     # the paint renewed: a fresh coat of its colour, glossy (owner 25.11 02:43: "lakier odnowić ... jak z salonu")
     nowe = _lakiery(mod, [(NIEB, (22, 60, 108), .30, 0.0), ((225, 228, 230), (236, 238, 238), .30, 0.0)], tol=16.0)
+    # the stripe: its band white, the white flecks round it (and round the old letters) the blue
+    dol = lambda u: np.where(u < -0.9, .85 + (u + .9) * (.05 / 1.3), .855)
+    gora = lambda u: np.where(u < -0.9, .935 + (u + .9) * (.08 / 1.3), .935)
+    _pas(mod, [("L", (-2.30, 2.30), dol, gora), ("P", (-2.30, 2.30), lambda u: dol(-u), lambda u: gora(-u)),
+               ("T", (-0.95, 0.95), lambda u: .855 + 0 * u, lambda u: .93 + 0 * u)],
+         (236, 238, 238), (22, 60, 108), wokol=.05, okna=MILICJA_OKNA, litery=[z for z in Z if z[0] in "LP"])
+    for w, u in (("L", -0.42), ("P", 0.32)): mod.napis(w, "MILICJA", u, 0.71, .10)
+    for w, u in (("L", 1.05), ("P", -1.15)): mod.napis(w, "MILICJA", u, 1.04, .11)
+    mod.napis("F", "MILICJA", 0, 1.66, .085); mod.napis("T", "MILICJA", 0, 1.045, .075)
+    for w in ("F", "T"): mod.napis(w, "MILICJA", 0, 1.915, .045)
     mod.tablica("F", "MO 1261", 0, 0.41); mod.tablica("T", "MO 1261", -0.02, 0.465)
-    return dict(farby=[NIEB, (225, 228, 230)] + nowe, farby_okien=[NIEB] + nowe, napisy=["MILICJA", "MO 1261"],
-                okna=[("L", (-0.95, 0.06, 0.96, 1.44)), ("L", (0.36, 1.21, 1.10, 1.57)),
-                      ("P", (-0.04, 0.95, 0.96, 1.44)), ("P", (-1.27, -0.45, 1.10, 1.57)),
-                      ("F", (-0.72, 0.72, 0.98, 1.46)), ("T", (-0.62, 0.60, 1.10, 1.53))])
+    return dict(farby=[NIEB, (225, 228, 230)] + nowe, farby_okien=[NIEB] + nowe, napisy=["MILICJA", "MO 1261"], okna=MILICJA_OKNA)
+
+
+MILICJA_OKNA = [("L", (-0.95, 0.06, 0.96, 1.44)), ("L", (0.36, 1.21, 1.10, 1.57)), ("P", (-0.04, 0.95, 0.96, 1.44)), ("P", (-1.27, -0.45, 1.10, 1.57)),
+                ("F", (-0.72, 0.72, 0.98, 1.46)), ("T", (-0.62, 0.60, 1.10, 1.53))]
+
+
+def _pas(mod, pasy, bialy, farba, wokol=.05, okna=(), litery=()):
+    """a painted stripe made straight: [(view, (u0, u1), bottom(u), top(u))] - the faces seen there (the outer skin)
+    between its edges take the stripe's colour, the white flecks within `wokol` of it (Tripo's blurred edge) and in the old
+    letters' boxes the paint's; only what is paint (white or the paint's hue) - a handle, a lamp keep theirs"""
+    import numpy as np
+    from tekstura import WIDOKI
+    B, F = np.array(bialy, np.float32) / 255, np.array(farba, np.float32) / 255
+    hF = _hsv(F[None])[0, 0]; szyby = _w_oknie(mod, okna) if okna else np.zeros(len(mod.I), bool)
+    nb = nf = 0
+    for w, (u0, u1), dol, gora in pasy:
+        f = mod.widoczne(w, (u0, u1, 0.0, 9.0), cos=.15, glebia=.03, margines=0, zewn=True) & ~szyby
+        ys, xs, pts = mod.teksele(f); u, v = WIDOKI[w][1](pts)
+        k = (u >= u0) & (u <= u1); ys, xs, u, v = ys[k], xs[k], u[k], v[k]
+        c = mod.img[ys, xs]; h = _hsv(c)
+        bial = (h[:, 1] < .25) & (h[:, 2] > .45); niebi = (np.abs(h[:, 0] - hF) < 25) & (h[:, 1] > .3) & (h[:, 2] > .12)
+        lo, hi = dol(u), gora(u)
+        w_pasie = (v >= lo) & (v <= hi) & (bial | niebi)
+        obok = (((v < lo) & (v > lo - wokol)) | ((v > hi) & (v < hi + wokol))) & bial
+        for lw, (a0, a1, b0, b1) in litery:
+            if lw == w: obok |= (u >= a0) & (u <= a1) & (v >= b0) & (v <= b1) & ~((v >= lo) & (v <= hi)) & bial
+        mod.img[ys[w_pasie], xs[w_pasie]] = B; mod.img[ys[obok], xs[obok]] = F
+        nb += int(w_pasie.sum()); nf += int(obok.sum())
+    mod.log.append("pas: %d texels białe, %d plamek zamalowanych" % (nb, nf))
 
 
 def probka(mod, widok, box):
@@ -75,7 +115,9 @@ def maluch(mod):
     BEZ = probka(mod, "L", (-0.30, 0.20, 0.40, 0.60))
     _dwa(mod, [("L", (0.50, 0.64, 0.55, 0.69)), ("P", (-0.69, -0.56, 0.55, 0.69)), ("F", (0.10, 0.31, 0.51, 0.60))], BEZ)
     # the paint renewed: a fresh coat of its colour, glossy (owner 25.11 02:43: "lakier odnowić ... jak z salonu")
-    nowe = _lakiery(mod, [(BEZ, (214, 198, 160), .32, 0.0)], okna=MALUCH_OKNA, tol=18.0)
+    # (its bumpers kept as they are: the cream coat took their light parts)
+    zost, chrom = _zostaw(mod, [("F", (-0.63, 0.64, 0.37, 0.435), "chrom"), ("T", (-0.65, 0.66, 0.36, 0.45), "chrom")])
+    nowe = _lakiery(mod, [(BEZ, (214, 198, 160), .32, 0.0)], okna=MALUCH_OKNA, tol=18.0, plamy=.65, kontrast=.6, zostaw=zost)
     tablice(mod, "KRA 4416", (-0.03, 0.315), (-0.06, 0.56, .36, .10),
             stare=[("F", (-0.30, 0.24, 0.26, 0.37)), ("T", (-0.26, 0.14, 0.495, 0.625))])
     mod.napis("F", "126p", 0.205, 0.555, .026, kolor=(196, 198, 200))
@@ -98,10 +140,19 @@ MALUCH_OKNA = [
 
 
 def syrena(mod):
+    """the two-tone Syrena 104: white over its shoulders (bonnet, roof, boot, the front and rear panels), mustard below -
+    the line between them as Tripo drew it, smoothed (its rust made it ragged); its chrome (bumpers, grille, sills) and its
+    lamps kept as they are (a white coat took them as its own)"""
     MUS = probka(mod, "L", (0.20, 0.60, 0.45, 0.60)); BIA = probka(mod, "F", (-0.40, -0.15, 0.75, 0.90))
     _dwa(mod, [("F", (-0.05, 0.05, 0.76, 0.86)), ("F", (0.05, 0.36, 0.65, 0.75)), ("T", (-0.05, 0.05, 0.72, 0.82))], BIA)
+    zost, chrom = _zostaw(mod, SYRENA_ZOSTAW)
+    reg = _obszary(mod, [lambda c: (lambda h: (h[:, 1] < .18) & (h[:, 2] > .40))(_hsv(c)),
+                         lambda c: (lambda h: (h[:, 0] >= 22) & (h[:, 0] <= 52) & (h[:, 1] > .30) & (h[:, 2] > .20))(_hsv(c))], nie=zost)
     # the paint renewed: a fresh coat of its colour, glossy (owner 25.11 02:43: "lakier odnowić ... jak z salonu")
-    nowe = _lakiery(mod, [(MUS, (214, 164, 64), .32, 0.0), (BIA, (236, 234, 226), .32, 0.0)], tol=18.0)
+    nowe = _lakiery(mod, [(MUS, (214, 164, 64), .32, 0.0, (reg == 1).astype("float32")), (BIA, (236, 234, 226), .32, 0.0, (reg == 0).astype("float32"))],
+                    tol=22.0, plamy=.82, kontrast=.5, odcien=(8, 55), szare=True, zostaw=zost, obszary=True)
+    _chrom(mod, chrom)
+    for w, b in (("L", (1.52, 1.66, 0.08, 0.33)), ("P", (-1.66, -1.52, 0.08, 0.33))): _pomaluj(mod, w, b, (22, 22, 22))   # the mud flaps' rubber
     tablice(mod, "WAB 7491", (0.0, 0.335), (-0.01, 0.63),
             stare=[("F", (-0.25, 0.25, 0.27, 0.40)), ("T", (-0.25, 0.23, 0.555, 0.70))])
     mod.napis("F", "SYRENA", 0.0, 0.70, .028, kolor=(206, 208, 210))
@@ -111,11 +162,38 @@ def syrena(mod):
                         ("F", (-0.66, 0.66, 1.02, 1.47)), ("T", (-0.64, 0.64, 1.02, 1.47))])
 
 
+def _pz(pola):
+    """the left side's boxes for the right too (view P: u mirrored)"""
+    return pola + [("P", (-b[1], -b[0], b[2], b[3]), k) for w, b, k in pola if w == "L"]
+
+
+# the Syrena's chrome and lamps, measured on its views: the headlamps' rings, the indicators, the grille, the bumpers
+# (their ends round the corners), the sills' chrome; the tail lamps
+SYRENA_ZOSTAW = _pz([
+    ("F", (-0.68, -0.43, 0.57, 0.82), "chrom_o"), ("F", (0.42, 0.67, 0.57, 0.82), "chrom_o"),
+    ("F", (-0.645, -0.49, 0.39, 0.54), "lampa_o"), ("F", (0.49, 0.645, 0.39, 0.54), "lampa_o"),
+    ("F", (-0.46, 0.47, 0.425, 0.645), "chrom"), ("F", (-0.74, 0.74, 0.27, 0.42), "chrom"),
+    ("T", (-0.63, -0.49, 0.50, 0.69), "lampa"), ("T", (0.48, 0.62, 0.50, 0.69), "lampa"), ("T", (-0.76, 0.76, 0.27, 0.47), "chrom"),
+    ("L", (-2.10, -1.80, 0.27, 0.43), "chrom"), ("L", (1.78, 2.10, 0.33, 0.48), "chrom"), ("L", (-0.90, 0.80, 0.27, 0.35), "chrom"),
+])
+
+
 def fiat125p(mod):
     CZE = probka(mod, "L", (0.20, 0.60, 0.62, 0.80))
     _dwa(mod, [("F", (-0.06, 0.05, 0.65, 0.76)), ("F", (0.05, 0.34, 0.65, 0.75))], (14, 14, 16))
     # the paint renewed: a fresh coat of its colour, glossy (owner 25.11 02:43: "lakier odnowić ... jak z salonu")
     nowe = _lakiery(mod, [(CZE, (176, 28, 30), .28, 0.0)], tol=18.0)
+    # its rear bumper chrome as the front one (the 125p of 1975: Tripo painted the bar red), its rubber overriders kept
+    # (by the body's space: the bar's every face - its top, its face, its ends round the corners - in its 6.6 cm)
+    c = mod.cen; z0 = c[:, 2].min()
+    ys, xs, pts = mod.teksele((c[:, 2] < z0 + .16) & (c[:, 1] > .54) & (c[:, 1] < .63))
+    x, y, z = pts[:, 0], pts[:, 1], pts[:, 2]
+    bar = (y >= .552) & (y <= .618) & (z < z0 + .14) & ~((np.abs(x) > .44) & (np.abs(x) < .54) & (z < z0 + .06))
+    ys, xs = ys[bar], xs[bar]; mod.img[ys, xs] = np.array((198, 200, 204), np.float32) / 255
+    mp = mod.mapy["mr"]; hh, ww = mp.shape[:2]; yy = np.clip(ys * hh // mod.h, 0, hh - 1); xx = np.clip(xs * ww // mod.w, 0, ww - 1)
+    mp[yy, xx, 1] = 56; mp[yy, xx, 2] = 115
+    mod.log.append("zderzak tylny chrom: %d texels" % len(ys))
+    for w, b in (("T", (-0.78, -0.42, 0.10, 0.37)), ("T", (0.42, 0.78, 0.10, 0.37))): _pomaluj(mod, w, b, (22, 22, 22), glebia=.06)  # the mud flaps' rubber
     tablice(mod, "WAR 1252", (0.0, 0.40), (-0.05, 0.81), stare=[("T", (-0.29, 0.19, 0.73, 0.89))])
     mod.napis("F", "125p", 0.19, 0.70, .03, kolor=(206, 208, 210))
     return dict(farby=[CZE] + nowe, napisy=["125p", "WAR 1252"], opony=.66,
@@ -129,7 +207,12 @@ def polonez(mod):
     _dwa(mod, [("F", (-0.12, 0.03, 0.66, 0.78)), ("F", (0.10, 0.32, 0.66, 0.78)), ("T", (-0.13, -0.02, 0.93, 1.04)),
                ("T", (0.31, 0.55, 0.80, 0.87))], CZE)
     # the paint renewed: a fresh coat of its colour, glossy (owner 25.11 02:43: "lakier odnowić ... jak z salonu")
-    nowe = _lakiery(mod, [(CZE, (168, 18, 36), .26, .10)], tol=18.0)
+    # every red of its body the new coat with its neighbours' light (Tripo's rust streaks along the doors), its tail
+    # lamps kept (red too)
+    zost, _ = _zostaw(mod, [("T", (-0.88, -0.74, 0.70, 0.94), "lampa"), ("T", (0.70, 0.84, 0.70, 0.94), "lampa"),
+                            ("L", (2.05, 2.30, 0.70, 0.94), "lampa"), ("P", (-2.30, -2.05, 0.70, 0.94), "lampa")])
+    nowe = _lakiery(mod, [(CZE, (168, 18, 36), .26, .10, _maska(mod))], tol=18.0, plamy=.65, kontrast=.3, odcien=(330, 20),
+                    zostaw=zost, obszary=True)
     tablice(mod, "WAX 6230", (-0.02, 0.51), (-0.06, 0.83),
             stare=[("F", (-0.34, 0.29, 0.44, 0.585)), ("T", (-0.31, 0.19, 0.76, 0.895))])
     mod.napis("F", "CARO", 0.21, 0.715, .026, kolor=(206, 208, 210))
@@ -168,15 +251,26 @@ def polonez_milicja(mod):
         # (v 0.865 - 0.955 along the whole car) laid again over the letters that ran across it
         for box in ((a, b, 0.755, 0.866), (e0, e1, 0.48, 0.77)): mod.zmaz(w, box, farba=GRA, prog=.06, rozszerz=3, cos=.1, glebia=.15, plasko=True)
         mod.naklej(w, pas, (a + b) / 2, 0.910, b - a, 0.088, "pas")
+    # Tripo's garble on the bonnet (a square of scribble before the windscreen, a smear beside it)
+    for box in ((-0.08, 0.26, 1.36, 1.66), (0.27, 0.44, 1.34, 1.66)): mod.zmaz("G", box, farba=GRA, prog=.07, rozszerz=3, cos=.3, glebia=.10)
     # the paint renewed: a fresh coat of its colour, glossy (owner 25.11 02:43: "lakier odnowić ... jak z salonu")
     nowe = _lakiery(mod, [(GRA, (22, 60, 108), .30, 0.0), (BIA, (236, 238, 238), .30, 0.0)], tol=16.0)
+    # the stripe straight along the waist (measured on its side: it follows the line of the body)
+    dol = lambda u: np.interp(u, [-2.05, -1.55, -0.95, -0.75, 0.65, 1.25, 1.65, 2.10], [.82, .845, .865, .87, .87, .865, .855, .84])
+    gora = lambda u: np.interp(u, [-2.05, -1.55, -0.95, -0.75, 0.65, 1.05, 1.45, 1.85, 2.10], [.875, .92, .945, .95, .95, .94, .93, .91, .89])
+    _pas(mod, [("L", (-2.20, 2.20), dol, gora), ("P", (-2.20, 2.20), lambda u: dol(-u), lambda u: gora(-u))],
+         (236, 238, 238), (22, 60, 108), wokol=.05, okna=POLONEZ_MILICJA_OKNA,
+         litery=[("L", (-0.74, -0.14, 0.60, 0.866)), ("P", (0.08, 0.60, 0.60, 0.866))])
     tablice(mod, "MO 7846", (0.28, 0.41), (-0.335, 0.735, .40, .10),
             stare=[("F", (0.08, 0.48, 0.31, 0.52)), ("T", (-0.55, -0.12, 0.675, 0.80)), ("T", (-0.53, -0.16, 0.39, 0.585))])
     mod.napis("L", "MILICJA", -0.45, 0.70, .085); mod.napis("P", "MILICJA", 0.33, 0.70, .085)
     return dict(farby=[GRA, BIA] + nowe, farby_okien=[GRA] + nowe, napisy=["MILICJA", "MO 7846"], opony=.66,
-                okna=[("L", (-0.52, 0.10, 0.97, 1.49)), ("L", (0.12, 0.78, 0.97, 1.49)), ("L", (0.77, 1.40, 0.97, 1.47)),
-                      ("P", (-0.16, 0.52, 0.97, 1.49)), ("P", (-0.88, -0.20, 0.97, 1.49)), ("P", (-1.52, -0.88, 0.97, 1.47)),
-                      ("F", (-0.48, 0.93, 0.98, 1.49)), ("T", (-0.97, 0.30, 1.10, 1.44))])
+                okna=POLONEZ_MILICJA_OKNA)
+
+
+POLONEZ_MILICJA_OKNA = [("L", (-0.52, 0.10, 0.97, 1.49)), ("L", (0.12, 0.78, 0.97, 1.49)), ("L", (0.77, 1.40, 0.97, 1.47)),
+                        ("P", (-0.16, 0.52, 0.97, 1.49)), ("P", (-0.88, -0.20, 0.97, 1.49)), ("P", (-1.52, -0.88, 0.97, 1.47)),
+                        ("F", (-0.48, 0.93, 0.98, 1.49)), ("T", (-0.97, 0.30, 1.10, 1.44))]
 
 
 def nysa_milicja(mod):
@@ -185,15 +279,24 @@ def nysa_milicja(mod):
                ("T", (-0.47, -0.28, 0.65, 0.77))], GRA)
     # the paint renewed: a fresh coat of its colour, glossy (owner 25.11 02:43: "lakier odnowić ... jak z salonu")
     nowe = _lakiery(mod, [(GRA, (22, 60, 108), .30, 0.0), (BIA, (236, 238, 238), .30, 0.0)], tol=16.0)
+    # the stripe straight round the van (measured: 12 cm on the sides, 11 cm over the cab's front)
+    gora = lambda u: np.where(u < -1.30, 1.29, 1.31)
+    _pas(mod, [("L", (-2.20, 2.20), lambda u: 1.185 + 0 * u, gora), ("P", (-2.20, 2.20), lambda u: 1.185 + 0 * u, lambda u: gora(-u)),
+               ("F", (-1.05, 1.00), lambda u: 1.18 + 0 * u, lambda u: 1.29 + 0 * u)],
+         (236, 238, 238), (22, 60, 108), wokol=.05, okna=NYSA_MILICJA_OKNA,
+         litery=[("L", (-0.27, 0.76, 0.86, 1.19)), ("L", (-1.09, -0.76, 0.79, 1.17))])
     tablice(mod, "MO 4052", (-0.03, 0.49), (0.0, 0.62), stare=[("F", (-0.30, 0.24, 0.43, 0.55))])
     mod.napis("L", "MILICJA", 0.24, 1.04, .13); mod.napis("P", "MILICJA", -0.24, 1.04, .13)
     for w in ("F", "T"): mod.napis(w, "MILICJA", 0.0, 2.33, .05, kolor=GRA)
     return dict(okna_prostokatne=True, farby=[GRA, BIA] + nowe, farby_okien=[GRA] + nowe, napisy=["MILICJA", "MO 4052"], opony=.66,
-                okna=[("L", (-1.26, -0.58, 1.34, 1.90)), ("L", (-0.16, 0.60, 1.34, 1.90)), ("L", (0.64, 1.34, 1.34, 1.90)),
-                      ("L", (1.35, 1.97, 1.34, 1.90)),
-                      ("P", (-2.04, -1.43, 1.36, 1.90)), ("P", (-1.41, -0.71, 1.36, 1.90)), ("P", (-0.66, 0.07, 1.36, 1.90)),
-                      ("P", (0.54, 1.20, 1.36, 1.90)),
-                      ("F", (-0.95, 0.90, 1.32, 2.02)), ("T", (-0.78, 0.73, 1.36, 1.88))])
+                okna=NYSA_MILICJA_OKNA)
+
+
+NYSA_MILICJA_OKNA = [("L", (-1.26, -0.58, 1.34, 1.90)), ("L", (-0.16, 0.60, 1.34, 1.90)), ("L", (0.64, 1.34, 1.34, 1.90)),
+                     ("L", (1.35, 1.97, 1.34, 1.90)),
+                     ("P", (-2.04, -1.43, 1.36, 1.90)), ("P", (-1.41, -0.71, 1.36, 1.90)), ("P", (-0.66, 0.07, 1.36, 1.90)),
+                     ("P", (0.54, 1.20, 1.36, 1.90)),
+                     ("F", (-0.95, 0.90, 1.32, 2.02)), ("T", (-0.78, 0.73, 1.36, 1.88))]
 
 
 def fiat125p_tuning(mod):
@@ -213,8 +316,10 @@ def polonez_tuning(mod):
     s = _Skala(mod, 4.272 / 4.0)                                 # read off its first 4 m views
     LAK = probka(mod, "L", s.b((0.20, 0.60, 0.40, 0.65)))
     _dwa(s, [("T", (-0.24, 0.24, 0.585, 0.65))], LAK)
-    # its near-black paint (owner 25.11 02:18) a bright silver metallic, glossy
-    farby = _lakiery(mod, [(LAK, (176, 180, 186), .22, .12)], tol=30.0, plamy=.5, kontrast=.5)
+    s.zmaz("T", (-0.28, 0.28, 0.43, 0.585), farba=LAK, prog=.0, rozszerz=2, plasko=True)     # (the old plate's green recess: the paint)
+    # its near-black paint (owner 25.11 02:18: Tripo's colours bad) a deep graphite metallic, glossy - a light coat over
+    # Tripo's black took its lamps and trim with it (all of them as dark as the paint), a graphite keeps them apart
+    farby = _lakiery(mod, [(LAK, (50, 53, 58), .18, .15)], tol=14.0, kontrast=.5)
     tablice(s, "WAT 1987", (0.0, 0.30), (0.0, 0.375), stare=[("T", (-0.21, 0.21, 0.315, 0.435))])
     return dict(farby=farby + [LAK], napisy=["WAT 1987"], opony=.72,
                 otwory=s.okna([("L", (-0.62, 0.14, 0.76, 1.20)), ("L", (0.14, 0.90, 0.76, 1.20)),
@@ -299,7 +404,9 @@ def _w_oknie(mod, okna):
     out = np.zeros(len(mod.I), bool)
     for o in okna:
         if len(o) < 3: continue
-        w, box = o[0], o[1]; vis = mod.widoczne(w, (box[0] - .05, box[1] + .05, box[2] - .05, box[3] + .05), cos=.02, glebia=.12, margines=0)
+        w, box = o[0], o[1]; op = o[3] if len(o) > 3 else {}
+        vis = mod.widoczne(w, (box[0] - .05, box[1] + .05, box[2] - .05, box[3] + .05), cos=.02, glebia=.12, margines=0,
+                           do=op.get("do"), gesto=op.get("gesto", False))
         u, v = WIDOKI[w][1](mod.cen)
         for pol in o[2]:
             h = zaokraglij(pol); a = h; e = np.roll(h, -1, 0) - h
@@ -310,25 +417,139 @@ def _w_oknie(mod, okna):
     return out
 
 
+def _sciany(mod, okna=(), nad=None, pod=None):
+    """the body's faces: off the windows' glass and off the wheels, between the heights given"""
+    import numpy as np
+    f = ~_w_oknie(mod, okna); c = mod.cen
+    for k in getattr(mod, "kola", []):
+        # (the tyre itself: the arch's lip and the door's foot beside it are the body's)
+        r = np.hypot(c[:, 2] - k["z"], c[:, 1] - k["y"]); f &= ~((r < 1.02 * k["R"]) & (np.abs(c[:, 0]) > k["x_in"] - .03))
+    if nad is not None: f &= c[:, 1] >= nad
+    if pod is not None: f &= c[:, 1] < pod
+    return f
+
+
 def _maska(mod, okna=(), nad=None, pod=None):
     """the body's texels to paint: its faces off the windows' glass and off the wheels, between the heights given"""
     import numpy as np
     import cv2
-    f = ~_w_oknie(mod, okna); c = mod.cen
-    for k in getattr(mod, "kola", []):
-        r = np.hypot(c[:, 2] - k["z"], c[:, 1] - k["y"]); f &= ~((r < 1.06 * k["R"]) & (np.abs(c[:, 0]) > k["x_in"] - .03))
-    if nad is not None: f &= c[:, 1] >= nad
-    if pod is not None: f &= c[:, 1] < pod
-    ys, xs, _ = mod.teksele(f); m = np.zeros((mod.h, mod.w), np.uint8); m[ys, xs] = 1
+    ys, xs, _ = mod.teksele(_sciany(mod, okna, nad, pod)); m = np.zeros((mod.h, mod.w), np.uint8); m[ys, xs] = 1
     return (cv2.dilate(m, np.ones((3, 3), np.uint8)) > 0).astype(np.float32)
 
 
-def _lakiery(mod, pary, okna=(), **kw):
+def _zostaw(mod, pola):
+    """the trim and the lamps as Tripo made them - the paint never on them (a white coat took a chrome bumper, a grey
+    lamp, as its own): [(view, box, kind)] - kind "chrom" / "lampa" the box, "chrom_o" / "lampa_o" the ellipse in it (a
+    round lamp with its chrome ring); the texels of the faces seen there. Returns the mask and the chrome's texels"""
+    import numpy as np
+    from tekstura import WIDOKI
+    m = np.zeros((mod.h, mod.w), np.float32); chrom = np.zeros((mod.h, mod.w), bool)
+    for w, (u0, u1, v0, v1), rodzaj in pola:
+        ys, xs, pts = mod.teksele(mod.widoczne(w, (u0, u1, v0, v1), cos=.02, glebia=.08, margines=0)); u, v = WIDOKI[w][1](pts)
+        if rodzaj.endswith("_o"): k = ((u - (u0 + u1) / 2) / ((u1 - u0) / 2)) ** 2 + ((v - (v0 + v1) / 2) / ((v1 - v0) / 2)) ** 2 <= 1
+        else: k = (u >= u0) & (u <= u1) & (v >= v0) & (v <= v1)
+        # (chrome is grey: the coloured paint round it in the box, and its rust, are the body's)
+        if rodzaj.startswith("chrom"): h = _hsv(mod.img[ys, xs]); k &= ~((h[:, 1] > .30) & (h[:, 2] > .12))
+        m[ys[k], xs[k]] = 1
+        if rodzaj.startswith("chrom"): chrom[ys[k], xs[k]] = True
+    mod.log.append("zostawione (chrom, lampy): %d texels" % int(m.sum()))
+    return m, chrom
+
+
+def _pomaluj(mod, widok, box, kolor, szorstkosc=.75, metal=0.0, glebia=.30):
+    """a part made one colour (a rubber mud flap Tripo painted with the body, a bumper chrome): the faces seen in the
+    view's box"""
+    import numpy as np
+    from tekstura import WIDOKI
+    ys, xs, pts = mod.teksele(mod.widoczne(widok, box, cos=.02, glebia=glebia, margines=0)); u, v = WIDOKI[widok][1](pts)
+    k = (u >= box[0]) & (u <= box[1]) & (v >= box[2]) & (v <= box[3]); ys, xs = ys[k], xs[k]
+    mod.img[ys, xs] = np.array(kolor, np.float32) / 255
+    if "mr" in mod.mapy:
+        mp = mod.mapy["mr"]; hh, ww = mp.shape[:2]; yy = np.clip(ys * hh // mod.h, 0, hh - 1); xx = np.clip(xs * ww // mod.w, 0, ww - 1)
+        mp[yy, xx, 1] = int(szorstkosc * 255); mp[yy, xx, 2] = int(metal * 255)
+    if "normal" in mod.mapy:                                    # (Tripo's relief of what it painted there off)
+        mp = mod.mapy["normal"]; hh, ww = mp.shape[:2]
+        mp[np.clip(ys * hh // mod.h, 0, hh - 1), np.clip(xs * ww // mod.w, 0, ww - 1)] = (128, 128, 255)
+    mod.log.append("pomalowane %s %s: %d texels" % (widok, box, len(ys)))
+
+
+def _chrom(mod, chrom):
+    """the chrome kept made chrome: its light, neutral texels a touch brighter, glossy, half metal (the city's shade
+    turns a full metal black)"""
+    import numpy as np
+    c = mod.img; mx = c.max(2); mn = c.min(2)
+    jas = chrom & ((mx - mn) / np.maximum(mx, 1e-6) < .2) & (mx > .30)
+    mod.img[jas] = np.clip(c[jas] * 1.08 + .04, 0, 1)
+    if "mr" in mod.mapy:
+        mp = mod.mapy["mr"]; hh, ww = mp.shape[:2]; ys, xs = np.nonzero(jas)
+        yy = np.clip(ys * hh // mod.h, 0, hh - 1); xx = np.clip(xs * ww // mod.w, 0, ww - 1)
+        mp[yy, xx, 1] = 56; mp[yy, xx, 2] = 110
+    mod.log.append("chrom: %d texels" % int(jas.sum()))
+
+
+def _obszary(mod, klasy, nie=None, krok=.02, r=2.5):
+    """a two-tone body's regions as Tripo painted them, its ragged edges smoothed: each texel of the body classed by its
+    colour (klasy: functions of the colours (n, 3) giving bool), the votes summed on a 2 cm grid of the body's space and
+    smoothed over r cells (a Gaussian, 5 cm), each texel's region the class most voted round it (-1: no votes); nie: the texels
+    left out of the votes (the trim kept)"""
+    import numpy as np
+    from scipy import ndimage
+    ys, xs, pts = mod.teksele(_sciany(mod))
+    if nie is not None: k = nie[ys, xs] <= 0; ys, xs, pts = ys[k], xs[k], pts[k]
+    c = mod.img[ys, xs]; lo = pts.min(0) - 3 * krok; g = ((pts - lo) / krok).astype(int); ksz = tuple(g.max(0) + 4)
+    # (the votes smoothed by a Gaussian of r cells and read between the cells: the line between the colours a smooth
+    # curve, not the grid's 2 cm steps)
+    S = []
+    for kl in klasy:
+        a = np.zeros(ksz, np.float32); s_ = kl(c); np.add.at(a, tuple(g[s_].T), 1)
+        S.append(ndimage.gaussian_filter(a, r, mode="constant"))
+    q = ((pts - lo) / krok - .5).T
+    V = np.stack([ndimage.map_coordinates(x, q, order=1, mode="nearest") for x in S])
+    reg = np.full((mod.h, mod.w), -1, np.int8); ok = V.max(0) > 0
+    reg[ys[ok], xs[ok]] = V[:, ok].argmax(0)
+    mod.log.append("obszary: %s texels" % [int((reg == i).sum()) for i in range(len(klasy))])
+    return reg
+
+
+def _hsv(c):
+    import numpy as np, cv2
+    return cv2.cvtColor(np.clip(c, 0, 1).reshape(-1, 1, 3).astype(np.float32), cv2.COLOR_RGB2HSV).reshape(-1, 3)
+
+
+def _zmaz_gora(mod, z0, z1, farba, x=9.0):
+    """Tripo's garbled light letters on a bonnet or a roof (faces looking up, z0 < z < z1, |x| < x): the paint's colour"""
+    import numpy as np
+    c = mod.cen; f = (mod.n[:, 1] > .6) & (c[:, 2] > z0) & (c[:, 2] < z1) & (np.abs(c[:, 0]) < x)
+    ys, xs, _ = mod.teksele(f); a = mod.img[ys, xs]; mx = a.max(1); mn = a.min(1)
+    jas = (mx > .45) & ((mx - mn) / np.maximum(mx, 1e-6) < .35)
+    mod.img[ys[jas], xs[jas]] = np.array(farba, np.float32) / 255
+    # (and their relief: Tripo's normal map keeps the letters embossed - a ghost of them in the light)
+    if "normal" in mod.mapy and jas.any():
+        import cv2
+        mp = mod.mapy["normal"]; hh, ww = mp.shape[:2]; mk = np.zeros((hh, ww), np.uint8)
+        mk[np.clip(ys[jas] * hh // mod.h, 0, hh - 1), np.clip(xs[jas] * ww // mod.w, 0, ww - 1)] = 1
+        mk = cv2.dilate(mk, np.ones((5, 5), np.uint8)) > 0; mp[mk] = (128, 128, 255)
+    mod.log.append("zmaz z góry z %.2f-%.2f: %d texels" % (z0, z1, int(jas.sum())))
+
+
+def _lakiery(mod, pary, okna=(), zostaw=None, **kw):
     """each paint a clean new coat: [(sampled paint, its new colour, roughness, metal[, texel mask]), ...] - the dirt off
-    first; never on the glass Tripo painted (the measured windows) nor on the wheels"""
+    first; never on the glass Tripo painted (the measured windows) nor on the wheels, nor on the trim kept (zostaw: the
+    mask of _zostaw). With obszary=True each paint's mask is its region: every texel there of any of the paints takes it
+    (Tripo's ragged edge between two colours), the dirt cleaned in each region by its own paint"""
     import numpy as np
     baza = _maska(mod, okna)
-    mod.odnow([p[0] for p in pary], tol=.16, maska_ciala=baza > 0)
+    # its headlamps (measured for the night) never under the paint: a light coat took a lamp's grey glass as its own
+    lampy = REFLEKTORY.get(getattr(mod, "nazwa", ""), [])
+    if lampy:
+        zl, _ = _zostaw(mod, [("F", (l[0] - 1.05 * l[2], l[0] + 1.05 * l[2], l[1] - 1.05 * l[2], l[1] + 1.05 * l[2]), "lampa_o") if len(l) == 3 else
+                              ("F", (l[0] - .525 * l[2], l[0] + .525 * l[2], l[1] - .525 * l[3], l[1] + .525 * l[3]), "lampa") for l in lampy])
+        zostaw = zl if zostaw is None else np.maximum(zostaw, zl)
+    if zostaw is not None: baza = baza * (zostaw <= 0)
+    if kw.get("obszary"):
+        for p in pary: mod.odnow([p[0]], tol=.16, maska_ciala=(baza * (p[4] if len(p) > 4 else 1.0)) > 0)
+    else:
+        mod.odnow([p[0] for p in pary], tol=.16, maska_ciala=baza > 0)
     mod.lakiery([(p[0], p[1], p[2], p[3], baza * (p[4] if len(p) > 4 else 1.0)) for p in pary], **kw)
     _bez_metalu(mod, baza)
     return [p[1] for p in pary]
@@ -369,11 +590,20 @@ def trabant_tuning_braz(mod):
                ("T", (0.50, 0.62, 0.98, 1.18)), ("T", (0.30, 0.56, 0.47, 0.62))], LAK)
     farby = _lakiery(mod, [(LAK, (88, 52, 36), .22, .15, _maska(mod, pod=1.25)), (DACH, (24, 24, 26), .28, .05, _maska(mod, nad=1.25))],
                      tol=24.0)
-    tablice(mod, "KRA 7601", (0.0, 0.29), (-0.02, 0.515), stare=[("T", (-0.30, 0.27, 0.44, 0.60))])
+    # the front plate on the apron under the bumper (as on the 601), the rear one where Tripo's yellow one was
+    tablice(mod, "KRA 7601", (-0.01, 0.185), (-0.065, 0.515), stare=[("T", (-0.37, 0.29, 0.42, 0.61))])
+    # (Tripo's yellow plate sat in a recess: its sides and its back too, deeper and aslant)
+    mod.zmaz("T", (-0.40, 0.34, 0.40, 0.63), farba=LAK, prog=.0, rozszerz=3, cos=.0, glebia=.30, plasko=True)
     mod.napis("T", "TRABANT", 0.43, 0.575, .026, kolor=(206, 208, 210))
+    for b in ((-0.62, -0.50, 1.01, 1.21), (0.49, 0.61, 1.01, 1.21)): _pomaluj(mod, "T", b, (34, 35, 38), szorstkosc=.5, glebia=.05)   # the C-pillars' vents
     return dict(farby=farby, napisy=["TRABANT", "KRA 7601"],
+                # (its back window Tripo's crumpled sheet over a hole: all of it in the measured outline dark glass)
+                okna=[("T", (-0.60, 0.60, 0.88, 1.26), [[(-0.47, 1.215, .06), (0.46, 1.215, .06), (0.50, 0.915, .04), (-0.51, 0.915, .04)]],
+                       {"cale": True, "gesto": True})],
                 otwory=[("L", (-0.52, 0.42, 0.92, 1.26)), ("L", (0.38, 1.02, 0.92, 1.26)), ("P", (-0.25, 0.60, 0.92, 1.26)),
-                        ("P", (-1.02, -0.38, 0.92, 1.26)), ("F", (-0.60, 0.60, 0.88, 1.26)), ("T", (-0.60, 0.60, 0.92, 1.26))])
+                        ("P", (-1.02, -0.38, 0.92, 1.26)), ("F", (-0.60, 0.60, 0.88, 1.26)),
+                        # (its back window a show car's tinted glass: the cage and Tripo's grey garble behind it)
+                        ("T", (-0.60, 0.60, 0.92, 1.26), {"ciemna": True})])
 
 
 def trabant_tuning_czarny(mod):
@@ -386,9 +616,12 @@ def trabant_tuning_czarny(mod):
     farby = _lakiery(mod, [(LAK, (66, 40, 28), .20, .15)], okna=TRABANT_CZARNY_OKNA, tol=24.0)
     tablice(mod, "RZA 6012", (0.0, 0.354), (-0.005, 0.553), stare=[("F", (-0.28, 0.28, 0.29, 0.42)), ("T", (-0.28, 0.26, 0.48, 0.63))])
     mod.napis("T", "TRABANT", 0.40, 0.58, .024, kolor=(206, 208, 210))
-    return dict(farby=farby, napisy=["TRABANT", "RZA 6012"], okna=TRABANT_CZARNY_OKNA,
+    for b in ((-0.58, -0.46, 1.10, 1.32), (0.46, 0.59, 1.10, 1.32)): _pomaluj(mod, "T", b, (34, 35, 38), szorstkosc=.5, glebia=.05)   # the C-pillars' vents
+    return dict(farby=farby, napisy=["TRABANT", "RZA 6012"],
+                okna=TRABANT_CZARNY_OKNA + [("T", (-0.58, 0.58, 0.95, 1.36), [[(-0.45, 1.295, .06), (0.47, 1.295, .06), (0.51, 0.98, .04), (-0.49, 0.98, .04)]],
+                                             {"cale": True, "gesto": True})],
                 otwory=[("L", (-0.50, 0.24, 0.94, 1.37)), ("P", (-0.24, 0.50, 0.94, 1.37)),
-                        ("F", (-0.60, 0.60, 1.00, 1.40)), ("T", (-0.58, 0.58, 1.00, 1.40))])
+                        ("F", (-0.60, 0.60, 1.00, 1.40)), ("T", (-0.58, 0.58, 1.00, 1.40), {"ciemna": True})])
 
 
 TRABANT_CZARNY_OKNA = [
@@ -415,11 +648,14 @@ def fiat125p_granat(mod):
     time, the bonnet's garbled decal off, panes in its open windows"""
     LAK = probka(mod, "L", (-0.40, 0.20, 0.50, 0.75))
     _dwa(mod, [("F", (-0.28, 0.28, 0.66, 0.86)), ("G", (-0.50, 0.50, 1.20, 2.10))], LAK)
-    farby = _lakiery(mod, [(LAK, (28, 72, 128), .22, .15)], tol=22.0)
+    farby = _lakiery(mod, [(LAK, (28, 72, 128), .22, .15)], tol=22.0, plamy=.65, kontrast=.5)
     tablice(mod, "WRA 6125", (-0.005, 0.175), (-0.03, 0.58), stare=[("F", (-0.30, 0.30, 0.10, 0.25)), ("T", (-0.26, 0.20, 0.52, 0.66))])
     return dict(farby=farby, napisy=["WRA 6125"], opony=.70,
+                # its back window Tripo's white garble over a closed sheet: dark glass in its measured outline
+                okna=[("T", (-0.68, 0.68, 0.86, 1.27), [[(-0.56, 1.225, .06), (0.57, 1.225, .06), (0.60, 0.905, .04), (-0.60, 0.905, .04)]],
+                       {"cale": True, "gesto": True})],
                 otwory=[("L", (-0.82, 0.10, 0.82, 1.26)), ("L", (0.07, 1.02, 0.82, 1.26)), ("P", (-0.10, 0.82, 0.82, 1.26)),
-                        ("P", (-1.02, -0.07, 0.82, 1.26)), ("F", (-0.65, 0.65, 0.90, 1.30)), ("T", (-0.65, 0.65, 0.90, 1.30))])
+                        ("P", (-1.02, -0.07, 0.82, 1.26)), ("F", (-0.65, 0.65, 0.90, 1.30))])
 
 
 def polonez_caro_zielony(mod):
@@ -430,17 +666,20 @@ def polonez_caro_zielony(mod):
     farby = _lakiery(mod, [(ZIE, (16, 118, 58), .28, 0.0)], tol=22.0)
     tablice(mod, "CTR 4712", (-0.01, 0.495), (-0.005, 0.752), stare=[("F", (-0.30, 0.28, 0.43, 0.56)), ("T", (-0.24, 0.22, 0.69, 0.82))])
     return dict(farby=farby, napisy=["CTR 4712"], opony=.70,
+                # its tailgate's glass Tripo painted (white glare): tinted glass with its rubber, measured (raked and coarse:
+                # its faces' corners mark the glass' surface, the boot under it not seen through)
+                okna=[("T", (-0.66, 0.62, 1.04, 1.46), [[(-0.53, 1.425, .04), (0.51, 1.425, .04), (0.58, 1.085, .03), (-0.62, 1.085, .03)]],
+                       {"gesto": True})],
                 otwory=[("L", (-0.85, 0.12, 0.93, 1.42)), ("L", (0.14, 0.84, 0.93, 1.42)), ("L", (0.82, 1.50, 0.93, 1.42)),
                         ("P", (-0.16, 0.80, 0.93, 1.42)), ("P", (-0.86, -0.18, 0.93, 1.42)), ("P", (-1.55, -0.84, 0.93, 1.42)),
-                        ("F", (-0.62, 0.62, 1.00, 1.45)), ("T", (-0.58, 0.58, 1.00, 1.45))])
+                        ("F", (-0.62, 0.62, 1.00, 1.45))])
 
 
 def _pokazowa(mod, tekst, przod, tyl, stare=()):
     """a show car's plate (its name on the period black plate, as the owner's pictures have it): the old one off"""
-    import tekstura as T
     for w, b in stare: mod.zmaz(w, b, prog=.0, rozszerz=2)
     for w, t in (("F", przod), ("T", tyl)):
-        if t: mod.naklej(w, T.tablica_rgba(tekst, .52, .12), t[0], t[1], .52, .12, "tablica " + tekst)
+        if t: mod.tablica(w, tekst, t[0], t[1], .52, .12)
 
 
 def maluch_tuning_czerwony(mod):
@@ -463,7 +702,7 @@ def maluch_tuning_kremowy(mod):
     farby = _lakiery(mod, [(KRE, (226, 212, 188), .22, 0.0)], tol=20.0)
     tablice(mod, "WEA 1266", (-0.05, 0.32), (-0.05, 0.485), stare=[("F", (-0.34, 0.25, 0.26, 0.38)), ("T", (-0.27, 0.16, 0.43, 0.54))])
     return dict(farby=farby, napisy=["WEA 1266"],
-                okna=[("F", (-0.60, 0.60, 0.85, 1.25))],
+                okna=[("F", (-0.62, 0.62, 0.77, 1.22), [[(-0.51, 1.175, .05), (0.515, 1.175, .05), (0.59, 0.80, .04), (-0.59, 0.80, .04)]])],
                 otwory=[("L", (-0.55, 0.38, 0.74, 1.20)), ("L", (0.36, 1.02, 0.74, 1.20)), ("P", (-0.43, 0.50, 0.74, 1.20)),
                         ("P", (-1.00, -0.37, 0.74, 1.20)), ("T", (-0.55, 0.55, 0.85, 1.22))])
 
@@ -476,7 +715,9 @@ def maluch_tuning_szary(mod):
     farby = _lakiery(mod, [(SZA, (78, 94, 112), .22, .15)], tol=22.0)
     tablice(mod, "WES 1263", (-0.05, 0.33), (-0.04, 0.51), stare=[("F", (-0.30, 0.20, 0.27, 0.39)), ("T", (-0.25, 0.17, 0.46, 0.56))])
     return dict(farby=farby, napisy=["WES 1263"],
-                okna=[("F", (-0.60, 0.60, 0.85, 1.28)), ("T", (-0.60, 0.60, 0.85, 1.28))],
+                # (the windscreen and the back window measured: Tripo's garble in them off)
+                okna=[("F", (-0.62, 0.62, 0.80, 1.28), [[(-0.50, 1.255, .05), (0.50, 1.255, .05), (0.595, 0.83, .04), (-0.59, 0.83, .04)]]),
+                      ("T", (-0.62, 0.62, 0.84, 1.27), [[(-0.505, 1.24, .05), (0.505, 1.24, .05), (0.57, 0.865, .04), (-0.58, 0.865, .04)]])],
                 otwory=[("L", (-0.72, 0.36, 0.76, 1.25)), ("L", (0.40, 1.00, 0.76, 1.25)), ("P", (-0.46, 0.64, 0.76, 1.25)),
                         ("P", (-1.10, -0.48, 0.76, 1.25))])
 
@@ -487,7 +728,7 @@ def _lustro(okna):
     for o in okna:
         if o[0] != "L": continue
         b = o[1]; pol = [[(-p[0], p[1]) + tuple(p[2:]) for p in reversed(q)] for q in o[2]]
-        out.append(("P", (-b[1], -b[0], b[2], b[3]), pol))
+        out.append(("P", (-b[1], -b[0], b[2], b[3]), pol) + tuple(o[3:]))
     return okna + out
 
 
@@ -495,7 +736,7 @@ def fiat125p_tuning_granat(mod):
     """the owner's navy wide 125p with the wing (his picture "125p TUNED"): a deep navy metallic, its show plates made
     clean ("125p"), the garbled marks on its rear wings off, the glass tinted with its chrome frames kept"""
     GRA = probka(mod, "L", (-0.40, 0.20, 0.50, 0.75))
-    _dwa(mod, [("L", (1.55, 1.95, 0.60, 0.76)), ("P", (-1.95, -1.55, 0.60, 0.76))], GRA)
+    _dwa(mod, [("L", (1.50, 1.95, 0.58, 0.80)), ("P", (-1.95, -1.50, 0.58, 0.80))], GRA)
     farby = _lakiery(mod, [(GRA, (22, 38, 92), .18, .15)], okna=FIAT125P_TUNING_OKNA, tol=22.0)
     _pokazowa(mod, "125p", (-0.01, 0.35), (-0.02, 0.645), stare=[("F", (-0.28, 0.26, 0.28, 0.42)), ("T", (-0.26, 0.22, 0.58, 0.71))])
     return dict(farby=farby, napisy=["125p"], okna=FIAT125P_TUNING_OKNA)
@@ -507,7 +748,8 @@ FIAT125P_TUNING_OKNA = _lustro([
     ("L", (0.09, 0.66, 0.93, 1.31), [[(0.12, 1.285, .02), (0.625, 1.285, .01), (0.625, 0.955, .01), (0.12, 0.955, .02)]]),
     ("L", (0.65, 0.95, 0.93, 1.31), [[(0.675, 1.285, .01), (0.77, 1.285, .03), (0.905, 0.955, .02), (0.675, 0.955, .01)]]),
     ("F", (-0.72, 0.72, 0.92, 1.34), [[(-0.58, 1.315, .06), (0.58, 1.315, .06), (0.68, 0.955, .05), (-0.68, 0.955, .05)]]),
-    ("T", (-0.68, 0.66, 0.92, 1.34), [[(-0.56, 1.31, .06), (0.55, 1.31, .06), (0.62, 0.955, .05), (-0.63, 0.955, .05)]]),
+    # (the wing on its struts stands 70 cm behind the back window: left out of the rear view)
+    ("T", (-0.68, 0.66, 0.92, 1.34), [[(-0.56, 1.31, .06), (0.55, 1.31, .06), (0.62, 0.955, .05), (-0.63, 0.955, .05)]], {"do": 1.5}),
 ])
 
 
@@ -527,7 +769,8 @@ POLONEZ_TUNING_OKNA = _lustro([
     ("L", (0.15, 0.95, 0.93, 1.30), [[(0.18, 1.265, .02), (0.74, 1.265, .02), (0.915, 0.955, .01), (0.18, 0.955, .01)]]),
     ("L", (0.86, 1.40, 0.93, 1.28), [[(0.895, 1.245, .02), (0.995, 1.245, .02), (1.36, 0.968, .03), (1.05, 0.968, .02)]]),
     ("F", (-0.72, 0.72, 0.90, 1.34), [[(-0.60, 1.31, .05), (0.60, 1.31, .05), (0.68, 0.93, .04), (-0.68, 0.93, .04)]]),
-    ("T", (-0.68, 0.68, 0.90, 1.32), [[(-0.60, 1.29, .05), (0.60, 1.29, .05), (0.64, 0.93, .04), (-0.64, 0.93, .04)]]),
+    # (its wing stands 80 cm behind the raked hatch glass: left out of the rear view)
+    ("T", (-0.68, 0.68, 0.90, 1.32), [[(-0.60, 1.29, .05), (0.60, 1.29, .05), (0.64, 0.93, .04), (-0.64, 0.93, .04)]], {"do": 1.92, "gesto": True}),
 ])
 
 
@@ -541,8 +784,11 @@ def warszawa_m20(mod):
                      kontrast=.35)
     tablice(mod, "WAR 2045", (0.0, 0.385), (-0.05, 0.97), stare=[("F", (-0.30, 0.30, 0.32, 0.45)), ("T", (-0.34, 0.24, 0.90, 1.05))])
     return dict(farby=farby + [PRZ, TYL], napisy=["WAR 2045"], opony=.66,
+                # its small back window Tripo painted (a light glare): tinted glass in its measured outline
+                okna=[("T", (-0.52, 0.50, 1.34, 1.60), [[(-0.41, 1.548, .07), (0.39, 1.548, .07), (0.435, 1.395, .05), (-0.455, 1.395, .05)]],
+                       {"gesto": True})],
                 otwory=[("L", (-0.62, 0.12, 1.14, 1.58)), ("L", (0.22, 0.98, 1.14, 1.58)), ("P", (-0.12, 0.62, 1.14, 1.58)),
-                        ("P", (-0.98, -0.22, 1.14, 1.58)), ("F", (-0.66, 0.66, 1.26, 1.68)), ("T", (-0.56, 0.56, 1.30, 1.62))])
+                        ("P", (-0.98, -0.22, 1.14, 1.58)), ("F", (-0.66, 0.66, 1.26, 1.68))])
 
 
 def zuk_bus(mod):
@@ -557,11 +803,24 @@ def zuk_bus(mod):
     ys, xs, _ = mod.teksele(bok); pm = np.zeros((mod.h, mod.w), np.float32); pm[ys, xs] = 1
     farby = _lakiery(mod, [(BEZ, (210, 184, 140), .34, 0.0), (SZA, (210, 184, 140), .34, 0.0), (PAS, (210, 184, 140), .34, 0.0, pm)],
                      tol=22.0, kontrast=.6)
-    pas = np.zeros((8, 8, 4), np.float32); pas[..., :3] = np.array((28, 38, 78), np.float32) / 255; pas[..., 3] = 1
+    # the three bands laid by the body's own space (its sides |x| > 0.8 from the sliding door back, its back z < -2.1):
+    # their edges straight across the swage lines (a picture laid in a view frayed where the panel turned from it)
+    ys, xs, pts = mod.teksele(((np.abs(c[:, 0]) > .78) & (c[:, 2] > -2.24) & (c[:, 2] < .60)) | (c[:, 2] < -2.08))
+    x, y, z = pts[:, 0], pts[:, 1], pts[:, 2]; bok = np.abs(x) > .78
+    pas = np.zeros(len(ys), bool)
     for v in (1.095, 0.895, 0.71):
-        mod.naklej("L", pas, 0.80, v, 2.80, .06, "pas"); mod.naklej("P", pas, -0.80, v, 2.80, .06, "pas")
-        for u in ((0.0, 1.80),) if v > .8 else ((-0.62, .56), (0.62, .56)):          # (the plate's place left clear)
-            mod.naklej("T", pas, u[0], v, u[1], .06, "pas")
+        w_pasie = (y >= v - .03) & (y <= v + .03)
+        tyl = (z < -2.08) & ((np.abs(x) < .90) if v > .8 else ((np.abs(x) > .34) & (np.abs(x) < .90)))   # (the plate's place left clear)
+        pas |= w_pasie & ((bok & (z > -2.24) & (z < .60)) | tyl)
+    mod.img[ys[pas], xs[pas]] = np.array((28, 38, 78), np.float32) / 255
+    # its front: the grille panel and the bumper Tripo rusted, painted the period's black-grey (the headlamps kept)
+    zost, _ = _zostaw(mod, [("F", (-0.64, -0.45, 0.81, 1.005), "lampa_o"), ("F", (0.44, 0.635, 0.81, 1.005), "lampa_o")])
+    zy, zx = np.nonzero(zost > 0); kopia = mod.img[zy, zx].copy()
+    km = {k: (mp, mp[np.clip(zy * mp.shape[0] // mod.h, 0, mp.shape[0] - 1), np.clip(zx * mp.shape[1] // mod.w, 0, mp.shape[1] - 1)].copy()) for k, mp in mod.mapy.items()}
+    _pomaluj(mod, "F", (-0.67, 0.67, 0.765, 1.115), (36, 37, 40), szorstkosc=.45, glebia=.06)
+    _pomaluj(mod, "F", (-0.88, 0.87, 0.495, 0.63), (42, 43, 46), szorstkosc=.50, glebia=.06)
+    mod.img[zy, zx] = kopia
+    for k, (mp, v0) in km.items(): mp[np.clip(zy * mp.shape[0] // mod.h, 0, mp.shape[0] - 1), np.clip(zx * mp.shape[1] // mod.w, 0, mp.shape[1] - 1)] = v0
     tablice(mod, "LUB 4507", (-0.03, 0.465), (0.0, 0.67), stare=[("F", (-0.32, 0.26, 0.40, 0.53))])
     return dict(farby=farby + [BEZ, SZA, PAS], napisy=["LUB 4507"], opony=.66,
                 otwory=[("L", (-1.48, -1.00, 1.45, 2.05)), ("L", (-1.05, -0.28, 1.45, 2.05)), ("L", (-0.34, 0.42, 1.45, 2.05)),

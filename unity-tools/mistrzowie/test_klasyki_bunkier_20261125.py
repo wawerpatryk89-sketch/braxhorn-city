@@ -93,6 +93,29 @@ class Narzedzie(unittest.TestCase):
         src = (KL / "przepisy.py").read_text()
         self.assertNotRegex(src, r"\.png|\.jpg|logo\(")
 
+    def test_tablice_osobne_chrom_i_szyby(self):
+        """owner 25.11 08:17 ("ty się lepiej przyjrzyj jak to wygląda"): a plate its own flat part screwed on (a plate
+        painted on a curved boot bent with it), every classic's plates in one atlas; a white coat never on the chrome and
+        the lamps (the Syrena's bumpers, grille, rings); a two-tone body's line smoothed; a wing kept out of the back
+        window's view; a raked coarse glass seen whole; a back window given dark glass"""
+        import tekstura as T
+        pk = (KL / "przygotuj_klasyki.py").read_text(); src = (KL / "przepisy.py").read_text(); tx = (KL / "tekstura.py").read_text()
+        self.assertIn("def osadz_tablice", pk); self.assertIn("def atlas_tablic", pk); self.assertIn('"tablice": [{"tekst"', pk)
+        self.assertIn("self.tablice3d.append", tx)
+        self.assertLessEqual(20 * self.PK.TAB_H, 2048); self.assertLessEqual(self.PK.TAB_KOL * self.PK.TAB_W, 2048)   # 120 slots in 2048 px
+        self.assertIn("def _zostaw", src); self.assertIn("def _obszary", src); self.assertIn("obszary=True", src)
+        self.assertTrue(any(k.startswith("chrom") for _, _, k in self.P.SYRENA_ZOSTAW))
+        self.assertTrue(any(k.startswith("lampa") for _, _, k in self.P.SYRENA_ZOSTAW))
+        self.assertEqual(sum(1 for w, _, _ in self.P.SYRENA_ZOSTAW if w == "P"), sum(1 for w, _, _ in self.P.SYRENA_ZOSTAW if w == "L"))
+        self.assertIn("do=None, gesto=False", tx)
+        t125 = [o for o in self.P.FIAT125P_TUNING_OKNA if o[0] == "T"][0]; self.assertIn("do", t125[3])
+        self.assertIn('"szyby_ciemne"', pk); self.assertIn('op.pop("ciemna", False)', pk)
+        # the militia's white stripes laid straight; Tripo's crumpled sheet in a back window all dark glass; the inside
+        # behind an opening restored only where the opening is (never the roof, never the far side's skin)
+        self.assertEqual(len(re.findall(r"\n    _pas\(mod, ", src)), 3)
+        self.assertIn('op.get("cale", False)', pk); self.assertIn("gl &= ~wierzch", pk); self.assertIn("przeciw = ", pk)
+        self.assertIn("resztki starych opon", pk)
+
     def test_szyby_i_kola(self):
         src = (KL / "przygotuj_klasyki.py").read_text()
         self.assertIn("def szyby_malowane", src); self.assertIn("def szyba_otwarta", src)
@@ -123,6 +146,8 @@ class Paczka(unittest.TestCase):
         self.assertEqual(len([f for f in m["files"] if f.startswith("oryginal/")]), 32 + 4)
         for zn in ("fso", "trabant_s", "polski_fiat", "fso_polonez"):
             self.assertIn("pojazdy_klasyki_01/znaczek_%s.glb" % zn, lib)
+        for t in ("tablice_kolor.jpg", "tablice_mr__lin.jpg", "tablice_normal__lin.jpg"):     # the plates' one atlas
+            self.assertIn("pojazdy_klasyki_01/_tekstury/" + t, lib)
         for model in ("trabant", "warszawa_m20", "maluch_tuning_czerwony"):
             self.assertIn("pojazdy_klasyki_01/_tekstury/klasyk_%s_swiatla.jpg" % model, lib)
         for model in ("maluch", "syrena", "fiat125p", "polonez", "star_zielony", "junak"):
@@ -150,6 +175,9 @@ class Unity(unittest.TestCase):
         self.assertIn('mat.SetTexture("_EmissionMap", swiatla)', k); self.assertIn("AddComponent<BraxChampionsSwiatlaKlasykow>()", k)
         self.assertIn("Znaczki(nadwozie, m);", k)
         self.assertIn('c.material == "kola"', k); self.assertIn("public Mapy kola;", k)
+        # the plates their own flat parts (one atlas, one material), a back window's new dark pane
+        self.assertIn("Tablice(nadwozie, m);", k); self.assertIn("public TabliceMapy tablice;", k); self.assertIn("public Tablica[] tablice;", k)
+        self.assertIn("m.szyby.ciemne", k); self.assertIn("siatki[nazwa] = mesh", k)
         sw = (ROOT / "unity-city/Assets/Mistrzowie/BraxChampionsSwiatlaKlasykow.cs").read_text()
         self.assertIn("public static bool Noc", sw); self.assertIn("MaterialPropertyBlock", sw)
         self.assertTrue((ROOT / "unity-city/Assets/Mistrzowie/BraxChampionsSwiatlaKlasykow.cs.meta").exists())

@@ -26,15 +26,18 @@ public static class BraxChampionsKlasyki
     [Serializable] sealed class Lod { public string plik; public int trojkaty; }
     [Serializable] sealed class Czesc { public string nazwa, plik, material; public float[] pivot; public int trojkaty; public float promien, szerokosc; public Lod[] lody; }
     [Serializable] sealed class Mapy { public string kolor, normal, mr; }
-    [Serializable] sealed class Szyby { public string plik, rodzaj, otwarte; }
+    [Serializable] sealed class Szyby { public string plik, rodzaj, otwarte, ciemne; }
+    [Serializable] sealed class Tablica { public string tekst, rodzaj; public float w, h; public float[] pos, rot, uv; }
+    [Serializable] sealed class TabliceMapy { public string kolor, normal, mr; public int ile; public float[] czern; }
     [Serializable] sealed class Znaczek { public string znaczek, plik; public float[] pos, rot; }
     [Serializable] sealed class ZnaczekWzor { public string znaczek, plik, kolor, normal, mr; public float szerokosc; public int trojkaty; }
     [Serializable] sealed class Model
     {
         public string model, nazwa, typ, wzor, kolor, normal, mr, swiatla; public Czesc[] czesci; public Szyby szyby; public Znaczek[] znaczki;
+        public Tablica[] tablice;
         public float dlugosc, szerokosc, wysokosc, rozstaw_osi;
     }
-    [Serializable] sealed class Katalog { public string zrodlo, osie; public Model[] modele; public ZnaczekWzor[] znaczki; public Mapy kola; }
+    [Serializable] sealed class Katalog { public string zrodlo, osie; public Model[] modele; public ZnaczekWzor[] znaczki; public Mapy kola; public TabliceMapy tablice; }
 
     public static bool Jest => BraxMiastoAssety.Jest(Paczka);
     public static int Postawione, Jezdne, Trojkaty;
@@ -137,6 +140,72 @@ public static class BraxChampionsKlasyki
         return kolaMat = Zapisz(mat, "klasyki_kola");
     }
 
+    // the plates (owner 25.11 03:02: every old car its black plate with white letters): each a flat plate of its own, 5 mm
+    // thick, screwed on 4 mm off the body (a plate painted on a curved boot bent with it) - all the classics' plates in
+    // one atlas, one material
+    static Material tabliceMat;
+    static Material TabliceMat()
+    {
+        if (tabliceMat) return tabliceMat;
+        var k = Kat()?.tablice; if (k == null || string.IsNullOrEmpty(k.kolor)) return null;
+        var kolor = Tekstura(k.kolor); var nrm = Tekstura(k.normal); var arm = Tekstura(k.mr);
+        if (!kolor || !nrm || !arm) throw new InvalidOperationException("the plates' maps missing");
+        var mat = new Material(Shader.Find(BraxCityMaterials.ShaderName)) { name = "Mistrzowie klasyki tablice", enableInstancing = true };
+        mat.SetTexture("_MainTex", kolor); mat.SetTexture("_BumpMap", nrm); mat.SetTexture("_ARM", arm);
+        mat.SetFloat("_NormalEncoding", 0f); mat.SetFloat("_Roughness", 1f); mat.SetFloat("_Metallic", 1f); mat.SetFloat("_UseARMForAO", 0f);
+        mat.SetFloat("_VertexTint", 0f); mat.SetFloat("_Cull", 0f); mat.SetColor("_Color", Color.white);
+        mat.SetVector("_SunDirection", BraxCityMaterials.SunDirection);
+        return tabliceMat = Zapisz(mat, "klasyki_tablice");
+    }
+    // a plate's mesh in the vehicle's Unity frame (glTFast negates x: the catalogue's places are converted already, the
+    // plate's own left-right too): its face toward local +z with its picture's slot of the atlas, its edges back to the
+    // body in the atlas' black
+    static Mesh TablicaSiatka(string nazwa, Tablica t)
+    {
+        if (siatki.TryGetValue(nazwa, out var gotowa) && gotowa) return gotowa;     // one asset however many stand
+        string path = Folder + "/" + nazwa + ".asset";
+        float hw = t.w * .5f, hh = t.h * .5f, g = .005f;
+        float u0 = t.uv[0], v0 = t.uv[1], u1 = t.uv[2], v1 = t.uv[3];
+        var cz = Kat().tablice.czern; var c = cz != null && cz.Length >= 2 ? new Vector2(cz[0], cz[1]) : new Vector2(u0, v0);
+        var v = new List<Vector3> { new Vector3(hw, -hh, g), new Vector3(-hw, -hh, g), new Vector3(-hw, hh, g), new Vector3(hw, hh, g) };
+        var n = new List<Vector3> { Vector3.forward, Vector3.forward, Vector3.forward, Vector3.forward };
+        var uv = new List<Vector2> { new Vector2(u0, v0), new Vector2(u1, v0), new Vector2(u1, v1), new Vector2(u0, v1) };
+        var tri = new List<int> { 0, 3, 2, 0, 2, 1 };
+        Vector3[] rog = { new Vector3(hw, -hh, 0), new Vector3(-hw, -hh, 0), new Vector3(-hw, hh, 0), new Vector3(hw, hh, 0) };
+        Vector3[] bok = { Vector3.down, Vector3.left, Vector3.up, Vector3.right };
+        for (int i = 0; i < 4; i++)
+        {
+            var a = rog[i]; var b = rog[(i + 1) % 4]; int k0 = v.Count;
+            v.AddRange(new[] { a, b, b + Vector3.forward * g, a + Vector3.forward * g });
+            for (int j = 0; j < 4; j++) { n.Add(bok[i]); uv.Add(c); }
+            tri.AddRange(new[] { k0, k0 + 1, k0 + 2, k0, k0 + 2, k0 + 3 });
+        }
+        var mesh = new Mesh { name = nazwa }; mesh.SetVertices(v); mesh.SetNormals(n); mesh.SetUVs(0, uv); mesh.SetTriangles(tri, 0);
+        mesh.RecalculateTangents(); mesh.RecalculateBounds();
+        Directory.CreateDirectory(Folder);
+        if (AssetDatabase.LoadAssetAtPath<Mesh>(path)) AssetDatabase.DeleteAsset(path);
+        AssetDatabase.CreateAsset(mesh, path);
+        return siatki[nazwa] = mesh;
+    }
+    static void Tablice(Transform nadwozie, Model m)
+    {
+        if (m.tablice == null || m.tablice.Length == 0) return;
+        var mat = TabliceMat(); if (!mat) return;
+        for (int i = 0; i < m.tablice.Length; i++)
+        {
+            var t = m.tablice[i];
+            if (t.pos == null || t.rot == null || t.uv == null || t.pos.Length < 3 || t.rot.Length < 4 || t.uv.Length < 4) continue;
+            var o = new GameObject("tablica " + t.tekst); o.transform.SetParent(nadwozie, false);
+            o.transform.localPosition = V(t.pos) * K; o.transform.localRotation = new Quaternion(t.rot[0], t.rot[1], t.rot[2], t.rot[3]);
+            o.transform.localScale = Vector3.one * K;
+            o.AddComponent<MeshFilter>().sharedMesh = TablicaSiatka("tablica_" + m.model + "_" + i, t);
+            var r = o.AddComponent<MeshRenderer>(); r.sharedMaterial = mat; r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = true;
+            // drawn while the car is a few percent of the screen (its letters unreadable further)
+            var lg = o.AddComponent<LODGroup>(); lg.SetLODs(new[] { new LOD(.02f, new Renderer[] { r }) }); lg.RecalculateBounds();
+            Trojkaty += 10;
+        }
+    }
+
     static Material szybaCiemna, szybaJasna;
     // the painted windows (no inside behind them): dark tinted glass, glossy, opaque; the new panes in open windows: the
     // period's faintly green glass, see-through
@@ -231,8 +300,10 @@ public static class BraxChampionsKlasyki
         var szklo = new List<Renderer>();
         if (m.szyby != null && !string.IsNullOrEmpty(m.szyby.plik)) szklo.Add(Szklo(nadwozie, m.szyby.plik, SzybaCiemna, "szyby (przyciemniane)"));
         if (m.szyby != null && !string.IsNullOrEmpty(m.szyby.otwarte)) szklo.Add(Szklo(nadwozie, m.szyby.otwarte, SzybaJasna, "szyby (nowe, w otwartych oknach)"));
+        if (m.szyby != null && !string.IsNullOrEmpty(m.szyby.ciemne)) szklo.Add(Szklo(nadwozie, m.szyby.ciemne, SzybaCiemna, "szyby (nowe, przyciemniane)"));
         tri += Czesci(nadwozie, korpus, mat, korpus.plik, szklo);
         Znaczki(nadwozie, m);
+        Tablice(nadwozie, m);
         if (mat.GetTexture("_EmissionMap"))
         {
             var sw = root.AddComponent<BraxChampionsSwiatlaKlasykow>();
