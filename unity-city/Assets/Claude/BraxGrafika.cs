@@ -96,9 +96,10 @@ public sealed class BraxGrafika : MonoBehaviour
         switch (Aktualny)
         {
             case Tryb.Niska:
-                // ZASADA 1 (9.11): cienie ze słońca ZAWSZE — Niski: twarde, 1 kaskada, 40 m
-                QualitySettings.shadows = ShadowQuality.HardOnly; QualitySettings.shadowResolution = ShadowResolution.Medium;
-                QualitySettings.shadowDistance = 40f; QualitySettings.shadowCascades = 1; QualitySettings.shadowProjection = ShadowProjection.StableFit;
+                // 25.11 właściciel (odpowiedź na pytanie o nr 5 listy uwag): „Niska bez cieni” — zmienia ZASADĘ 1 z 9.11 (cienie
+                // zawsze, Niski: twarde 40 m) tylko dla Niskiej; Średnia i Wysoka bez zmian
+                QualitySettings.shadows = ShadowQuality.Disable; QualitySettings.shadowResolution = ShadowResolution.Low;
+                QualitySettings.shadowDistance = 0f; QualitySettings.shadowCascades = 1; QualitySettings.shadowProjection = ShadowProjection.StableFit;
                 Msaa(0); QualitySettings.lodBias = .7f; Mip(1);
                 QualitySettings.pixelLightCount = 3; QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
                 QualitySettings.realtimeReflectionProbes = false; QualitySettings.softParticles = false; QualitySettings.skinWeights = SkinWeights.TwoBones;

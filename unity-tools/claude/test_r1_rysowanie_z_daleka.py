@@ -38,10 +38,11 @@ class R1RysowanieZDaleka(unittest.TestCase):
     def test_shadows_follow_rule_one_in_every_mode(self):
         n, s = tryb("Niska", "case Tryb.Srednia"), tryb("Srednia", "default:")
         w = tryb("Wysoka", None)
-        self.assertIn("ShadowQuality.HardOnly", n); self.assertIn("shadowDistance = 40f", n); self.assertIn("shadowCascades = 1", n)
+        # 25.11 właściciel: „Niska bez cieni” (lag na telefonie) — zmiana ZASADY 1 tylko dla Niskiej
+        self.assertIn("ShadowQuality.Disable", n); self.assertIn("shadowDistance = 0f", n)
         self.assertIn("ShadowQuality.All", s); self.assertIn("shadowDistance = 80f", s); self.assertIn("shadowCascades = 2", s)
         self.assertEqual(w.count("shadowDistance = 150f"), 2); self.assertEqual(w.count("shadowCascades = 4"), 2)
-        self.assertNotIn("ShadowQuality.Disable", GRAF)
+        self.assertEqual(GRAF.count("ShadowQuality.Disable"), 1, "bez cieni tylko Niska")
 
     def test_lod_bias_raised(self):
         self.assertIn("lodBias = .7f", tryb("Niska", "case Tryb.Srednia"))
