@@ -140,3 +140,19 @@ def test_zaplecze_marketu_rampy():
     assert "def market_bok_zach(" in o and "market_bok_zach(S, nazwa, P, H, att)" in o        # podcień boczny, paczkomat, schody
     op = json.loads((ROOT / "unity-tools/claude/osiedle_bdg/gen/osiedle_opis.json").read_text(encoding="utf-8"))["inne"]
     assert any("zaplecze marketu" in v.get("zrodlo", "") for v in op.values())
+
+
+def test_pawilon_38b():
+    """25.11 17:32 (IMG_2152/2153): pawilon 38B wg zdjęć — podcień na słupach, galeria z balustradą, żebra, adres na attyce,
+    szyldy bez logo sieci (sklep spożywczy, sushi)."""
+    import json
+    sys.path.insert(0, str(ROOT / "unity-tools/claude/osiedle_bdg"))
+    import pawilon38b
+    S = pawilon38b.zbuduj(28.5, 13.0)
+    mats = {m for (_, m) in S.cz}
+    for m in ("p38_slup", "balustrada_panel", "p38_zebro", "napis_38b", "szyld_sklep", "szyld_sushi"):
+        assert m in mats, m
+    op = json.loads((ROOT / "unity-tools/claude/osiedle_bdg/gen/osiedle_opis.json").read_text(encoding="utf-8"))["inne"]
+    assert any(v.get("nazwa") == "M. Skłodowskiej-Curie 38B" for v in op.values())
+    for f in ("napis_38b.png", "szyld_sklep.png", "szyld_sushi.png", "szyld_bar.png", "szyld_kebab.png", "szyld_kawa.png"):
+        assert (ROOT / "unity-city/Assets/Source/Claude/Bydgoszcz" / f).exists(), f

@@ -158,13 +158,27 @@ def szyldy(out):
                               # 25.11 (Street View przed marketem, IMG_2145–2149): napisy ogólne, bez nazw lokali
                               ("szyld_bar.png", [("BAR", .62), ("ZAPIEKANKI · NAPOJE", .2)], (176, 176, 172, 255)),
                               ("szyld_kebab.png", [("KEBAB", .7)], (236, 236, 232, 255)),
-                              ("szyld_kawa.png", [("KAWA · LODY", .5), ("CIASTA · DESERY", .2)], (236, 236, 232, 255))):   # klub w podcieniach Focha 2
+                              ("szyld_kawa.png", [("KAWA · LODY", .5), ("CIASTA · DESERY", .2)], (236, 236, 232, 255)),
+                              # 25.11 budynek 38B (IMG_2152/2153): adres na attyce, sklep spożywczy (bez logo sieci), sushi
+                              ("szyld_sklep.png", [("SKLEP SPOŻYWCZY", .46), ("czynne 6–23", .22)], (255, 255, 255, 255)),
+                              ("szyld_sushi.png", [("SUSHI", .66)], (236, 40, 90, 255))):   # klub w podcieniach Focha 2
         W, H = 1024, 256
         img = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(img); y = int(H * .06)
         for txt, wys in napisy:
             f = ImageFont.truetype(FONT_B, int(H * wys)); w = d.textlength(txt, font=f)
+            while w > W * .94: f = ImageFont.truetype(FONT_B, f.size - 4); w = d.textlength(txt, font=f)   # 25.11: napis mieści się w szyldzie
             d.text(((W - w) / 2, y), txt, font=f, fill=kol); y += int(H * wys * 1.12)
         img.save(out / plik)
+
+
+def napis_38b(out):
+    """Adres na attyce pawilonu 38B (IMG_2152/2153): ciemnoszare litery, proporcja tekstury = proporcja pola 12 × 0,8 m."""
+    W, H = 2400, 160
+    img = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(img); txt = "M. Skłodowskiej-Curie 38B"
+    f = ImageFont.truetype(FONT_B, 120)
+    while d.textlength(txt, font=f) > W * .96: f = ImageFont.truetype(FONT_B, f.size - 4)
+    d.text(((W - d.textlength(txt, font=f)) / 2, (H - f.size) / 2 - 8), txt, font=f, fill=(52, 54, 58, 255))
+    img.save(out / "napis_38b.png")
 
 
 def menu_bosna(out):

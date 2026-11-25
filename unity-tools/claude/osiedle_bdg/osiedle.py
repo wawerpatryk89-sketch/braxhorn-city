@@ -145,6 +145,15 @@ def inne(d, dst):
         # 25.11: wejście od strony najbliższej drogi albo chodnika (ogolny.wejscie)
         bl = [LineString(u["linia"]) for u in d["ulice"] if len(u["linia"]) > 1 and LineString(u["linia"]).distance(P) < 60]
         sp = dict(sp, dojscia=unary_union(bl) if bl else None)
+        if (b.get("nr") or "").lower() == "38b" and (b.get("ulica") or "").startswith("Marii"):
+            # 25.11 (właściciel 17:32, IMG_2152/2153): pawilon 38B wg zdjęć — pawilon38b.py, front do najbliższej drogi
+            import pawilon38b
+            c_, a_, L_, W_ = prostokat(P); f_ = front_do_drogi(d, c_, a_); k_, ox_, oz_, X_ = ustaw(c_, a_, L_, W_, f_)
+            S = pawilon38b.zbuduj(L_, W_); przenies(S, dst, "o%d" % i, k_, ox_, oz_); MODELE.append(P)
+            PRZEDPOLA.append((swiat(k_, ox_, oz_, 0, 0), swiat(k_, ox_, oz_, L_, 0), kier(k_, 0, -1), 6.0, "kostka"))
+            opis["o%d" % i] = {"nazwa": "M. Skłodowskiej-Curie 38B", "kond": 2, "zrodlo": "ZDJ IMG_2152/2153 (pawilon38b.py)",
+                               "trojkatow": sum(len(c["i"]) // 3 for c in S.dane().values())}
+            continue
         S = ogolny.zbuduj(P, sp, "o%d" % i)
         if sp.get("market"):        # 25.11 (IMG_2139–2141): pod podcieniem bocznym i do uliczki — kostka od ściany
             from shapely.geometry.polygon import orient as _or

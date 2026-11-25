@@ -209,10 +209,10 @@
    "trojkatow": 5466
   },
   "o11": {
-   "nazwa": "Poczta",
+   "nazwa": "M. Skłodowskiej-Curie 38B",
    "kond": 2,
-   "zrodlo": "OSM 2 p.",
-   "trojkatow": 3798
+   "zrodlo": "ZDJ IMG_2152/2153 (pawilon38b.py)",
+   "trojkatow": 1394
   },
   "o13": {
    "nazwa": "Łużycka 24",
@@ -554,5 +554,5 @@
   "pojemniki_odziez": 2,
   "paliki": 56
  },
- "trojkatow": 869642
+ "trojkatow": 867241
 }
