@@ -1,28 +1,28 @@
 {
  "wiezowce": {
   "28a": {
-   "trojkatow": 36754,
+   "trojkatow": 36714,
    "okien": 352,
    "kat": 11.5,
    "x": -141.55,
    "z": -53.05
   },
   "30a": {
-   "trojkatow": 36754,
+   "trojkatow": 36714,
    "okien": 352,
    "kat": 12.25,
    "x": -68.99,
    "z": -33.14
   },
   "32a": {
-   "trojkatow": 36754,
+   "trojkatow": 36714,
    "okien": 352,
    "kat": 11.5,
    "x": -12.29,
    "z": -13.7
   },
   "34a": {
-   "trojkatow": 36754,
+   "trojkatow": 36714,
    "okien": 352,
    "kat": 11.0,
    "x": 21.03,
@@ -35,42 +35,42 @@
    "W": 11.69,
    "kat": 75.58,
    "front": "występy klatek w OSM",
-   "trojkatow": 14430
+   "trojkatow": 14076
   },
   "36": {
    "L": 50.18,
    "W": 10.15,
    "kat": -95.1,
    "front": "ZAŁOŻENIE: do najbliższej drogi",
-   "trojkatow": 15128
+   "trojkatow": 14774
   },
   "32": {
    "L": 47.71,
    "W": 12.93,
    "kat": 75.77,
    "front": "ZAŁOŻENIE: do najbliższej drogi",
-   "trojkatow": 15088
+   "trojkatow": 14734
   },
   "30": {
    "L": 47.2,
    "W": 11.41,
    "kat": -104.48,
    "front": "występy klatek w OSM",
-   "trojkatow": 15088
+   "trojkatow": 14734
   },
   "38": {
    "L": 45.16,
    "W": 11.59,
    "kat": 102.34,
    "front": "ZAŁOŻENIE: do najbliższej drogi",
-   "trojkatow": 14028
+   "trojkatow": 13674
   },
   "34": {
    "L": 45.31,
    "W": 10.93,
    "kat": -104.45,
    "front": "ZAŁOŻENIE: do najbliższej drogi",
-   "trojkatow": 14028
+   "trojkatow": 13674
   }
  },
  "male": {
@@ -525,8 +525,8 @@
  "teren": {
   "jezdnie": 38683,
   "parkingi": 14142,
-  "chodniki": 42513,
-  "trawa": 143896,
+  "chodniki": 42524,
+  "trawa": 143906,
   "boiska": 3278,
   "place_zabaw": 1594,
   "krawezniki": 2266,
@@ -549,5 +549,5 @@
   "latarnie": 262,
   "paliki": 56
  },
- "trojkatow": 871485
+ "trojkatow": 869153
 }

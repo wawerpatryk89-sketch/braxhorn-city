@@ -28,6 +28,10 @@ COKOL = 0.90
 PAS_DOL = 2.10            # dolny pas (mauve) do parapetów 1. piętra
 KL_W, KL_WYST = 2.70, 0.35
 OKNO_H, PARAPET = 1.25, 0.95
+# wejście do klatki (IMG_2124): drzwi 1,0 × 2,1 na progu 12 cm (chodnik), okienka klatki 0,55 × 0,62 co pół kondygnacji
+PROG, KL_DRZWI, DRZWI_H = 0.12, 1.00, 2.10
+KL_OKNO_W, KL_OKNO_H = 0.55, 0.62
+KL_OKNO0 = PROG + DRZWI_H + .45 + .12 + .45          # pierwsze okienko nad daszkiem
 
 
 def sciana_pola(g, o, t, L, H, okna, pola, uv1=None):
@@ -106,13 +110,14 @@ def klatka4(g, o, t, c):
     S.quad(g, "klatka4", P(a, 0, 0), P(a, 0, -d), P(a, ATTYKA, -d), P(a, ATTYKA, 0), kier=-t)
     S.quad(g, "klatka4", P(b, 0, -d), P(b, 0, 0), P(b, ATTYKA, 0), P(b, ATTYKA, -d), kier=t)
     o2 = o + n * d          # lico wysunięcia 0,35 m PRZED ścianą (do 25.11 było w środku bloku: drzwi niewidoczne)
+    # 25.11 (zdjęcie właściciela IMG_2124, blok 30 od szlabanu): drzwi na poziomie chodnika we wnęce, cienki daszek nad
+    # drzwiami, nad nim jeden pionowy rząd małych okienek klatki co pół kondygnacji; bez schodów na zewnątrz.
     okna = []
-    for k in range(1, N_KOND):
-        fl = POZIOM0 + k * KOND - KOND / 2
-        for dv in (.55, 1.15):
-            okna.append((c - .45, c + .45, fl + dv, fl + dv + .42, "klatka", k))
-    okna.append((c - .45, c + .45, POZIOM0 + 2.35, POZIOM0 + 2.7, "klatka", 0))   # naświetle nad drzwiami
-    dz = [(u0 - B.OPASKA, u1 + B.OPASKA, v0, v1 + B.OPASKA) for (u0, u1, v0, v1, *_r) in okna] + [(c - .55, c + .55, POZIOM0, POZIOM0 + 2.2)]
+    v = KL_OKNO0
+    while v + KL_OKNO_H < DACH - .6:
+        okna.append((c - KL_OKNO_W / 2, c + KL_OKNO_W / 2, v, v + KL_OKNO_H, "klatka", int((v - POZIOM0) // KOND)))
+        v += KOND / 2
+    dz = [(u0 - B.OPASKA, u1 + B.OPASKA, v0, v1 + B.OPASKA) for (u0, u1, v0, v1, *_r) in okna] + [(c - KL_DRZWI / 2, c + KL_DRZWI / 2, PROG, PROG + DRZWI_H)]
     S.sciana(g, "klatka4", o2 + t * a, t, KL_W, ATTYKA, [(u0 - a, u1 - a, v0, v1) for (u0, u1, v0, v1) in dz])
     for (u0, u1, v0, v1, r, p) in okna:
         for aa, bb, cc, ddd in (((u0 - B.OPASKA, v0), (u0, v0), (u0, v1 + B.OPASKA), (u0 - B.OPASKA, v1 + B.OPASKA)),
@@ -120,23 +125,22 @@ def klatka4(g, o, t, c):
                                 ((u0, v1), (u1, v1), (u1, v1 + B.OPASKA), (u0, v1 + B.OPASKA))):
             S.quad(g, "opaska", o2 + t * aa[0] + UP * aa[1], o2 + t * bb[0] + UP * bb[1], o2 + t * cc[0] + UP * cc[1], o2 + t * ddd[0] + UP * ddd[1], t=t, kier=n)
         B.okno(g, o2, t, n, u0, u1, v0, v1, r, p)
-    # drzwi: wnęka 0,25 m, drzwi brązowe z szybą (jak IMG_1424)
+    # drzwi: wnęka 0,25 m, drzwi brązowe z małą szybą u góry (IMG_2124), próg na poziomie chodnika
     Q = lambda u, v, dd=0.0: o2 + t * u + UP * v - n * dd
-    for (pa, pb, kk) in (((c - .55, POZIOM0), (c - .55, POZIOM0 + 2.2), t), ((c + .55, POZIOM0 + 2.2), (c + .55, POZIOM0), -t)):
+    a_, b_, top = c - KL_DRZWI / 2, c + KL_DRZWI / 2, PROG + DRZWI_H
+    for (pa, pb, kk) in (((a_, PROG), (a_, top), t), ((b_, top), (b_, PROG), -t)):
         S.quad(g, "klatka4", Q(*pa, 0), Q(*pb, 0), Q(*pb, .25), Q(*pa, .25), kier=kk)
-    S.quad(g, "klatka4", Q(c - .55, POZIOM0 + 2.2, 0), Q(c - .55, POZIOM0 + 2.2, .25), Q(c + .55, POZIOM0 + 2.2, .25), Q(c + .55, POZIOM0 + 2.2, 0), kier=-UP)
-    S.quad(g, "drzwi_braz", Q(c - .55, POZIOM0, .25), Q(c + .55, POZIOM0, .25), Q(c + .55, POZIOM0 + 2.2, .25), Q(c - .55, POZIOM0 + 2.2, .25), t=t, kier=n)
-    S.quad(g, "szyba_drzwi", Q(c - .4, POZIOM0 + 1.0, .24), Q(c + .4, POZIOM0 + 1.0, .24), Q(c + .4, POZIOM0 + 2.0, .24), Q(c - .4, POZIOM0 + 2.0, .24), t=t, kier=n)
-    # daszek i schody (4 stopnie po 0,225 do podestu)
-    S.box(g, "beton_daszek", Q(c - 1.2, POZIOM0 + 2.75, 0), t, UP, n, 2.4, .14, 1.2)
-    S.box(g, "obrobka", Q(c - 1.22, POZIOM0 + 2.89, 0), t, UP, n, 2.44, .03, 1.22)
-    S.box(g, "beton_schody", Q(c - .8, -.2, 0), t, UP, n, 1.6, POZIOM0 + .2, 1.0)   # podest od drzwi (25.11: był odsunięty o 1 m)
-    for i in range(1, 4):
-        S.box(g, "beton_schody", Q(c - .8, -.2, -1.0 - .28 * (i - 1)), t, UP, n, 1.6, POZIOM0 + .2 - .225 * i, .28)
-    S.rura(g, "stal", Q(c + .72, POZIOM0 + .9, -.1), Q(c + .72, .9, -1.0 - .28 * 3), .022)
-    S.rura(g, "stal", Q(c + .72, .0, -1.0 - .28 * 3), Q(c + .72, .9, -1.0 - .28 * 3), .022)
-    S.rura(g, "stal", Q(c + .72, POZIOM0, -.1), Q(c + .72, POZIOM0 + .9, -.1), .022)
-    S.box(g, "tabliczka", Q(c + .65, POZIOM0 + 2.3, 0), t, UP, n, .22, .16, .015)
+    S.quad(g, "klatka4", Q(a_, top, 0), Q(a_, top, .25), Q(b_, top, .25), Q(b_, top, 0), kier=-UP)
+    S.quad(g, "drzwi_braz", Q(a_, PROG, .25), Q(b_, PROG, .25), Q(b_, top, .25), Q(a_, top, .25), t=t, kier=n)
+    S.quad(g, "szyba_drzwi", Q(a_ + .22, PROG + 1.25, .24), Q(b_ - .22, PROG + 1.25, .24), Q(b_ - .22, top - .2, .24), Q(a_ + .22, top - .2, .24), t=t, kier=n)
+    S.box(g, "stal", Q(b_ - .16, PROG + 1.0, .25), t, UP, n, .1, .03, .06)                                  # klamka
+    S.box(g, "beton_schody", Q(c - .8, -.2, .25), t, UP, n, 1.6, PROG + .2, .25 + .6)                         # próg i płyta przed drzwiami
+    # daszek: cienka płyta 1,7 × 0,9 nad drzwiami, lampa pod spodem, tabliczka z numerem i domofon obok drzwi
+    S.box(g, "beton_daszek", Q(c - .85, top + .45, 0), t, UP, n, 1.7, .12, .9)
+    S.box(g, "obrobka", Q(c - .87, top + .57, 0), t, UP, n, 1.74, .03, .92)
+    S.box(g, "lampa", Q(c - .15, top + .38, -.3), t, UP, n, .3, .07, .2)
+    S.box(g, "tabliczka", Q(b_ + .12, PROG + 1.75, 0), t, UP, n, .22, .16, .015)
+    S.box(g, "domofon", Q(b_ + .15, PROG + 1.1, 0), t, UP, n, .14, .26, .03)
 
 
 def tyl(L, W, nr_kol, seed):

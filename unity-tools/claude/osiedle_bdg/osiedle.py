@@ -333,7 +333,8 @@ def wiezowce(dst):
         # ściana wejściowa (północ połówki zachodniej) i ślepa ściana z napisem — przed nimi kostka do uliczki (IMG_1427)
         PRZEDPOLA.append((swiat(kat, tx, tz, 0, B.DL), swiat(kat, tx, tz, B.SZ_POL, B.DL), kier(kat, 0, 1), 16.0, "kostka"))
         # zejście do piwnicy przed ścianą wejściową (blok_32a.klatka, 25.11): wykop z dnem i ścianami — teren go omija
-        MODELE.append(Polygon([tuple(swiat(kat, tx, tz, x, z)) for x, z in ((-.4, B.DL), (7.85, B.DL), (7.85, B.DL + 1.39), (-.4, B.DL + 1.39))]))
+        x0_, x1_ = B.SZ_POL - B.ZEJ_U1, B.SZ_POL - B.ZEJ_U0                  # u → x lokalne (t = −X od narożnika SZ_POL)
+        MODELE.append(Polygon([tuple(swiat(kat, tx, tz, x, z)) for x, z in ((x0_, B.DL), (x1_, B.DL), (x1_, B.DL + B.ZEJ_D), (x0_, B.DL + B.ZEJ_D))]))
         PRZEDPOLA.append((swiat(kat, tx, tz, B.SZ_POL, B.DL + B.USKOK), swiat(kat, tx, tz, 2 * B.SZ_POL, B.DL + B.USKOK), kier(kat, 0, 1), 14.0, "kostka"))
         opis[nr] = {"trojkatow": trojkaty(S), "okien": okien, "kat": kat, "x": tx, "z": tz}
     return opis

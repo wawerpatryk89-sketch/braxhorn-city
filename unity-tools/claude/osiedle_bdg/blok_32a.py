@@ -38,6 +38,9 @@ GL_OSC = 0.12           # ościeże: lico ściany -> lico ramy
 RAMA = 0.065            # szerokość ramy PCV w widoku
 RAMA_GL = 0.07
 PAS_KLATKI = 0.90       # pas z oknami klatki przy uskoku
+# zejście do piwnicy przed ścianą wejściową (klatka): od schodów klatki (u = ZEJ_U0) wzdłuż ściany; spocznik, 11 stopni
+ZEJ_U0, ZEJ_ST, ZEJ_SPOCZ, ZEJ_D = 1.45, 12, 1.10, 1.39
+ZEJ_U1 = ZEJ_U0 + ZEJ_SPOCZ + (ZEJ_ST - 1) * .28       # 5,63 — w obrysie ściany (SZ_POL 9,3), nic nie wystaje
 COKOL_Z, COKOL_W = 1.00, 0.65           # cokół: ściana zachodnia / ściana z napisem
 ZOLTY_DO = 2.00
 
@@ -173,8 +176,7 @@ def blok(z_terenem=True):
     pas = (0.0, PAS_KLATKI, COKOL_Z, DACH)
     # strefy: cokół 0..1.0 (osobny materiał), żółty 1.0..2.0, tynk 2.0..attyka
     S.sciana("sciana_N_zach", "cokol", o + UP * -0.3, t, SZ_POL, COKOL_Z + .3,
-             [(u - .45, u + .45, .45, .9) for u in (2.5, 4.7)] + [(0.0, PAS_KLATKI, .3 + .0, COKOL_Z + .3)] +
-             [(5.45, 6.35, 0.0, .3 + (.12 - 11 * .18) + 1.95)])                    # 25.11: góra drzwi piwnicy (klatka: zejście)
+             [(u - .45, u + .45, .45, .9) for u in (2.5, 4.7)] + [(0.0, PAS_KLATKI, .3 + .0, COKOL_Z + .3)])
     piwnica(o + UP * -0.3, t, [(u - .45, u + .45, .45, .9) for u in (2.5, 4.7)])
     zolte = [w for w in okna if w[2] < ZOLTY_DO]
     gora = [(u0, u1, v0 - COKOL_Z, v1 - COKOL_Z, r, p) for (u0, u1, v0, v1, r, p) in okna]
@@ -264,34 +266,35 @@ def klatka(o, t):
     S.rura(g, "stal", a, b, .022)
     S.rura(g, "stal", P(1.38, .42, -.3), a, .022)          # słupek na murku doświetla
     S.rura(g, "stal", b - UP * .95, b, .022)
-    # ZEJŚCIE DO PIWNICY (właściciel 25.11, 15:35: „wejście do piwnicy, takie w dół co schodzi, koło tych poręczy”; 16:50:
-    # „tam do piwnicy jest zejście w dół. Idzie i powinny być drzwi”): wykop wzdłuż ściany wejściowej za murkiem z barierką
-    # (IMG_1427: murek 14 cm, 30 cm nad chodnikiem, barierka na murku). Od zachodniego końca 11 stopni po 18 × 28 cm w dół,
-    # dalej spocznik na −1,86 i stalowe drzwi piwnicy w ścianie. Ściany wykopu do dna — nic na wylot. Teren omija wykop
-    # (osiedle.wiezowce: MODELE).
-    bar_d = 1.25; mur = .42; U0, U1 = 1.45, SZ_POL + .40
+    # ZEJŚCIE DO PIWNICY — wg zdjęcia właściciela przy 32a (IMG_2117, 25.11 16:57): obok schodów wejścia, wzdłuż ściany,
+    # za niskim murkiem z barierką; schody w dół od strony chodnika (zachód) do spocznika pod podestem wejścia, drzwi
+    # piwnicy w ścianie czołowej pod podestem (patrzą wzdłuż wykopu). Nad wykopem okienka piwnicy z kratami (piwnica()).
+    # 25.11 17:37 właściciel: „murek wystaje na ulicę” — wykop i murek kończą się w obrysie ściany (do 25.11 szły 0,4 m za
+    # narożnik budynku). Teren omija wykop (osiedle.wiezowce: MODELE z ZEJ_U0, ZEJ_U1, ZEJ_D).
+    bar_d = ZEJ_D - .14; mur = .42; U0, U1 = ZEJ_U0, ZEJ_U1
+    st, hs, ds = ZEJ_ST, .18, .28; Y0 = .12; Yd = Y0 - st * hs                                   # dno −2,04
+    us = U0 + ZEJ_SPOCZ                                                                         # spocznik U0..us
     S.box(g, "beton_schody", P(U0, -.3, -bar_d), t, UP, n, U1 - U0, mur + .3, .14)                 # murek od chodnika
-    S.box(g, "beton_schody", P(1.30, -.3, 0), t, UP, n, .15, mur + .3, bar_d)                    # murek przy schodach klatki
+    S.box(g, "beton_schody", P(1.30, Y0, 0), t, UP, n, .15, mur - Y0, bar_d)                     # murek przy schodach klatki
     for y in (mur + .85, mur + .45):
         S.rura(g, "stal", P(1.38, y, -bar_d - .07), P(U1 - .05, y, -bar_d - .07), .02)
-    for u in list(np.arange(1.38, U1 - .1, 1.6)) + [U1 - .05]:
+    for u in list(np.arange(1.38, U1 - .1, 1.4)) + [U1 - .05]:
         S.rura(g, "stal", P(u, mur, -bar_d - .07), P(u, mur + .85, -bar_d - .07), .02)
     S.rura(g, "stal", P(1.38, COKOL_Z + .9, -.3), P(1.38, mur + .85, -bar_d - .07), .022)
-    st, hs, ds = 11, .18, .28; Y0 = .12; Yd = Y0 - st * hs                                      # dno −1,86
-    us = U1 - st * ds                                                                           # koniec biegu (6,62)
-    for k in range(st):                                                                         # stopnie (od góry, z zachodu)
-        S.box(g, "beton_schody", P(U1 - (k + 1) * ds, Yd, 0), t, UP, n, ds, Y0 - (k + 1) * hs - Yd + hs * 0, bar_d)
-    S.quad(g, "beton_schody", P(U0, Yd, 0), P(us, Yd, 0), P(us, Yd, -bar_d), P(U0, Yd, -bar_d), kier=UP)   # spocznik
-    # ściany wykopu (lico do środka): od chodnika, przy schodach klatki, przy ścianie budynku (z otworem drzwi)
+    for k in range(st - 1):                                                                     # stopnie od chodnika w dół
+        S.box(g, "beton_schody", P(U1 - (k + 1) * ds, Yd - .05, 0), t, UP, n, ds, Y0 - (k + 1) * hs - Yd + .05, bar_d)
+    S.quad(g, "beton_schody", P(U1, Y0 - hs, 0), P(U1, Y0 - hs, -bar_d), P(U1, Y0 + .01, -bar_d), P(U1, Y0 + .01, 0), kier=-t)   # pierwsze czoło
+    S.box(g, "beton_schody", P(U0 - .08, Yd - .05, 0), t, UP, n, us - U0 + .08, .05, bar_d)       # spocznik (z wnęką drzwi)
+    # ściany wykopu (lico do środka): od chodnika, ściana budynku (cokół do dna), ściana czołowa pod podestem z drzwiami
     S.quad(g, "beton_schody", P(U0, Yd, -bar_d), P(U1, Yd, -bar_d), P(U1, Y0 + .01, -bar_d), P(U0, Y0 + .01, -bar_d), kier=-n)
-    S.quad(g, "beton_schody", P(U0, Yd, 0), P(U0, Yd, -bar_d), P(U0, Y0 + .01, -bar_d), P(U0, Y0 + .01, 0), kier=t)
-    D0, D1, DH = 5.45, 6.35, 1.95                                                               # drzwi piwnicy 0,9 × 1,95
-    S.sciana(g, "cokol", P(U0, Yd, 0), t, U1 - U0, -.3 - Yd, [(D0 - U0, D1 - U0, 0, -.3 - Yd)])
-    S.quad(g, "drzwi_stal", P(D0, Yd, .06), P(D1, Yd, .06), P(D1, Yd + DH, .06), P(D0, Yd + DH, .06), t=t, kier=n)
-    for (a_, b_, kk) in (((D0, Yd), (D0, Yd + DH), t), ((D1, Yd + DH), (D1, Yd), -t)):          # ościeża drzwi
-        S.quad(g, "cokol", P(*a_, 0), P(*b_, 0), P(*b_, .06), P(*a_, .06), kier=kk)
-    S.quad(g, "cokol", P(D0, Yd + DH, 0), P(D0, Yd + DH, .06), P(D1, Yd + DH, .06), P(D1, Yd + DH, 0), kier=-UP)
-    S.box(g, "stal", P(D1 - .16, Yd + 1.0, .02), t, UP, n, .1, .03, .05)                         # klamka
+    S.sciana(g, "cokol", P(U0, Yd, 0), t, U1 - U0, -.3 - Yd, [])
+    E0, E1, DH = .18, 1.08, 1.95                     # drzwi piwnicy 0,9 × 1,95; E = odległość od ściany budynku na zewnątrz
+    S.sciana(g, "beton_schody", P(U0, Yd, -bar_d), -n, bar_d, Y0 + .01 - Yd, [(bar_d - E1, bar_d - E0, 0, DH)])   # lico na +t
+    S.quad(g, "drzwi_stal", P(U0 - .08, Yd, -E0), P(U0 - .08, Yd, -E1), P(U0 - .08, Yd + DH, -E1), P(U0 - .08, Yd + DH, -E0), t=n, kier=t)
+    for (e_, kk) in ((E0, n), (E1, -n)):                                                         # ościeża drzwi
+        S.quad(g, "beton_schody", P(U0 - .08, Yd, -e_), P(U0, Yd, -e_), P(U0, Yd + DH, -e_), P(U0 - .08, Yd + DH, -e_), kier=kk)
+    S.quad(g, "beton_schody", P(U0 - .08, Yd + DH, -E0), P(U0, Yd + DH, -E0), P(U0, Yd + DH, -E1), P(U0 - .08, Yd + DH, -E1), kier=-UP)
+    S.box(g, "stal", P(U0 - .08, Yd + 1.0, -(E1 - .22)), n, UP, t, .1, .03, .05)                   # klamka
 
 
 def drzwi(g, P, t, n, G, D0):

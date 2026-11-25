@@ -32,15 +32,22 @@ def test_32a_podest_przy_drzwiach_i_zejscie_do_piwnicy():
     assert abs(daszek[:, 2].min() - B.DL) < 1e-3, "daszek przy ścianie"
     # 25.11 (właściciel 15:35, 16:50): zejście schodami w dół do drzwi piwnicy, nie zamknięte doświetle
     v = np.array(S.cz[("klatka", "beton_schody")]["v"])
-    assert v[:, 1].min() < -1.8, "dno zejścia ok. −1,86"
+    assert v[:, 1].min() < -1.8, "dno zejścia ok. −2"
     assert ("klatka", "drzwi_stal") in S.cz, "drzwi piwnicy na dole zejścia"
     assert ("klatka", "zwir") not in S.cz
+    # 25.11 17:21–17:37 (IMG_2117 przy 32a; „murek wystaje na ulicę”): drzwi w ścianie czołowej pod podestem wejścia,
+    # patrzą wzdłuż wykopu; nic z klatki nie wychodzi poza narożnik budynku (x = 0)
+    dv = np.array(S.cz[("klatka", "drzwi_stal")]["v"]); dn = np.array(S.cz[("klatka", "drzwi_stal")]["n"])
+    assert abs(dv[:, 0].mean() - (B.SZ_POL - B.ZEJ_U0 + .08)) < 1e-3 and (dn[:, 0] < -.99).all()
+    for (g, m), c in S.cz.items():
+        if g == "klatka": assert np.array(c["v"])[:, 0].min() > -1e-6, (m, "wystaje za narożnik")
 
 
 def test_teren_omija_zejscie_do_piwnicy():
     src = (ROOT / "unity-tools/claude/osiedle_bdg/osiedle.py").read_text(encoding="utf-8")
     kod = [ln for ln in src.split("def wiezowce")[1].split("\ndef ")[0].splitlines() if not ln.strip().startswith("#")]
-    assert any("MODELE.append" in ln and "B.DL + 1.39" in ln for ln in kod), "wykop zejścia wycięty z terenu"
+    assert any("MODELE.append" in ln and "B.DL + B.ZEJ_D" in ln for ln in kod), "wykop zejścia wycięty z terenu"
+    assert any("B.SZ_POL - B.ZEJ_U1" in ln for ln in kod), "wycięcie tylko na długości wykopu"
 
 
 def test_blok4_klatka_wysunieta_przed_sciane():
@@ -49,8 +56,17 @@ def test_blok4_klatka_wysunieta_przed_sciane():
     drzwi = np.array(S.cz[("front", "drzwi_braz")]["v"])
     assert kl[:, 2].min() < -.3 and kl[:, 2].max() <= 1e-6, "wysunięcie klatki przed licem ściany (front patrzy na −z)"
     assert drzwi[:, 2].max() < 0, "drzwi przed ścianą bloku, nie w środku"
+    # 25.11 17:01 (IMG_2124, blok 30): drzwi na poziomie chodnika, bez schodów na zewnątrz, daszek nad drzwiami,
+    # jeden pionowy rząd okienek klatki co pół kondygnacji — żadne okienko nie wchodzi na drzwi ani daszek
+    assert abs(drzwi[:, 1].min() - blok4.PROG) < 1e-3 and drzwi[:, 1].max() < 2.3
     schody = np.array(S.cz[("front", "beton_schody")]["v"])
-    assert abs(schody[:, 2].max() - kl[:, 2].min()) < 1e-3, "podest od lica wysunięcia (drzwi)"
+    assert schody[:, 1].max() <= blok4.PROG + 1e-6, "tylko próg, bez schodów w górę"
+    dasz = np.array(S.cz[("front", "beton_daszek")]["v"])
+    assert dasz[:, 1].min() > drzwi[:, 1].max()
+    ramy = np.array(S.cz[("front", "okno_klatka")]["v"]) if ("front", "okno_klatka") in S.cz else np.zeros((0, 3))
+    c0 = 47.2 / 6                                                       # środek pierwszej klatki
+    przed = ramy[np.abs(ramy[:, 0] - c0) < .4]
+    assert len(przed) and przed[:, 1].min() > dasz[:, 1].max(), "okienka klatki nad daszkiem"
 
 
 def test_aleja_polnocna_w_wjazd1_bez_parkingu():

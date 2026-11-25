@@ -16,6 +16,12 @@ def tynk(kol, brud=None, nakl=None):
     return {"tex": ST, "m": 2.0, "kol": kol, "szorst": 1.0, "brud": brud, "nakl": nakl}
 
 
+def tynk4(kol, brud=None, nakl=None):
+    """Bloki 28–38 (25.11, właściciel: „kasza” — white_stucco_02 w kaflu 2 m daje ciemne ziarno): drobny tynk z miękkimi
+    plamami (fetch_region.tynk_plamy: plastered_wall_05 × plamy painted_plaster_wall), jak gładki tynk na IMG_2124."""
+    return {"tex": "tynk_plamy", "m": 2.0, "kol": kol, "szorst": 1.0, "brud": brud, "nakl": nakl}
+
+
 P = {
     # wieżowce (kolory ze zdjęć: 32a IMG_1427/1624, 28a IMG szczyt od Leclerca, 30a w tle IMG_1427, 34a nad barem)
     "tynk_32a": tynk([208, 168, 104], "brud_32a_wejscie.png"), "szczyt_32a": tynk([200, 182, 136], "brud_32a_slepa.png"),
@@ -29,7 +35,7 @@ P = {
     "opaska": tynk([198, 194, 184]), "tynk_zolty": tynk([214, 184, 104]),
     "cokol": {"tex": BET, "m": 1.5, "kol": [118, 123, 130], "szorst": 1.0},
     "cokol4": {"tex": BET, "m": 1.5, "kol": [128, 130, 132], "szorst": 1.0},
-    "klatka4": tynk([150, 132, 120]),
+    "klatka4": tynk4([150, 132, 120]),
     "komin": tynk([150, 140, 130]),
     "beton_daszek": {"tex": BET, "m": 1.5, "kol": [170, 168, 160], "szorst": 1.0},
     "beton_schody": {"tex": BET, "m": 1.5, "kol": [150, 148, 142], "szorst": 1.0},
@@ -122,10 +128,10 @@ for k, (dol, a, b, sz) in {1: ([168, 140, 120], [214, 196, 150], [206, 176, 110]
                            2: ([150, 118, 108], [218, 204, 168], [212, 180, 112], [212, 196, 150]),
                            3: ([140, 118, 110], [222, 210, 180], [204, 170, 110], [214, 200, 160]),
                            4: ([170, 160, 140], [226, 214, 186], [214, 200, 160], [222, 210, 180])}.items():
-    P["pas_dol_%d" % k] = tynk(dol); P["pole_a_%d" % k] = tynk(a, "brud_32a_wejscie.png"); P["pole_b_%d" % k] = tynk(b, "brud_32a_wejscie.png")
-    P["szczyt4_%d" % k] = tynk(sz, "brud_32a_slepa.png")
+    P["pas_dol_%d" % k] = tynk4(dol); P["pole_a_%d" % k] = tynk4(a, "brud_32a_wejscie.png"); P["pole_b_%d" % k] = tynk4(b, "brud_32a_wejscie.png")
+    P["szczyt4_%d" % k] = tynk4(sz, "brud_32a_slepa.png")
 for nr, k in (("28", 4), ("30", 1), ("32", 2), ("34", 3), ("36", 3), ("38", 1)):
-    P["napis_blok_" + nr] = tynk(P["szczyt4_%d" % k]["kol"], None, "napis_blok_%s.png" % nr)
+    P["napis_blok_" + nr] = tynk4(P["szczyt4_%d" % k]["kol"], None, "napis_blok_%s.png" % nr)
 
 # średnie barwy tekstur (sRGB średniej liniowej, pomiar plików 2K Poly Haven 23.11) — do przeliczenia barwy docelowej na _Color
 SREDNIE = {"white_stucco_02": [.683, .679, .666], "brushed_concrete_04": [.409, .368, .327], "concrete_pavers": [.409, .372, .328],
