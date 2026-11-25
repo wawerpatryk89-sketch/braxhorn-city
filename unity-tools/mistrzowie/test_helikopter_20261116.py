@@ -108,7 +108,8 @@ class Helicopter(unittest.TestCase):
         self.assertIn('const string HeliTextures="Assets/Source/Mistrzowie/Helikopter/_tekstury/braxhorn_ec135";', TOWER)
 
     def test_only_one_car_still_and_the_helicopter_stays_in_the_main_scene(self):
-        self.assertIn(".Any(c => !c.helikopter))", (ED / "BraxChampionsCarBuilder.cs").read_text(encoding="utf-8"))
+        # 25.11 (#60): only a second copy of the owner car is forbidden - not the helicopter, not the bunker's classics
+        self.assertIn(".Any(c => !c.helikopter && c.name == RootName))", (ED / "BraxChampionsCarBuilder.cs").read_text(encoding="utf-8"))
         self.assertIn(".Where(c=>!c.helikopter).ToArray();", (ED / "BraxChampionsBuild.cs").read_text(encoding="utf-8"))
         podzial = (ED / "BraxChampionsPodzial.cs").read_text(encoding="utf-8")
         self.assertLess(podzial.index("typeof(BraxChampionsHelikopter)"), podzial.index("typeof(BraxChampionsCar)"))

@@ -164,17 +164,21 @@ public static class BraxChampionsCarBuilder
             " sourceMeshUnchanged=true");
     }
 
+    public const string RootName = "A1 | ORIGINAL estate sports car for Brax | WORKING joystick vehicle";
+
     public static void Generate(Transform parent)
     {
-        // the BRAXHORN helicopter's camera hook is a BraxChampionsCar in proxy mode (16.11 22:00): not a car
+        // the BRAXHORN helicopter's camera hook is a BraxChampionsCar in proxy mode (16.11 22:00): not a car. #60 (25.11):
+        // the owner's classics in the bunker (BraxChampionsKlasyki, "KLASYK | ...") are driveable BraxChampionsCars of the
+        // foundation scene - only a second copy of THIS car is forbidden
         if (UnityEngine.Object.FindObjectsByType<BraxChampionsCar>(
-                FindObjectsInactive.Include, FindObjectsSortMode.None).Any(c => !c.helikopter))
+                FindObjectsInactive.Include, FindObjectsSortMode.None).Any(c => !c.helikopter && c.name == RootName))
             throw new InvalidOperationException("Second A1 player car forbidden");
         var source = AssetDatabase.LoadAssetAtPath<GameObject>(OwnerCar)
             ?? AssetDatabase.LoadAllAssetsAtPath(OwnerCar).OfType<GameObject>().FirstOrDefault();
         if (!source)
             throw new InvalidOperationException("Import the EXISTING estate car_rev.glb, not a placeholder: " + OwnerCar);
-        var root = new GameObject("A1 | ORIGINAL estate sports car for Brax | WORKING joystick vehicle");
+        var root = new GameObject(RootName);
         root.transform.SetParent(parent, false);
         // Exact centre of a regular EAST car-park bay.
         // Local x=45.175 is midway between stall lines 43.65/46.70;

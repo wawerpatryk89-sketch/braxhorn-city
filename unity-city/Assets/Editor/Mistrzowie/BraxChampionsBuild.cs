@@ -259,6 +259,7 @@ public static class BraxChampionsBuild
         var cars=scene.GetRootGameObjects()
             .SelectMany(g=>g.GetComponentsInChildren<BraxChampionsCar>(true)).Where(c=>!c.helikopter).ToArray();   // not the helicopter's proxy
         cars=cars.Where(c=>!c.name.StartsWith(BraxChampionsKolekcjaAut.Prefix)).ToArray();   // nor the collection's three cars (owner 17.11)
+        cars=cars.Where(c=>!c.name.StartsWith("KLASYK | ")).ToArray();                       // nor the classics in the bunker (25.11)
         if(cars.Length!=1)
             throw new InvalidOperationException("A1_T11_CAR_INTEGRATION_FAIL: expected one BRAXHORN owner car, found "+cars.Length);
         var car=cars[0];

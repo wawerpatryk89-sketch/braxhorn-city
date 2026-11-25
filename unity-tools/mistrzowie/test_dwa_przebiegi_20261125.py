@@ -310,5 +310,18 @@ class StoreRoundTrip(unittest.TestCase):
             shutil.rmtree(tmp)
 
 
+class KlasykiWBunkrze(unittest.TestCase):
+    """#60 (25.11, run 45658651245) stopped at 3 h 08 min of Unity: "Second A1 player car forbidden" - the owner's classics in
+    the bunker are BraxChampionsCars of the foundation scene, and the owner car's guard counted every car"""
+
+    def test_only_a_second_owner_car_is_forbidden(self):
+        car = (ED / "BraxChampionsCarBuilder.cs").read_text(encoding="utf-8")
+        guard = car[car.index("public static void Generate(Transform parent)"):car.index('throw new InvalidOperationException("Second A1 player car forbidden");')]
+        self.assertIn("c => !c.helikopter && c.name == RootName", guard)
+        self.assertIn("var root = new GameObject(RootName);", car)
+        self.assertIn('KLASYK | ', (ED / "BraxChampionsKlasyki.cs").read_text(encoding="utf-8"))
+        self.assertIn('cars=cars.Where(c=>!c.name.StartsWith("KLASYK | ")).ToArray();', BUILD)
+
+
 if __name__ == "__main__":
     unittest.main()
