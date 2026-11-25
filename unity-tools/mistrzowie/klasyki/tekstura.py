@@ -55,6 +55,7 @@ class Model:
         self.n = n / np.maximum(2 * self.area[:, None], 1e-12)
         self.log = []
         self.ramki = []                                      # (kind, view, box): what was done where (the recipe's picture)
+        self.swiatla = []                                    # (view, box, kind): lamps a recipe laid or marked
 
     # ---- which faces are seen in a view's box
     def widoczne(self, widok, box, cos=.35, glebia=.06, margines=.05, zewn=False):
@@ -154,8 +155,31 @@ class Model:
         if szer_max and w > szer_max: s = szer_max / w; rgba, w, h = tekst_rgba(tekst, cap * s, kolor, ppm)
         self.naklej(widok, rgba, uc, vc, w, h, tekst)
 
+    def lampa(self, widok, uc, vc, w, h, uklad="czerwona"):
+        """a rear lamp painted where Tripo guessed it wrong (it never saw a car's back): a glossy lens with fine ribs -
+        uklad "czerwona" red; "zespolona" red with an amber third outside and a white reversing light inside (its side
+        by the sign of uc); marked for the night's light map"""
+        W, H = max(8, int(w * 600)), max(8, int(h * 600)); a = np.zeros((H, W, 4), np.float32); a[..., 3] = 1
+        a[..., :3] = np.array((176, 16, 20), np.float32) / 255
+        kawalki = [(0.0, 1.0, "tyl")]
+        if uklad == "zespolona":
+            na_zewn = uc > 0 if widok == "T" else uc < 0
+            third = W // 3; amb = slice(W - third, W) if na_zewn else slice(0, third); bia = slice(0, W // 5) if na_zewn else slice(W - W // 5, W)
+            a[:, amb, :3] = np.array((226, 118, 18), np.float32) / 255; a[:, bia, :3] = np.array((214, 214, 208), np.float32) / 255
+        rib = (np.arange(H) % max(3, H // 7)) == 0; a[rib, :, :3] *= .72                   # the lens' ribs
+        a[:2, :, :3] = a[-2:, :, :3] = a[:, :2, :3] = a[:, -2:, :3] = .08                  # its black rim
+        self.naklej(widok, a, uc, vc, w, h, "lampa")
+        self.swiatla.append((widok, (uc - w / 2, uc + w / 2, vc - h / 2, vc + h / 2), "tyl"))
+
+    def reflektor(self, widok, uc, vc, r, h=None):
+        """a headlamp marked for the night's light map: round (radius r) or rectangular (width r, height h)"""
+        if h is None: self.swiatla.append((widok, (uc - r, uc + r, vc - r, vc + r), "przod_o"))
+        else: self.swiatla.append((widok, (uc - r / 2, uc + r / 2, vc - h / 2, vc + h / 2), "przod_p"))
+
     def tablica(self, widok, tekst, uc, vc, w=.52, h=.12, nowa=False):
-        self.naklej(widok, (tablica_nowa_rgba if nowa else tablica_rgba)(tekst, w, h), uc, vc, w, h, "tablica " + tekst)
+        """nowa: False the black plate of 1976-2000, True today's white, "zabytkowa" today's yellow (a historic car)"""
+        rgba = tablica_nowa_rgba(tekst, w, h, tlo=(246, 200, 24)) if nowa == "zabytkowa" else (tablica_nowa_rgba if nowa else tablica_rgba)(tekst, w, h)
+        self.naklej(widok, rgba, uc, vc, w, h, "tablica " + tekst)
 
     # ---- the restoration: the paint's own colour where rust, dirt and scratches are, its shading kept
     def odnow(self, farby, tol=.20, rdza=.10, sigma=10, maska_ciala=None):
@@ -184,6 +208,61 @@ class Model:
         self.img = out
         self.log.append("odnow %d colours: %d texels cleaned" % (len(farby), total))
         return total
+
+    def lakiery(self, pary, tol=14.0, sigma=2.5, maska=None, plamy=None, odcien=None, kontrast=1.0):
+        """new coats: [(paint sampled (sRGB 0-255), its new colour, roughness, metal), ...] - each texel to the paint
+        nearest it (Lab, half-weight lightness) when under tol (soft at the edge), taking the new colour while keeping its
+        own light and shade (the luminance against the old paint's, smoothed over a few texels: Tripo's speckle off, the
+        panels' shading kept); glossy as a car's paint (the gloss map's roughness, metal for a metallic)"""
+        a = self.img; Y = np.array([.2126, .7152, .0722], np.float32)
+        lab = cv2.cvtColor(np.clip(a, 0, 1).astype(np.float32), cv2.COLOR_RGB2LAB).reshape(-1, 3)
+        D = []
+        for zr, *_r in pary:
+            q = cv2.cvtColor((np.array(zr, np.float32) / 255).reshape(1, 1, 3), cv2.COLOR_RGB2LAB).reshape(3)
+            dd = lab - q; dd[:, 0] *= .5; D.append(np.sqrt((dd ** 2).sum(1)).reshape(a.shape[:2]))
+        D = np.stack(D)
+        for i, (zr, cel, ch, me, *mk) in enumerate(pary):                       # a paint only where its mask lets it
+            if mk and mk[0] is not None: D[i][mk[0] <= 0] = np.inf
+        kto = D.argmin(0); dmin = D.min(0)
+        if odcien:
+            # a body Tripo painted in two shades of one hue: every texel of that hue (degrees, saturated) is paint
+            hsv = cv2.cvtColor(np.clip(a, 0, 1).astype(np.float32), cv2.COLOR_RGB2HSV)
+            h0, h1 = odcien; dmin = np.where((hsv[..., 0] >= h0) & (hsv[..., 0] <= h1) & (hsv[..., 1] > .18) & (hsv[..., 2] > .04), 0.0, dmin)
+        L = lin(a) @ Y; out = a.copy(); maski = []
+        for i, (zr, cel, ch, me, *mk) in enumerate(pary):
+            w = (np.clip((tol - dmin) / 5.0, 0, 1) * (kto == i)).astype(np.float32)
+            if maska is not None: w *= maska
+            if mk and mk[0] is not None: w *= mk[0]
+            Lc = max(float(lin(np.array(zr, np.float32) / 255) @ Y), 1e-4)
+            r = np.clip(L / Lc, .12, 2.4)
+            if plamy:
+                # Tripo's dark blotches in the paint (patches, not the thin panel gaps): taken in and given the light of
+                # the paint round them - a gap of 1-3 texels keeps its shade
+                ciemne = (r < plamy)
+                if mk and mk[0] is not None: ciemne &= mk[0] > 0
+                if maska is not None: ciemne &= maska > 0
+                blisko = cv2.dilate((w > .5).astype(np.uint8), np.ones((15, 15), np.uint8)) > 0
+                grube = cv2.morphologyEx((ciemne & blisko).astype(np.uint8), cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))) > 0
+                dobre = (w > .5) & ~grube
+                rf = cv2.GaussianBlur(r * dobre, (0, 0), 8) / np.maximum(cv2.GaussianBlur(dobre.astype(np.float32), (0, 0), 8), 1e-4)
+                r = np.where(grube, rf, r); w = np.where(grube, 1.0, w).astype(np.float32)
+                self.log.append("lakier %s: %d texels of blotches" % (tuple(zr), int(grube.sum())))
+            rs = cv2.GaussianBlur(r * w, (0, 0), sigma) / np.maximum(cv2.GaussianBlur(w, (0, 0), sigma), 1e-4)
+            rs = np.where(w > 0, rs, r)
+            if kontrast != 1.0:                                     # Tripo's baked mottling halved (the renderer shades)
+                rs = np.exp(np.log(np.maximum(rs, 1e-3)) * kontrast)
+            nowy = srgb(np.clip(lin(np.array(cel, np.float32) / 255)[None, None, :] * rs[..., None], 0, 1))
+            out = out * (1 - w[..., None]) + nowy * w[..., None]
+            if "mr" in self.mapy:
+                mp = self.mapy["mr"]; ww = cv2.resize(w, (mp.shape[1], mp.shape[0]), interpolation=cv2.INTER_LINEAR)
+                mp[..., 1] = np.clip(mp[..., 1] * (1 - ww) + ch * 255 * ww, 0, 255).astype(np.uint8)
+                mp[..., 2] = np.clip(mp[..., 2] * (1 - ww) + me * 255 * ww, 0, 255).astype(np.uint8)
+            self.log.append("lakier %s -> %s: %d texels" % (tuple(zr), tuple(cel), int((w > .5).sum())))
+            maski.append(w)
+        self.img = out.astype(np.float32)
+        lm = np.max(np.stack(maski), 0) if maski else np.zeros(a.shape[:2], np.float32)
+        self.lakier_maska = np.maximum(getattr(self, "lakier_maska", np.zeros_like(lm)), lm)
+        return maski
 
     def obraz(self): return Image.fromarray((np.clip(self.img, 0, 1) * 255 + .5).astype(np.uint8))
     def mapa(self, k): return Image.fromarray(self.mapy[k])
@@ -226,10 +305,11 @@ def tablica_rgba(tekst, w=.52, h=.12, ppm=2400):
     return base
 
 
-def tablica_nowa_rgba(tekst, w=.52, h=.114, ppm=2400):
-    """a plate of today (since 2006): white, black characters, the blue band at the left with PL (no flag drawn)"""
+def tablica_nowa_rgba(tekst, w=.52, h=.114, ppm=2400, tlo=(240, 240, 236)):
+    """a plate of today (since 2006): white, black characters, the blue band at the left with PL (no flag drawn); a
+    historic vehicle's the same on yellow (tlo)"""
     W, H = int(w * ppm), int(h * ppm)
-    im = Image.new("RGBA", (W, H), (240, 240, 236, 255)); d = ImageDraw.Draw(im)
+    im = Image.new("RGBA", (W, H), tuple(tlo) + (255,)); d = ImageDraw.Draw(im)
     d.rectangle([0, 0, W - 1, H - 1], outline=(20, 20, 22, 255), width=max(2, int(.004 * ppm)))
     bw = int(.040 * ppm); d.rectangle([0, 0, bw, H - 1], fill=(0, 51, 153, 255))
     pl, pw, ph = tekst_rgba("PL", h * .22, (240, 240, 236), ppm)

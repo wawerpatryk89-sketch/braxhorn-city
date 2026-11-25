@@ -334,8 +334,12 @@ public static class BraxChampionsBunkier
     }
 
     // the classics: two rows facing the aisle (z 812 +- 6), their fronts on the aisle's lines; the trucks first, the motorcycles last
-    static readonly string[] Poludnie = { "star_zielony", "star_pomaranczowy", "nysa_milicja", "milicja", "polonez_milicja", "bosna", "syrena", "maluch" };
-    static readonly string[] Polnoc = { "fiat125p", "fiat125p_tuning", "polonez", "polonez_tuning", "junak", "jawa", "romet", "komar" };
+    // (owner 25.11 02:15-02:46: his second and third sets join them - the vans, the Warszawa, the Trabants, the tuned 126p)
+    static readonly string[] Poludnie = { "star_zielony", "star_pomaranczowy", "nysa_milicja", "milicja", "polonez_milicja", "bosna", "nysa_bus", "zuk_bus",
+                                          "warszawa_m20", "syrena", "syrena_niebieska", "trabant", "maluch", "fiat125p_granat" };
+    static readonly string[] Polnoc = { "fiat125p", "fiat125p_tuning", "fiat125p_tuning_granat", "polonez", "polonez_caro_zielony", "polonez_tuning", "polonez_tuning_bordo",
+                                        "trabant_tuning_braz", "trabant_tuning_czarny", "maluch_tuning_czerwony", "maluch_tuning_kremowy", "maluch_tuning_szary",
+                                        "junak", "jawa", "wsk", "romet", "komar", "osa" };
     public static readonly List<Vector3> Miejsca = new List<Vector3>();
     static void Klasyki(Transform g)
     {
@@ -344,15 +348,20 @@ public static class BraxChampionsBunkier
         foreach (var (rzad, polnoc) in new[] { (Poludnie, false), (Polnoc, true) })
         {
             // the bays spread evenly along the row (a collection's hall: room round each), each its vehicle's width + 1.5 m
+            // (a motorcycle 1 m) - closer when the row would not fit, never under 0.9 m (0.5 m) between two vehicles
             var lista = new List<(string model, Vector2 wym, float szer)>();
+            float dl = HallX1 - HallX0 - 4f, sumW = 0f, sumG = 0f;
             foreach (var model in rzad)
             {
                 var wym = BraxChampionsKlasyki.Wymiar(model); if (wym.x <= 0f) continue;
-                lista.Add((model, wym, wym.y + (BraxChampionsKlasyki.Typ(model) == "motor" ? 1.0f : 1.5f)));
+                lista.Add((model, wym, wym.y)); sumW += wym.y; sumG += BraxChampionsKlasyki.Typ(model) == "motor" ? 1.0f : 1.5f;
             }
+            float k = sumG > 0f ? Mathf.Clamp((dl - sumW) / sumG, .6f, 1f) : 1f;
+            for (int i = 0; i < lista.Count; i++)
+                lista[i] = (lista[i].model, lista[i].wym, lista[i].wym.y + (BraxChampionsKlasyki.Typ(lista[i].model) == "motor" ? 1.0f : 1.5f) * k);
             float suma = 0f; foreach (var q in lista) suma += q.szer;
-            float luz = lista.Count > 0 ? Mathf.Max(0f, (HallX1 - HallX0 - 4f - suma) / lista.Count) : 0f, x = HallX0 + 2f;
-            if (suma > HallX1 - HallX0 - 4f) BraxBuildQuality.Warn("DO POPRAWKI BUNKIER: the row is " + suma.ToString("F1") + " m wide");
+            float luz = lista.Count > 0 ? Mathf.Max(0f, (dl - suma) / lista.Count) : 0f, x = HallX0 + 2f;
+            if (suma > dl) BraxBuildQuality.Warn("DO POPRAWKI BUNKIER: the row is " + suma.ToString("F1") + " m wide");
             foreach (var (model, wym, szer0) in lista)
             {
                 float szer = szer0 + luz;

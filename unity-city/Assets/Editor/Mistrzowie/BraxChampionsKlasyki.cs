@@ -24,14 +24,17 @@ public static class BraxChampionsKlasyki
     static float K => BraxClaudeOsiedle.K;
 
     [Serializable] sealed class Lod { public string plik; public int trojkaty; }
-    [Serializable] sealed class Czesc { public string nazwa, plik; public float[] pivot; public int trojkaty; public float promien, szerokosc; public Lod[] lody; }
+    [Serializable] sealed class Czesc { public string nazwa, plik, material; public float[] pivot; public int trojkaty; public float promien, szerokosc; public Lod[] lody; }
+    [Serializable] sealed class Mapy { public string kolor, normal, mr; }
     [Serializable] sealed class Szyby { public string plik, rodzaj, otwarte; }
+    [Serializable] sealed class Znaczek { public string znaczek, plik; public float[] pos, rot; }
+    [Serializable] sealed class ZnaczekWzor { public string znaczek, plik, kolor, normal, mr; public float szerokosc; public int trojkaty; }
     [Serializable] sealed class Model
     {
-        public string model, nazwa, typ, wzor, kolor, normal, mr; public Czesc[] czesci; public Szyby szyby;
+        public string model, nazwa, typ, wzor, kolor, normal, mr, swiatla; public Czesc[] czesci; public Szyby szyby; public Znaczek[] znaczki;
         public float dlugosc, szerokosc, wysokosc, rozstaw_osi;
     }
-    [Serializable] sealed class Katalog { public string zrodlo, osie; public Model[] modele; }
+    [Serializable] sealed class Katalog { public string zrodlo, osie; public Model[] modele; public ZnaczekWzor[] znaczki; public Mapy kola; }
 
     public static bool Jest => BraxMiastoAssety.Jest(Paczka);
     public static int Postawione, Jezdne, Trojkaty;
@@ -79,12 +82,65 @@ public static class BraxChampionsKlasyki
         mat.SetFloat("_NormalEncoding", 0f); mat.SetFloat("_Roughness", 1f); mat.SetFloat("_Metallic", 1f); mat.SetFloat("_UseARMForAO", 0f);
         mat.SetFloat("_VertexTint", 0f); mat.SetFloat("_Cull", 0f); mat.SetColor("_Color", Color.white);
         mat.SetVector("_SunDirection", BraxCityMaterials.SunDirection);
+        // its lamps for the night: the light map as the emission, black by day (the shader skips it) - lit by
+        // BraxChampionsSwiatlaKlasykow.Noc when the game's night comes
+        var swiatla = string.IsNullOrEmpty(m.swiatla) ? null : Tekstura(m.swiatla);
+        if (swiatla) { mat.SetTexture("_EmissionMap", swiatla); mat.SetColor("_EmissionColor", Color.black); }
         return materialy[m.model] = Zapisz(mat, "klasyk_" + m.model);
     }
+    // the owner's 3D badges (FSO, the Trabant's S, POLSKI FIAT, FSO POLONEZ): each its own maps, glossy, chrome where it
+    // is chrome (metal kept at 0.6: the city's shade would turn a full metal black)
+    static readonly Dictionary<string, Material> znaczkiMat = new Dictionary<string, Material>();
+    static Material ZnaczekMat(ZnaczekWzor w)
+    {
+        if (znaczkiMat.TryGetValue(w.znaczek, out var mat) && mat) return mat;
+        var kolor = Tekstura(w.kolor); var nrm = Tekstura(w.normal); var arm = Tekstura(w.mr);
+        if (!kolor || !nrm || !arm) throw new InvalidOperationException("badge's maps missing: " + w.znaczek);
+        mat = new Material(Shader.Find(BraxCityMaterials.ShaderName)) { name = "Mistrzowie znaczek " + w.znaczek, enableInstancing = true };
+        mat.SetTexture("_MainTex", kolor); mat.SetTexture("_BumpMap", nrm); mat.SetTexture("_ARM", arm);
+        mat.SetFloat("_NormalEncoding", 0f); mat.SetFloat("_Roughness", 1f); mat.SetFloat("_Metallic", 1f); mat.SetFloat("_UseARMForAO", 0f);
+        mat.SetFloat("_VertexTint", 0f); mat.SetFloat("_Cull", 0f); mat.SetColor("_Color", Color.white);
+        mat.SetVector("_SunDirection", BraxCityMaterials.SunDirection);
+        return znaczkiMat[w.znaczek] = Zapisz(mat, "znaczek_" + w.znaczek);
+    }
+    static void Znaczki(Transform nadwozie, Model m)
+    {
+        if (m.znaczki == null) return;
+        foreach (var z in m.znaczki)
+        {
+            var w = Kat()?.znaczki?.FirstOrDefault(x => x.znaczek == z.znaczek);
+            if (w == null || z.pos == null || z.rot == null || z.pos.Length < 3 || z.rot.Length < 4) continue;
+            var o = new GameObject("znaczek " + z.znaczek); o.transform.SetParent(nadwozie, false);
+            o.transform.localPosition = V(z.pos) * K; o.transform.localRotation = new Quaternion(z.rot[0], z.rot[1], z.rot[2], z.rot[3]);
+            o.transform.localScale = Vector3.one * K;
+            o.AddComponent<MeshFilter>().sharedMesh = Siatka(w.plik);
+            var r = o.AddComponent<MeshRenderer>(); r.sharedMaterial = ZnaczekMat(w); r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = true;
+            // a few centimetres: drawn only near (2 % of the screen's height)
+            var lg = o.AddComponent<LODGroup>(); lg.SetLODs(new[] { new LOD(.02f, new Renderer[] { r }) }); lg.RecalculateBounds();
+            Trojkaty += w.trojkaty;
+        }
+    }
+
+    // the new wheels (a rubber tyre, the car's kind of rim: one atlas for all) - their own material
+    static Material kolaMat;
+    static Material KolaMat()
+    {
+        if (kolaMat) return kolaMat;
+        var k = Kat()?.kola; if (k == null) return null;
+        var kolor = Tekstura(k.kolor); var nrm = Tekstura(k.normal); var arm = Tekstura(k.mr);
+        if (!kolor || !nrm || !arm) throw new InvalidOperationException("the wheels' maps missing");
+        var mat = new Material(Shader.Find(BraxCityMaterials.ShaderName)) { name = "Mistrzowie klasyki koła", enableInstancing = true };
+        mat.SetTexture("_MainTex", kolor); mat.SetTexture("_BumpMap", nrm); mat.SetTexture("_ARM", arm);
+        mat.SetFloat("_NormalEncoding", 0f); mat.SetFloat("_Roughness", 1f); mat.SetFloat("_Metallic", 1f); mat.SetFloat("_UseARMForAO", 0f);
+        mat.SetFloat("_VertexTint", 0f); mat.SetFloat("_Cull", 0f); mat.SetColor("_Color", Color.white);
+        mat.SetVector("_SunDirection", BraxCityMaterials.SunDirection);
+        return kolaMat = Zapisz(mat, "klasyki_kola");
+    }
+
     static Material szybaCiemna, szybaJasna;
     // the painted windows (no inside behind them): dark tinted glass, glossy, opaque; the new panes in open windows: the
     // period's faintly green glass, see-through
-    static Material SzybaCiemna => szybaCiemna ? szybaCiemna : szybaCiemna = BraxChampionsHarbour.Surface("klasyki_szyba_przyciemniana", new Color(.035f, .045f, .05f), .06f, 0f);
+    static Material SzybaCiemna => szybaCiemna ? szybaCiemna : szybaCiemna = BraxChampionsHarbour.Surface("klasyki_szyba_przyciemniana", new Color(.10f, .125f, .15f), .05f, 0f);
     static Material SzybaJasna => szybaJasna ? szybaJasna : szybaJasna = BraxChampionsHarbour.Surface("klasyki_szyba", new Color(.50f, .60f, .58f, .26f), .04f, .05f, null, true);
 
     // a part's mesh from the pack's .glb (glTFast), with tangents (the normal map needs them; a copy if the import has none)
@@ -137,7 +193,10 @@ public static class BraxChampionsKlasyki
 
     // the top speeds of the time (km/h) - the game's pace kept, the maluch still the slowest car
     static float VMax(Model m) =>
-        m.typ == "ciezarowka" ? 85f : m.model == "maluch" ? 115f : m.model.Contains("tuning") ? 190f : m.model == "syrena" || m.model == "nysa_milicja" ? 115f : 150f;
+        m.typ == "ciezarowka" ? 85f : m.model.StartsWith("maluch") ? (m.model.Contains("tuning") ? 140f : 115f)
+        : m.model.StartsWith("trabant") ? (m.model.Contains("tuning") ? 130f : 105f)
+        : m.model == "warszawa_m20" ? 105f : m.model == "nysa_bus" || m.model == "zuk_bus" ? 100f
+        : m.model.Contains("tuning") ? 190f : m.model.StartsWith("syrena") || m.model == "nysa_milicja" ? 115f : 150f;
 
     /// <summary>A classic at p (nominal metres; its wheels on p's height), facing yaw; a car or a truck driveable. Null
     /// without the pack.</summary>
@@ -163,7 +222,7 @@ public static class BraxChampionsKlasyki
                 var kolo = piasta;
                 if (przod && !motor) { kolo = new GameObject("koło " + c.nazwa).transform; kolo.SetParent(piasta, false); skretne.Add(piasta); }
                 toczace.Add(kolo);
-                tri += Czesci(kolo, c, mat, c.plik);
+                tri += Czesci(kolo, c, c.material == "kola" && KolaMat() ? KolaMat() : mat, c.plik);
             }
             else if (c.nazwa == "korpus") korpus = c;
         }
@@ -173,6 +232,12 @@ public static class BraxChampionsKlasyki
         if (m.szyby != null && !string.IsNullOrEmpty(m.szyby.plik)) szklo.Add(Szklo(nadwozie, m.szyby.plik, SzybaCiemna, "szyby (przyciemniane)"));
         if (m.szyby != null && !string.IsNullOrEmpty(m.szyby.otwarte)) szklo.Add(Szklo(nadwozie, m.szyby.otwarte, SzybaJasna, "szyby (nowe, w otwartych oknach)"));
         tri += Czesci(nadwozie, korpus, mat, korpus.plik, szklo);
+        Znaczki(nadwozie, m);
+        if (mat.GetTexture("_EmissionMap"))
+        {
+            var sw = root.AddComponent<BraxChampionsSwiatlaKlasykow>();
+            sw.rendery = root.GetComponentsInChildren<Renderer>(true).Where(r => r.sharedMaterial == mat).ToArray();
+        }
         Trojkaty += tri; Postawione++;
         // its box (glTFast's x is negated: the vehicle's left is Unity's -x)
         var srodek = new Vector3(0f, m.wysokosc * .5f, 0f) * K; var rozmiar = new Vector3(m.szerokosc, m.wysokosc, m.dlugosc) * K;
@@ -200,7 +265,7 @@ public static class BraxChampionsKlasyki
         car.braking = (m.typ == "ciezarowka" ? 7f : 10f) * K; car.coastDecel = 4.5f * K;
         car.interactionRadius = 3.8f * K;
         var audio = new GameObject("BRAXHORN engine audio 3D anchor").transform; audio.SetParent(root.transform, false);
-        audio.localPosition = new Vector3(0f, m.wysokosc * .4f, m.dlugosc * (m.model == "maluch" ? -.36f : .32f)) * K;   // the maluch's engine at its back
+        audio.localPosition = new Vector3(0f, m.wysokosc * .4f, m.dlugosc * (m.model.StartsWith("maluch") ? -.36f : .32f)) * K;   // the maluch's engine at its back
         car.engineAudioAnchor = audio;
         car.engineIdleClip = AssetDatabase.LoadAssetAtPath<AudioClip>(BraxChampionsCarBuilder.EngineIdleAudio);
         car.engineRevClip = AssetDatabase.LoadAssetAtPath<AudioClip>(BraxChampionsCarBuilder.EngineRevAudio);

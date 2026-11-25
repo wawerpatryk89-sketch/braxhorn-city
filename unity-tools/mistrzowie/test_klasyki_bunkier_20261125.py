@@ -4,6 +4,8 @@
 """
 import json
 import re
+
+import numpy as np
 import sys
 import unittest
 from pathlib import Path
@@ -27,7 +29,9 @@ class Narzedzie(unittest.TestCase):
         self.PK, self.P = PK, przepisy
 
     def test_kazdy_pojazd_ma_przepis_i_wymiary(self):
-        self.assertEqual(len(self.PK.MODELE), 16)
+        # 16 of the first three zips, 11 cars of the second set (02:15), 5 of the third (02:46: Warszawa, Nysa, Żuk, Osa,
+        # WSK); the duplicate 125p left out
+        self.assertEqual(len(self.PK.MODELE), 32)
         ids = [m["id"] for m in self.PK.MODELE.values()]
         self.assertEqual(len(ids), len(set(ids)))
         for name, m in self.PK.MODELE.items():
@@ -36,7 +40,37 @@ class Narzedzie(unittest.TestCase):
             self.assertIn(m["os"], ("x", "z"))
             # real lengths: a moped 1.7 m to a Star truck 6.5 m
             self.assertTrue(1.7 <= m["dl"] <= 6.6, name)
+            if m["typ"] != "motor": self.assertIn(name, self.P.REFLEKTORY, name)   # its headlamps for the night
             if m["typ"] != "motor": self.assertIn(m["szyby"], ("malowane", "otwarte"), name)
+
+    def test_lakiery_szyby_swiatla_znaczki(self):
+        """owner 25.11 02:14-03:02: the paint renewed (a new coat keeping the light and shade, glossy, never black metal),
+        the windows straight with their rubber, every old car its black plate, the lamps lit at night, his 3D badges on"""
+        import tekstura as T
+        self.assertTrue(hasattr(T.Model, "lakiery")); self.assertTrue(hasattr(T.Model, "lampa")); self.assertTrue(hasattr(T.Model, "reflektor"))
+        src = (KL / "przepisy.py").read_text(); pk = (KL / "przygotuj_klasyki.py").read_text()
+        self.assertIn("def _bez_metalu", src); self.assertIn("przepisy._bez_metalu(", pk)
+        self.assertIn("def mapa_swiatel", pk); self.assertIn("_swiatla.jpg", pk)
+        # the old cars' plates black: today's white only on the food van of today
+        self.assertEqual(re.findall(r'nowa=(True|"zabytkowa")', src), ["True"])
+        for zn, Z in self.PK.ZNACZKI.items():
+            self.assertTrue(.05 <= Z["szer"] <= .30 and Z["gleb"] <= .01, zn)
+        for auto, lst in self.P.ZNACZKI_NA_AUTACH.items():
+            self.assertIn(auto, self.PK.MODELE)
+            for zn, widok, u, v in lst: self.assertIn(zn, self.PK.ZNACZKI); self.assertIn(widok, ("F", "T"))
+
+    def test_nowe_kola(self):
+        """owner 03:25: every car's wheels new - a rubber tyre and a proper rim, at the car's real tyre size"""
+        import kola as KO
+        for name, m in self.PK.MODELE.items():
+            if m["typ"] == "motor": continue
+            styl, cale, szer, kolor = self.PK.KOLA[name]
+            self.assertIn(kolor, KO.PLATY); self.assertTrue(12 <= cale <= 20 and .12 <= szer <= .25, name)
+            P, N, U, I = KO.kolo(m["R"], szer, cale, styl, kolor)
+            self.assertLess(len(I), 6000, name)
+            self.assertAlmostEqual(float(np.hypot(P[:, 1], P[:, 2]).max()), m["R"], delta=.003)   # stands on its radius
+            self.assertLessEqual(float(P[:, 0].max() - P[:, 0].min()), szer * 1.02)
+            self.assertTrue(((U >= 0) & (U <= 1)).all())
 
     def test_tablice_z_epoki(self):
         """1976-2000: private 3 letters + 4 digits, state 3 letters + 3 digits + a letter, the militia MO + 4 digits; the
@@ -86,7 +120,11 @@ class Paczka(unittest.TestCase):
         for part in m["parts"]: self.assertLessEqual(part["bytes"], 90 * 1024 * 1024)
         lib = [f for f in m["files"] if f.startswith("pojazdy_klasyki_01/")]
         self.assertIn("pojazdy_klasyki_01/katalog.json", lib)
-        self.assertEqual(len([f for f in m["files"] if f.startswith("oryginal/")]), 16)
+        self.assertEqual(len([f for f in m["files"] if f.startswith("oryginal/")]), 32 + 4)
+        for zn in ("fso", "trabant_s", "polski_fiat", "fso_polonez"):
+            self.assertIn("pojazdy_klasyki_01/znaczek_%s.glb" % zn, lib)
+        for model in ("trabant", "warszawa_m20", "maluch_tuning_czerwony"):
+            self.assertIn("pojazdy_klasyki_01/_tekstury/klasyk_%s_swiatla.jpg" % model, lib)
         for model in ("maluch", "syrena", "fiat125p", "polonez", "star_zielony", "junak"):
             self.assertIn("pojazdy_klasyki_01/klasyk_%s_korpus.glb" % model, lib)
             self.assertIn("pojazdy_klasyki_01/_tekstury/klasyk_%s_kolor.jpg" % model, lib)
@@ -108,6 +146,13 @@ class Unity(unittest.TestCase):
         self.assertIn("car.rollingWheels = toczace.ToArray(); car.steeringWheels = skretne.ToArray();", k)
         self.assertIn('_Cull", 0f', k)                                       # Tripo's thin shells: both sides
         self.assertIn("SzybaCiemna", k); self.assertIn("SzybaJasna", k)
+        # the lamps at night (the light map as the emission, black by day) and the owner's badges on the body
+        self.assertIn('mat.SetTexture("_EmissionMap", swiatla)', k); self.assertIn("AddComponent<BraxChampionsSwiatlaKlasykow>()", k)
+        self.assertIn("Znaczki(nadwozie, m);", k)
+        self.assertIn('c.material == "kola"', k); self.assertIn("public Mapy kola;", k)
+        sw = (ROOT / "unity-city/Assets/Mistrzowie/BraxChampionsSwiatlaKlasykow.cs").read_text()
+        self.assertIn("public static bool Noc", sw); self.assertIn("MaterialPropertyBlock", sw)
+        self.assertTrue((ROOT / "unity-city/Assets/Mistrzowie/BraxChampionsSwiatlaKlasykow.cs.meta").exists())
         for f in ("BraxChampionsKlasyki.cs.meta", "BraxChampionsBunkier.cs.meta"): self.assertTrue((ED / f).exists())
 
     def test_bunkier_w_torze(self):
@@ -132,6 +177,11 @@ class Unity(unittest.TestCase):
         self.assertIn("Podloga + .3f) - .1f", b)
         # the hall's roof under the ground: the floor lowered if it would not be
         self.assertIn("nad - (HallH + Strop + 1.5f)", b)
+
+    def test_wszystkie_klasyki_w_bunkrze(self):
+        import przygotuj_klasyki as PK
+        rzedy = re.findall(r'"([a-z0-9_]+)"', self.bu[self.bu.index("Poludnie ="):self.bu.index("public static readonly List<Vector3> Miejsca")])
+        self.assertEqual(sorted(rzedy), sorted(PK.MODELE))
 
     def test_droga_nie_przecina_toru(self):
         """the forest road's knots keep 10 m from the woods' trail (its corners) and inside the west fence (x -504)"""

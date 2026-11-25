@@ -19,7 +19,8 @@ Each Tripo export is ONE fused mesh in its own units, with one 2048 atlas. Per v
         smeared beside it taken back to the paint;
       * open windows (Tripo left the openings, the inside modelled): new panes are built in each opening - the frame's
         surface fitted round it, the pane 1.5 cm inside it, tucked 2 cm under the frame - drawn transparent;
-  - cuts the wheels so they roll: the faces inside the tyre's cylinder and outside its inner sidewall, connected to the
+  - gives the cars new wheels (kola.py: a real rubber tyre and the car's kind of rim, at its real size) where Tripo's
+    stood, cut out the same way first: the faces inside the tyre's cylinder and outside its inner sidewall, connected to the
     tread, each wheel with its pivot at its hub (the centre of its own faces' box, so it spins without wobble); a car's
     front wheels also steer; a truck's rear twin tyres are one wheel; a motorcycle has two in its middle plane;
   - fills the atlas' gutters from the nearest painted texel (no seam of the old paint shows);
@@ -55,6 +56,7 @@ sys.path.insert(1, str(Path(__file__).resolve().parents[1] / "klady"))
 import przygotuj_klady as KL                                     # noqa: E402  (read_glb, zapisz_glb, uprosc)
 import tekstura as T                                             # noqa: E402
 import przepisy                                                  # noqa: E402  (the per-vehicle texture recipes)
+import kola as KO                                                # noqa: E402  (the new wheels)
 
 TARGET = "pojazdy_klasyki_01"
 ROOT = Path(__file__).resolve().parents[3]
@@ -95,9 +97,71 @@ MODELE = {
                   wzor="Romet motorower (1780 mm)", szyby=None),
     "junak": dict(id="f120e989", nazwa="JUNAK M10", os="x", dl=2.172, typ="motor", wb=1.417, R=.33,
                   wzor="Junak M10 (2172 mm, rozstaw osi 1417 mm; 3.25-19)", szyby=None),
+    # the owner's second set (25.11 02:15, his pictures of each as it should look: the paint, the wheels, the stance)
+    # the third set (25.11 02:46: "Warszawa powinna być, Nysa powinna być, taki polski skuter i taki motor, i żuk")
+    "warszawa_m20": dict(id="ced1c391", nazwa="WARSZAWA M20", os="z", dl=4.665, typ="auto", wb=2.70, R=.35, zagesc=1,
+                         wzor="FSO Warszawa M20 (4665 x 1695 mm, rozstaw osi 2700 mm; 6.00-16)", szyby="otwarte"),
+    "nysa_bus": dict(id="21c28b0b", nazwa="NYSA 522", os="z", dl=4.40, typ="auto", wb=2.70, R=.35, zagesc=1,
+                     wzor="FSD Nysa 522 mikrobus (rozstaw osi 2700 mm jak Warszawa; 6.50-16)", szyby="malowane"),
+    "zuk_bus": dict(id="a30f579c", nazwa="ŻUK A07", os="z", dl=4.45, typ="auto", wb=2.70, R=.35, zagesc=1,
+                    wzor="FSC Żuk A07 mikrobus (dł. ok. 4450 mm jak A11, rozstaw osi 2700 mm; 6.50-16)", szyby="otwarte"),
+    "wsk": dict(id="488c456e", nazwa="WSK M06", os="x", dl=2.06, typ="motor", wb=1.29, R=.31, zagesc=1,
+                wzor="WSK M06 (2060 mm, rozstaw osi 1290 mm; 2.75-19)", szyby=None),
+    "osa": dict(id="a2862697", nazwa="OSA", os="z", dl=1.88, typ="motor", wb=1.28, R=.25, zagesc=1,
+                wzor="WFM Osa M50 (1880 mm, rozstaw osi 1280 mm; 3.25x14)", szyby=None),
+    "trabant": dict(id="5d43f9a5", nazwa="TRABANT 601", os="z", dl=3.555, typ="auto", wb=2.02, R=.29, zagesc=1,
+                    wzor="Trabant 601 (3555 x 1505 mm, rozstaw osi 2020 mm; 5.20-13)", szyby="malowane"),
+    "trabant_tuning_braz": dict(id="c53e1881", nazwa="TRABANT TUNING", os="z", dl=3.555, typ="auto", wb=2.02, R=.29, zagesc=1,
+                                wzor="Trabant 601 (rozstaw osi 2020 mm), tuning", szyby="otwarte"),
+    "trabant_tuning_czarny": dict(id="0d66af0c", nazwa="TRABANT TUNING", os="z", dl=3.555, typ="auto", wb=2.02, R=.29, uprosc=90000,
+                                  wzor="Trabant 601 (rozstaw osi 2020 mm), tuning", szyby="otwarte"),
+    "syrena_niebieska": dict(id="10b153a8", nazwa="SYRENA 105", os="x", dl=4.03, typ="auto", wb=2.30, R=.33, zagesc=1,
+                             wzor="FSO Syrena 105 (4030 x 1500 mm, rozstaw osi 2300 mm; 5.60-15)", szyby="otwarte"),
+    "fiat125p_granat": dict(id="4fe033dc", nazwa="FIAT 125p", os="x", dl=4.23, typ="auto", wb=2.505, R=.30, zagesc=1,
+                            wzor="Polski Fiat 125p (4230 x 1630 mm, rozstaw osi 2505 mm; 175 R13)", szyby="otwarte"),
+    "fiat125p_tuning_granat": dict(id="4fdf91bf", nazwa="FIAT 125p TUNING", os="z", dl=4.23, typ="auto", wb=2.505, R=.30,
+                                   wzor="Polski Fiat 125p (rozstaw osi 2505 mm), tuning", szyby="malowane"),
+    "polonez_caro_zielony": dict(id="3434bdde", nazwa="POLONEZ CARO PLUS", os="z", dl=4.318, typ="auto", wb=2.509, R=.295,
+                                 wzor="FSO Polonez Caro Plus (4318 x 1650 mm, rozstaw osi 2509 mm; 185/70 R13)", szyby="otwarte"),
+    "polonez_tuning_bordo": dict(id="381e5709", nazwa="POLONEZ TUNING", os="z", dl=4.272, typ="auto", wb=2.509, R=.30, zagesc=1,
+                                 wzor="FSO Polonez (rozstaw osi 2509 mm), tuning", szyby="malowane"),
+    "maluch_tuning_czerwony": dict(id="2b84a185", nazwa="FIAT 126p TUNING", os="z", dl=3.054, typ="auto", wb=1.84, R=.27,
+                                   wzor="Polski Fiat 126p (rozstaw osi 1840 mm), tuning", szyby="otwarte"),
+    "maluch_tuning_kremowy": dict(id="5e05033f", nazwa="FIAT 126p TUNING", os="x", dl=3.054, typ="auto", wb=1.84, R=.27, zagesc=1,
+                                  wzor="Polski Fiat 126p (rozstaw osi 1840 mm), tuning", szyby="otwarte"),
+    "maluch_tuning_szary": dict(id="6416e8df", nazwa="FIAT 126p TUNING", os="z", dl=3.054, typ="auto", wb=1.84, R=.27,
+                                wzor="Polski Fiat 126p (rozstaw osi 1840 mm), tuning", szyby="otwarte"),
 }
-SZKLO = (9, 12, 14)          # the tinted car glass seen from outside (sRGB): the glass part's own colour in the game too
+SZKLO = (26, 32, 38)         # the tinted car glass seen from outside (sRGB): the glass part's own colour in the game too
 USZCZELKA = (17, 17, 19)     # the black rubber seal round a window
+
+# the new wheels (kola.py; owner 25.11 03:25: Tripo's wheels out, "ma być guma normalnie, felga, jak powinno być"): the rim,
+# its diameter (in), the tyre's width (m), the rim's colour - by the car's real tyre and the owner's pictures; the
+# motorcycles keep theirs (spoked, on their stands)
+KOLA = {
+    "milicja": ("stalowa", 14, .175, "srebrny"), "maluch": ("stalowa", 12, .135, "srebrny"), "syrena": ("stalowa", 15, .145, "bialy"),
+    "bosna": ("stalowa", 15, .215, "srebrny"), "fiat125p": ("stalowa", 13, .175, "srebrny"), "polonez": ("stalowa", 13, .175, "srebrny"),
+    "fiat125p_tuning": ("siatka", 15, .195, "zloty"), "polonez_tuning": ("ramiona", 15, .205, "zloty"),
+    "polonez_milicja": ("stalowa", 13, .175, "srebrny"), "nysa_milicja": ("stalowa", 16, .165, "srebrny"),
+    "star_zielony": ("ciezarowa", 20, .24, "grafit"), "star_pomaranczowy": ("ciezarowa", 20, .24, "grafit"),
+    "trabant": ("stalowa", 13, .132, "bialy"), "trabant_tuning_braz": ("siatka", 15, .195, "chrom"),
+    "trabant_tuning_czarny": ("ramiona", 15, .195, "srebrny"), "syrena_niebieska": ("stalowa", 15, .145, "bialy"),
+    "fiat125p_granat": ("ramiona", 14, .195, "srebrny"), "fiat125p_tuning_granat": ("ramiona", 16, .215, "grafit"),
+    "polonez_caro_zielony": ("stalowa", 13, .185, "srebrny"), "polonez_tuning_bordo": ("ramiona", 16, .215, "grafit"),
+    "maluch_tuning_czerwony": ("ramiona5", 13, .175, "srebrny"), "maluch_tuning_kremowy": ("ramiona5", 13, .185, "bialy"),
+    "maluch_tuning_szary": ("ramiona5", 13, .195, "bialy"), "warszawa_m20": ("stalowa", 16, .155, "kremowy"),
+    "nysa_bus": ("stalowa", 16, .165, "bialy"), "zuk_bus": ("stalowa", 16, .165, "srebrny"),
+}
+
+# the owner's badges from Tripo (25.11 02:16: "Ja ci wysłałem znaczki w 3D ... możesz tylko tam poprawiać delikatnie,
+# odmalować"): their real width (m), the depth they stand off the body at most, how they are repainted - chrome (the
+# light parts silver, glossy), or kept (black with chrome or white letters, only made glossy)
+ZNACZKI = {
+    "fso": dict(id="5c93fe61", szer=.080, wys=.080, gleb=.007, farba="chrom"),
+    "trabant_s": dict(id="77939a01", szer=.072, wys=.072, gleb=.008, farba="chrom"),
+    "polski_fiat": dict(id="91d4daa7", szer=.110, wys=.050, gleb=.005, farba="jak_jest"),
+    "fso_polonez": dict(id="b3f304c1", szer=.260, wys=.047, gleb=.006, farba="jak_jest"),
+}
 # the far versions: the body at 30 % / 12 % of its triangles, a wheel at 35 % / 15 % (the glass is a few panes: none)
 LODY = {"korpus": (.30, .12), "kolo": (.35, .15)}
 
@@ -164,7 +228,40 @@ def wczytaj(path, m):
     if m.get("uprosc") and len(I) > m["uprosc"] * 1.5:                           # a 2-million-triangle source
         P2, N2, U2, I2 = KL.uprosc(P, I, U, m["uprosc"])
         P, N, U, I = P2, N2, U2, I2.astype(np.int64)
+    for _ in range(m.get("zagesc", 0)):                                          # a low-poly source: its faces quartered
+        P, N, U, I = zagesc(P, N, U, I)
     return dict(P=P, N=N, U=U, I=I, skala=s, base=base, normal=normal.convert("RGB"), mr=mr.convert("RGB"))
+
+
+def zagesc(P, N, U, I):
+    """every face into four at its edges' middles (an edge's middle once for the faces sharing its two vertices; the UV
+    and the normal halfway too): a Tripo export of 19 thousand faces has panels of a decimetre or two - seen from a side
+    the far side's inside would pass as the near side, a window's edge would zigzag, a wheel's cut be coarse"""
+    a, b, c = I[:, 0], I[:, 1], I[:, 2]
+    kr = np.concatenate([np.stack([a, b], 1), np.stack([b, c], 1), np.stack([c, a], 1)])
+    kr = np.sort(kr, 1); uniq, inv = np.unique(kr, axis=0, return_inverse=True); inv = inv.ravel()
+    n0 = len(P); mid = n0 + inv; nf = len(I)
+    mab, mbc, mca = mid[:nf], mid[nf:2 * nf], mid[2 * nf:]
+    P2 = np.concatenate([P, (P[uniq[:, 0]] + P[uniq[:, 1]]) / 2])
+    Nm = N[uniq[:, 0]] + N[uniq[:, 1]]; Nm /= np.maximum(np.linalg.norm(Nm, axis=1, keepdims=True), 1e-12)
+    N2 = np.concatenate([N, Nm]); U2 = np.concatenate([U, (U[uniq[:, 0]] + U[uniq[:, 1]]) / 2])
+    I2 = np.concatenate([np.stack([a, mab, mca], 1), np.stack([mab, b, mbc], 1), np.stack([mca, mbc, c], 1), np.stack([mab, mbc, mca], 1)])
+    return P2, N2, U2, I2
+
+
+def odchudz(P, N, U, I, part, budzet):
+    """each part back to its budget of faces (MeshLab with the texture, its boundary kept: the cut between the body and a
+    wheel stays where it was) - after the work done on the quartered faces"""
+    P2, N2, U2, I2, part2 = [], [], [], [], []; n = 0
+    for pv in np.unique(part):
+        f = np.nonzero(part == pv)[0]; cel = budzet.get("kolo" if pv > 0 else "szyby" if pv < 0 else "korpus", 90000)
+        if len(f) > cel * 1.3:
+            p, nn, u, t = KL.uprosc(P, I[f], U, cel); t = t.astype(np.int64)
+        else:
+            used = np.unique(I[f]); rm = -np.ones(len(P), np.int64); rm[used] = np.arange(len(used))
+            p, nn, u, t = P[used], N[used], U[used], rm[I[f]]
+        P2.append(p); N2.append(nn); U2.append(u); I2.append(t + n); part2.append(np.full(len(t), pv)); n += len(p)
+    return np.concatenate(P2), np.concatenate(N2), np.concatenate(U2), np.concatenate(I2), np.concatenate(part2)
 
 
 def sasiedztwo(P, I):
@@ -269,7 +366,7 @@ def zaokraglij(obrys, r=.03, n=6):
     return np.array(out)
 
 
-def szyby_malowane(mod, okna, farby, cien=.10, krok=.01, przyciemniane=True):
+def szyby_malowane(mod, okna, farby, cien=.10, krok=.01, przyciemniane=True, prostokatne=False):
     """the painted glass: in each window box (view, u0, u1, v0, v1) the faces seen there (both of Tripo's layers) whose
     colour is not the body's paint and not the black rubber round the glass - then the window made whole in the view
     (its gaps closed over 4 cm, its holes filled: Tripo's light streaks and reflections in the glass are glass too) - or
@@ -311,6 +408,13 @@ def szyby_malowane(mod, okna, farby, cien=.10, krok=.01, przyciemniane=True):
         for i in range(1, n + 1):
             yx = np.argwhere(lab == i)
             if len(yx) * krok * krok < .02: continue
+            if prostokatne:
+                # a van's or a truck's window is a rectangle with rounded corners: its rows and columns where the
+                # window covers most of them (Tripo's smears along an edge left out), the corners 3 cm round
+                cm = lab == i; rows = cm.sum(1); cols = cm.sum(0)
+                rr = np.nonzero(rows > .5 * rows.max())[0]; cc = np.nonzero(cols > .5 * cols.max())[0]
+                a_u, b_u = g0 + (cc[0] + .5) * krok, g0 + (cc[-1] + .5) * krok; a_v, b_v = h1 - (rr[-1] + .5) * krok, h1 - (rr[0] + .5) * krok
+                kadluby.append(zaokraglij([(a_u, b_v), (b_u, b_v), (b_u, a_v), (a_u, a_v)], r=.03)); continue
             h = cv2.convexHull(yx[:, ::-1].astype(np.float32)).reshape(-1, 2)
             kadluby.append(np.stack([g0 + (h[:, 0] + .5) * krok, h1 - (h[:, 1] + .5) * krok], -1))
         # or the window's outline measured off the model's own painting (its frame, the vent's post): exactly that
@@ -526,6 +630,16 @@ def szyba_otwarta(mod, widok, box, krok=.01, wglab=.015, zakladka=2, prog=.05, m
             Lr = ndimage.uniform_filter1d(Lr, 9, mode="nearest"); Rr = ndimage.uniform_filter1d(Rr, 9, mode="nearest")
             jg = np.arange(nu)[None, :]; t = np.clip((jg - J0[:, None]) / np.maximum(J1 - J0, 1)[:, None], 0, 1)
             Z = np.where(keep, Lr[:, None] + (Rr - Lr)[:, None] * t, Z)
+            # a windscreen or a back window is near a plane: the pane kept within 5 cm of the plane fitted (robustly)
+            # through it - a pillar's flank reaching back at a row's end would otherwise drag a wedge out behind the roof
+            ii, jj = np.nonzero(keep & np.isfinite(Z))
+            if len(ii) > 30:
+                A = np.stack([np.ones(len(ii)), ii, jj], 1).astype(float); y = Z[ii, jj]; ok_p = np.ones(len(y), bool)
+                for _ in range(4):
+                    k_ = np.linalg.lstsq(A[ok_p], y[ok_p], rcond=None)[0]; r_ = np.abs(y - A @ k_)
+                    ok_p = r_ < max(.02, 2.5 * np.median(r_[ok_p]))
+                pl = k_[0] + k_[1] * np.arange(nv)[:, None] + k_[2] * np.arange(nu)[None, :]
+                Z = np.where(keep, np.clip(Z, pl - .05, pl + .05), Z)
     elif ram.sum() >= 12:
         wsp = keep | ram
         for _ in range(600):
@@ -578,14 +692,18 @@ def przygotuj_model(name, m, src, out, podglad=None):
     d = wczytaj(znajdz(src, m["id"]), m)
     P, N, U, I = d["P"], d["N"], d["U"], d["I"]
     mod = T.Model(P, I, U, d["base"], d["normal"], d["mr"])
+    try: mod.kola = kola_wstepnie(P, m)                         # where the wheels stand (a recipe keeps its paint off them)
+    except SystemExit: mod.kola = []
     przepis = przepisy.PRZEPISY.get(name)
     info = przepis(mod) if przepis else {}
     info = info or {}
+    przepisy._bez_metalu(mod, przepisy._maska(mod, info.get("okna", ())))  # a body never metal-black in the city's shade
     log = list(mod.log)
     # the glass
     szklo = np.zeros(len(I), bool); panes = []
     if info.get("okna"):
-        szklo = szyby_malowane(mod, info["okna"], info.get("farby_okien", info.get("farby", [])), przyciemniane=info.get("przyciemniane", True))
+        szklo = szyby_malowane(mod, info["okna"], info.get("farby_okien", info.get("farby", [])), przyciemniane=info.get("przyciemniane", True),
+                               prostokatne=info.get("okna_prostokatne", False))
         if info.get("szyby_w_teksturze"): szklo[:] = False       # a low-poly van: decimetre faces would zigzag the edge
         log.append("szyby malowane: %d faces" % szklo.sum())
     if info.get("otwory"):
@@ -594,11 +712,18 @@ def przygotuj_model(name, m, src, out, podglad=None):
             r = szyba_otwarta(mod, widok, box, **(o[2] if len(o) > 2 else {}))
             if r is None: log.append("szyba %s %s: no opening found" % (widok, box)); continue
             panes.append(r); log.append("szyba %s %s: %.2f m2, %d tris" % (widok, box, r[3], len(r[2])))
+    znaczki = []
+    for zn, widok, uc, vc in przepisy.ZNACZKI_NA_AUTACH.get(name, []):
+        z = osadz_znaczek(mod, zn, widok, uc, vc)
+        if z: znaczki.append(z); log.append("znaczek %s %s (%.2f, %.2f): wystaje %.1f mm" % (zn, widok, uc, vc, ZNACZKI[zn]["gleb"] * 1000))
+    for lam in przepisy.REFLEKTORY.get(name, []): mod.reflektor("F", *lam)
+    mapa_swiatel(mod, m, log, info.get("farby", ()))
     # the body on its own centre line (a Tripo model can stand off it; the recipes read the views as they are): moved
     cx = (P[:, 0].max() + P[:, 0].min()) / 2
     if abs(cx) > .005:
         P[:, 0] -= cx
         panes = [(p[0] - np.array([cx, 0, 0]),) + tuple(p[1:]) for p in panes]
+        for z in znaczki: z["pos"][0] -= cx
         log.append("środek: przesunięty o %.3f m w x" % -cx)
     # the wheels (the glass and the body first: a wheel never takes glass)
     FF = sasiedztwo(P, I)
@@ -609,18 +734,148 @@ def przygotuj_model(name, m, src, out, podglad=None):
         for i, k in enumerate(kola): zmaz_opone(mod, part == i + 1, k, info["opony"])
         log += [l for l in mod.log[-len(kola):]]
     dopelnij_szwy(mod, U, I, log)
+    nowe_kola = np.zeros(0, bool)
+    if m.get("zagesc"):
+        n0 = len(I); P, N, U, I, part = odchudz(P, N, U, I, part, {"korpus": m.get("trojkaty", 90000), "kolo": 3500, "szyby": 12000})
+        mod.P, mod.I, mod.U = P, I, U
+        log.append("odchudzony: %d -> %d trójkątów" % (n0, len(I)))
+    if name in KOLA and m["typ"] != "motor":
+        # Tripo's wheels out, each a new one at its hub: its tyre's outer face where Tripo's was (flush with the arch)
+        styl, cale, szer, kolor = KOLA[name]
+        stare = part > 0; P2, N2, U2, I2, pa = [P], [N], [U], [I[~stare]], [part[~stare]]; n = len(P)
+        for i, k in enumerate(kola):
+            sg = 1.0 if k["hx"] > 0 else -1.0
+            hx = sg * max(abs(k["hx"]) + k["szer"] / 2 - szer / 2, szer / 2)
+            wp, wn, wu, wi = KO.kolo(k["R"], szer, cale, styl, kolor)
+            wp, wn, wu, wi = KO.zamontuj(wp, wn, wu, wi, hx, k["hy"], k["hz"], sg < 0)
+            P2.append(wp); N2.append(wn); U2.append(wu); I2.append(wi + n); pa.append(np.full(len(wi), i + 1)); n += len(wp)
+            k["hx"], k["szer"] = hx, szer
+        P, N, U, I, part = np.concatenate(P2), np.concatenate(N2), np.concatenate(U2), np.concatenate(I2), np.concatenate(pa)
+        nowe_kola = part > 0
+        log.append("koła nowe: %s %d\" %.0f mm, %s (%d trójkątów każde)" % (styl, cale, szer * 1000, kolor, int((part == 1).sum())))
     nazwy = []
     for k in kola:
         if k["bok"] == 0: nazwy.append("kolo_przod" if k["pol"] > 0 else "kolo_tyl")
         else: nazwy.append("kolo_%s_%s" % ("przod" if k["pol"] > 0 else "tyl", "lewe" if k["bok"] > 0 else "prawe"))
-    return dict(name=name, m=m, P=P, N=N, U=U, I=I, mod=mod, part=part, kola=kola, nazwy=nazwy, panes=panes, info=info, log=log, skala=d["skala"])
+    return dict(name=name, m=m, P=P, N=N, U=U, I=I, mod=mod, part=part, kola=kola, nazwy=nazwy, panes=panes, info=info, log=log, skala=d["skala"],
+                znaczki=znaczki, nowe_kola=nowe_kola)
+
+
+def osadz_znaczek(mod, zn, widok, uc, vc):
+    """where a badge sits (glTF metres, the body's own): its centre on the body's surface at (uc, vc) in the view (the
+    front-most surface there), turned to the surface's normal there (its up kept up) - its back 1 mm off the paint"""
+    Z = ZNACZKI[zn]; r, rv = Z["szer"] / 2, Z["wys"] / 2
+    u, v = T.WIDOKI[widok][1](mod.cen); dv = T.WIDOKI[widok][0]
+    f = mod.widoczne(widok, (uc - r, uc + r, vc - rv, vc + rv), cos=.3, glebia=.03, margines=0)
+    f &= (np.abs(u - uc) < r) & (np.abs(v - vc) < rv)
+    if not f.any(): return None
+    w = mod.area[f]; n = (mod.n[f] * w[:, None]).sum(0); n /= np.linalg.norm(n)
+    if n @ dv < 0: n = -n
+    dep = float(np.max(mod.cen[f] @ dv))
+    p = np.zeros(3); eu, ev = (np.array(x, float) for x in T.WIDOKI[widok][1](np.eye(3)))
+    p = eu * uc + ev * vc; p = p - (p @ dv) * dv + dv * (dep + .001)
+    # its frame: z out of the body (the normal), y up as near as the surface lets it, x = y x z
+    yv = np.array([0, 1.0, 0]) - n * n[1]; yv /= np.linalg.norm(yv); xv = np.cross(yv, n)
+    R = np.stack([xv, yv, n], 1)
+    q = _kwaternion(R)
+    return {"znaczek": zn, "pos": p.tolist(), "rot": q, "widok": widok}
+
+
+def _kwaternion(R):
+    """a rotation matrix's quaternion (x, y, z, w)"""
+    t = np.trace(R)
+    if t > 0:
+        s_ = np.sqrt(t + 1) * 2; w = .25 * s_; x = (R[2, 1] - R[1, 2]) / s_; y = (R[0, 2] - R[2, 0]) / s_; z = (R[1, 0] - R[0, 1]) / s_
+    elif R[0, 0] > R[1, 1] and R[0, 0] > R[2, 2]:
+        s_ = np.sqrt(1 + R[0, 0] - R[1, 1] - R[2, 2]) * 2; w = (R[2, 1] - R[1, 2]) / s_; x = .25 * s_; y = (R[0, 1] + R[1, 0]) / s_; z = (R[0, 2] + R[2, 0]) / s_
+    elif R[1, 1] > R[2, 2]:
+        s_ = np.sqrt(1 + R[1, 1] - R[0, 0] - R[2, 2]) * 2; w = (R[0, 2] - R[2, 0]) / s_; x = (R[0, 1] + R[1, 0]) / s_; y = .25 * s_; z = (R[1, 2] + R[2, 1]) / s_
+    else:
+        s_ = np.sqrt(1 + R[2, 2] - R[0, 0] - R[1, 1]) * 2; w = (R[1, 0] - R[0, 1]) / s_; x = (R[0, 2] + R[2, 0]) / s_; y = (R[1, 2] + R[2, 1]) / s_; z = .25 * s_
+    q = np.array([x, y, z, w]); q /= np.linalg.norm(q); return [round(float(c), 6) for c in q]
+
+
+def przygotuj_znaczek(zn, src, out):
+    """one of the owner's badges for the game: its face to +z, its real width, its depth pressed to what a badge stands
+    off a car, its back at z = 0; lighter (MeshLab with the texture, 2500 faces), its maps 512 px - repainted gently: a
+    chrome badge's light parts silver and glossy, its dark parts kept; every badge glossy"""
+    Z = ZNACZKI[zn]; g, acc, image = KL.read_glb(znajdz(src, Z["id"])); pr = g["meshes"][0]["primitives"][0]
+    P = acc(pr["attributes"]["POSITION"]).astype(np.float64); U = acc(pr["attributes"]["TEXCOORD_0"]).astype(np.float64)
+    I = acc(pr["indices"]).reshape(-1, 3).astype(np.int64)
+    P -= (P.max(0) + P.min(0)) / 2
+    s_ = Z["szer"] / (P[:, 0].max() - P[:, 0].min()); P[:, :2] *= s_
+    d = P[:, 2].max() - P[:, 2].min(); P[:, 2] = (P[:, 2] - P[:, 2].min()) / max(d, 1e-9) * Z["gleb"]
+    if len(I) > 3000:
+        P, N, U, I = KL.uprosc(P, I, U, 2500); I = I.astype(np.int64)
+    else:
+        N = np.zeros_like(P)
+    T3 = P[I]; fn = np.cross(T3[:, 1] - T3[:, 0], T3[:, 2] - T3[:, 0]); N = np.zeros_like(P)
+    for k in range(3): np.add.at(N, I[:, k], fn)
+    N /= np.maximum(np.linalg.norm(N, axis=1, keepdims=True), 1e-12)
+    mat = g["materials"][0]
+
+    def obraz(ref):
+        return Image.open(io.BytesIO(image(g["textures"][ref["index"]]["source"]))) if ref else None
+    kol = np.asarray(obraz(mat["pbrMetallicRoughness"]["baseColorTexture"]).convert("RGB").resize((512, 512), Image.LANCZOS)).astype(np.float32) / 255
+    nm = obraz(mat.get("normalTexture")); nm = nm.convert("RGB").resize((512, 512), Image.LANCZOS) if nm else Image.new("RGB", (512, 512), (128, 128, 255))
+    L = kol @ np.array([.299, .587, .114], np.float32)
+    mr = np.zeros((512, 512, 3), np.uint8); mr[..., 0] = 255
+    if Z["farba"] == "chrom":
+        # the whole badge chrome: its own light and shade as the polish, lifted (Tripo painted it dark)
+        c = np.clip(.42 + .55 * (L - L.min()) / max(float(L.max() - L.min()), 1e-6), 0, 1)
+        kol = np.repeat(c[..., None], 3, 2) * np.array([.96, .97, 1.0], np.float32)
+        mr[..., 1] = 38; mr[..., 2] = 150
+    else:
+        jasne = L > .5
+        mr[..., 1] = np.where(jasne, 38, 64); mr[..., 2] = np.where(jasne, 150, 0)
+    base = "znaczek_%s" % zn; tex = out / "_tekstury"; tex.mkdir(parents=True, exist_ok=True)
+    Image.fromarray((np.clip(kol, 0, 1) * 255 + .5).astype(np.uint8)).save(tex / (base + "_kolor.jpg"), quality=92)
+    nm.save(tex / (base + "_normal__lin.jpg"), quality=95); Image.fromarray(mr).save(tex / (base + "_mr__lin.jpg"), quality=95)
+    zapisz_glb(out / (base + ".glb"), base, P, N, U, I)
+    return {"znaczek": zn, "plik": base, "kolor": base + "_kolor", "normal": base + "_normal__lin", "mr": base + "_mr__lin",
+            "szerokosc": Z["szer"], "trojkaty": int(len(I))}
+
+
+def mapa_swiatel(mod, m, log, farby=()):
+    """the night's light map (black, the lamps in their light: the game lights them at night through the material's
+    emission, off by day): the rear's red lenses (red, saturated, seen from behind, not the body's new paint) and the
+    lamps a recipe laid, and the headlamps it marked (measured on the vehicle's front view: Tripo's lenses are too like
+    the chrome and a cream paint to be told apart). Indicators and reversing lights stay dark: they light only when used"""
+    out = np.zeros_like(mod.img)
+    hsv = cv2.cvtColor(np.clip(mod.img, 0, 1).astype(np.float32), cv2.COLOR_RGB2HSV)
+    H, Sat, V = hsv[..., 0], hsv[..., 1], hsv[..., 2]
+    czerw = ((H < 14) | (H > 344)) & (Sat > .55) & (V > .30)
+    lak = getattr(mod, "lakier_maska", None); auto_r = czerw & (lak < .5) if lak is not None else czerw.copy()
+    if farby:                                                    # a red car's own paint is no lamp
+        auto_r &= roznica(mod.img.reshape(-1, 3), [np.array(f, np.float32) / 255 for f in farby]).reshape(mod.img.shape[:2]) > 14
+    top = float(mod.P[:, 1].max()); W = float(mod.P[:, 0].max() - mod.P[:, 0].min()); n = 0
+    for widok in ("T",):
+        u, v = T.WIDOKI[widok][1](mod.cen)
+        vis = mod.widoczne(widok, (-9, 9, .15, top * .80), cos=.5, glebia=.10, margines=0) & (v > .15) & (v < top * .80)
+        ys, xs, pts = mod.teksele(vis)
+        sel_r = auto_r[ys, xs] if widok == "T" and not any(r == "tyl" for _, _, r in mod.swiatla) else np.zeros(len(ys), bool)
+        out[ys[sel_r], xs[sel_r]] = np.clip(mod.img[ys[sel_r], xs[sel_r]] * 1.6, 0, 1) * [1, .35, .3]; n += int(sel_r.sum())
+    for widok, box, rodzaj in mod.swiatla:
+        u, v = T.WIDOKI[widok][1](mod.cen)
+        f = mod.widoczne(widok, box, cos=.3, glebia=.08, margines=0) & (u >= box[0]) & (u <= box[1]) & (v >= box[2]) & (v <= box[3])
+        ys, xs, pts = mod.teksele(f); pu, pv = T.WIDOKI[widok][1](pts)
+        jj = (pu >= box[0]) & (pu <= box[1]) & (pv >= box[2]) & (pv <= box[3])
+        if rodzaj.startswith("przod"):
+            if rodzaj == "przod_o":                                                          # a round lens
+                r0 = (box[1] - box[0]) / 2; jj &= np.hypot(pu - (box[0] + box[1]) / 2, pv - (box[2] + box[3]) / 2) <= r0
+            jj &= (V[ys, xs] > .30) & (Sat[ys, xs] < .45)                                     # the lens, not its rim
+            out[ys[jj], xs[jj]] = (1.0, .96, .86)
+        else: jj &= czerw[ys, xs]; out[ys[jj], xs[jj]] = np.clip(mod.img[ys[jj], xs[jj]] * 1.6, 0, 1) * [1, .35, .3]
+        n += int(jj.sum())
+    mod.swiatla_img = out.astype(np.float32)
+    log.append("światła na noc: %d texels" % n)
 
 
 def dopelnij_szwy(mod, U, I, log):
     """the atlas' gutters (the texels no face covers) each the colour of the nearest covered texel, in every map: what the
     restoration painted (a window, a plate, a stripe) then carries to its island's edge, and no seam of the old paint shows
     as a hairline where the GPU blends across it"""
-    for nazwa, a in [("kolor", mod.img)] + list(mod.mapy.items()):
+    for nazwa, a in [("kolor", mod.img)] + list(mod.mapy.items()) + ([("swiatla", mod.swiatla_img)] if getattr(mod, "swiatla_img", None) is not None else []):
         h, w = a.shape[:2]; cov = np.zeros((h, w), np.uint8)
         tri = np.round(U[I] * [w, h] * 4).astype(np.int32)
         cv2.fillPoly(cov, list(tri), 1, shift=2)
@@ -640,6 +895,7 @@ def zapisz_model(r, out):
     mod.mapa("normal").save(tex / (base + "_normal__lin.jpg"), quality=95)
     mr = np.asarray(mod.mapa("mr")).copy(); mr[..., 0] = 255                   # no AO in Tripo's map: R = 1
     Image.fromarray(mr).save(tex / (base + "_mr__lin.jpg"), quality=95)
+    Image.fromarray((np.clip(mod.swiatla_img, 0, 1) * 255 + .5).astype(np.uint8)).save(tex / (base + "_swiatla.jpg"), quality=90)
     P, N, U, I, part = r["P"], r["N"], r["U"], r["I"], r["part"]
     czesci = []
 
@@ -659,7 +915,8 @@ def zapisz_model(r, out):
     czesc("korpus", I[part == 0], np.zeros(3), "korpus")
     for i, (k, nazwa) in enumerate(zip(r["kola"], r["nazwy"])):
         czesc(nazwa, I[part == i + 1], np.array([k["hx"], k["hy"], k["hz"]]), "kolo",
-              {"promien": round(float(k["R"]), 4), "szerokosc": round(float(k["szer"]), 4)})
+              dict({"promien": round(float(k["R"]), 4), "szerokosc": round(float(k["szer"]), 4)},
+                   **({"material": "kola"} if r.get("nowe_kola") is not None and r["nowe_kola"].any() else {})))
     szyby = None
     if (part == -1).any():
         e = czesc("szyby", I[part == -1], np.zeros(3), None); szyby = {"plik": e["plik"], "rodzaj": "przyciemniane"}
@@ -676,9 +933,11 @@ def zapisz_model(r, out):
     kp = [k for k in r["kola"] if k["pol"] > 0]; kt = [k for k in r["kola"] if k["pol"] < 0]
     rozstaw = float(np.mean([k["hz"] for k in kp]) - np.mean([k["hz"] for k in kt]))
     return {"model": name, "nazwa": m["nazwa"], "typ": m["typ"], "wzor": m["wzor"], "skala_tripo": round(r["skala"], 5),
-            "czesci": czesci, "szyby": szyby or {}, "kolor": base + "_kolor", "normal": base + "_normal__lin", "mr": base + "_mr__lin",
+            "czesci": czesci, "szyby": szyby or {}, "kolor": base + "_kolor", "normal": base + "_normal__lin", "mr": base + "_mr__lin", "swiatla": base + "_swiatla",
             "dlugosc": round(float(hi[2] - lo[2]), 3), "szerokosc": round(float(hi[0] - lo[0]), 3), "wysokosc": round(float(hi[1] - lo[1]), 3),
             "rozstaw_osi": round(rozstaw, 3), "trojkaty": int(sum(c["trojkaty"] for c in czesci)), "napisy": r["info"].get("napisy", []),
+            "znaczki": [{"znaczek": z["znaczek"], "plik": "znaczek_" + z["znaczek"], "pos": [round(-z["pos"][0], 5), round(z["pos"][1], 5), round(z["pos"][2], 5)],
+                         "rot": [z["rot"][0], -z["rot"][1], -z["rot"][2], z["rot"][3]]} for z in r.get("znaczki", [])],
             "log": r["log"]}
 
 
@@ -727,6 +986,8 @@ def spakuj(lib, zrodla, pack_dir, opis):
         cms = Path(tmp) / "pack.cms"
         subprocess.run(["openssl", "cms", "-encrypt", "-binary", "-aes256", "-outform", "DER", "-in", str(tar), "-out", str(cms),
                         str(pack / "recipient.crt")], check=True)
+        # (a short write - the disk full - must never leave a broken pack behind)
+        if cms.stat().st_size < tar.stat().st_size: raise SystemExit("KLASYKI_PACK: the encrypted pack is shorter than its tar - disk full?")
         for old in pack.glob("part-*.cms"): old.unlink()
         data = cms.read_bytes(); parts = []; S = 90 * 1024 * 1024
         for i in range(0, len(data), S):
@@ -764,10 +1025,15 @@ def main(a):
             " ".join("%s R%.3f szer%.3f %dtri" % (c["nazwa"][5:], c["promien"], c["szerokosc"], c["trojkaty"]) for c in kola),
             e["trojkaty"], e["szyby"] or "-"))
         for line in e["log"]: print("   ", line)
+    katalog["znaczki"] = [przygotuj_znaczek(zn, src, out) for zn in ZNACZKI]
+    tex = out / "_tekstury"; tex.mkdir(parents=True, exist_ok=True); ak, an, am = KO.atlas()
+    ak.save(tex / "kola_kolor.jpg", quality=92); an.save(tex / "kola_normal__lin.jpg", quality=95); am.save(tex / "kola_mr__lin.jpg", quality=95)
+    katalog["kola"] = {"kolor": "kola_kolor", "normal": "kola_normal__lin", "mr": "kola_mr__lin"}
     katalog["modele"].sort(key=lambda x: list(MODELE).index(x["model"]))
     kat_path.write_text(json.dumps(katalog, ensure_ascii=False, indent=1))
     if "--pack" in a:
         zrodla = {n: znajdz(src, MODELE[n]["id"]) for n in MODELE}
+        zrodla.update({"znaczek_" + zn: znajdz(src, Z["id"]) for zn, Z in ZNACZKI.items()})
         spakuj(out, zrodla, a[a.index("--pack") + 1],
                "Właściciel 24.11.2026 22:21-23:11: polskie klasyki z Tripo (auta, ciężarówki Star, motory) - odnowione, nowe "
                "napisy i tablice, wymienione szyby, koła osobno (kręcą się, przednie skręcają), prawdziwe wymiary; miejsce: "
