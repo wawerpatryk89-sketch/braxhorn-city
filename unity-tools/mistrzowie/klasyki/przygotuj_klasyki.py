@@ -13,12 +13,16 @@ Each Tripo export is ONE fused mesh in its own units, with one 2048 atlas. Per v
     3 letters + 3 digits + letter, the militia MO);
   - replaces the glass:
       * painted windows (Tripo painted the glass and a blurred inside onto a closed shell): those faces become the glass
-        part, drawn with the region's tinted car glass, glossy, opaque (there is no inside behind them);
+        part, drawn with the region's tinted car glass, glossy, opaque (there is no inside behind them) - or, where the
+        car's glass was clear (the stock 126p), Tripo's painting of it is kept, made smooth; either way the outline
+        straight (measured off the painting where the recipe gives it), 1.5 cm of black rubber round it, the dark Tripo
+        smeared beside it taken back to the paint;
       * open windows (Tripo left the openings, the inside modelled): new panes are built in each opening - the frame's
         surface fitted round it, the pane 1.5 cm inside it, tucked 2 cm under the frame - drawn transparent;
   - cuts the wheels so they roll: the faces inside the tyre's cylinder and outside its inner sidewall, connected to the
     tread, each wheel with its pivot at its hub (the centre of its own faces' box, so it spins without wobble); a car's
     front wheels also steer; a truck's rear twin tyres are one wheel; a motorcycle has two in its middle plane;
+  - fills the atlas' gutters from the nearest painted texel (no seam of the old paint shows);
   - writes the parts (real metres, glTF axes, each relative to its pivot) with two far LODs (MeshLab's quadric collapse
     with the texture), the maps, and katalog.json (pivots in UNITY axes: x negated, as glTFast imports);
   - packs it (--pack) as an encrypted owner pack like every other: the repository is public.
@@ -44,6 +48,7 @@ from PIL import Image                                            # noqa: E402
 from scipy import ndimage                                        # noqa: E402
 from scipy.sparse import coo_matrix                              # noqa: E402
 from scipy.sparse.csgraph import connected_components            # noqa: E402
+from scipy.spatial import cKDTree                                # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(1, str(Path(__file__).resolve().parents[1] / "klady"))
@@ -92,6 +97,7 @@ MODELE = {
                   wzor="Junak M10 (2172 mm, rozstaw osi 1417 mm; 3.25-19)", szyby=None),
 }
 SZKLO = (9, 12, 14)          # the tinted car glass seen from outside (sRGB): the glass part's own colour in the game too
+USZCZELKA = (17, 17, 19)     # the black rubber seal round a window
 # the far versions: the body at 30 % / 12 % of its triangles, a wheel at 35 % / 15 % (the glass is a few panes: none)
 LODY = {"korpus": (.30, .12), "kolo": (.35, .15)}
 
@@ -250,26 +256,50 @@ def roznica(c, farby):
     return out
 
 
-def szyby_malowane(mod, okna, farby, cien=.10, krok=.01):
+def zaokraglij(obrys, r=.03, n=6):
+    """a window's outline (u, v[, r]) with its corners rounded: r of each edge into a curve (0: a sharp corner, as at a
+    vent's post)"""
+    p = np.array([o[:2] for o in obrys], float); rr = [o[2] if len(o) > 2 else r for o in obrys]; out = []
+    for i in range(len(p)):
+        a, b, c = p[i - 1], p[i], p[(i + 1) % len(p)]
+        t = min(rr[i], .45 * np.linalg.norm(a - b), .45 * np.linalg.norm(c - b))
+        if t <= 1e-4: out.append(b); continue
+        A = b + (a - b) / np.linalg.norm(a - b) * t; C = b + (c - b) / np.linalg.norm(c - b) * t
+        for s in np.linspace(0, 1, n): out.append((1 - s) ** 2 * A + 2 * s * (1 - s) * b + s ** 2 * C)
+    return np.array(out)
+
+
+def szyby_malowane(mod, okna, farby, cien=.10, krok=.01, przyciemniane=True):
     """the painted glass: in each window box (view, u0, u1, v0, v1) the faces seen there (both of Tripo's layers) whose
     colour is not the body's paint and not the black rubber round the glass - then the window made whole in the view
-    (its gaps closed over 4 cm, its holes filled: Tripo's light streaks and reflections in the glass are glass too)"""
+    (its gaps closed over 4 cm, its holes filled: Tripo's light streaks and reflections in the glass are glass too) - or
+    the window's outline measured off the painting, when the recipe gives it. Tinted: the glass' faces dark and glossy;
+    clear (przyciemniane=False): Tripo's painting of the glass kept, only made smooth, the rubber round it the same"""
     sel = np.zeros(len(mod.I), bool)
     uc = mod.U[mod.I].mean(1); px = np.clip((uc[:, 0] * mod.w).astype(int), 0, mod.w - 1); py = np.clip((uc[:, 1] * mod.h).astype(int), 0, mod.h - 1)
     kol = cv2.GaussianBlur(mod.img, (5, 5), 0)[py, px]
     far = [np.array(f, np.float32) / 255 for f in farby]
     d = roznica(kol, far)
-    for widok, box in okna:
+    lum = np.array([.299, .587, .114], np.float32); Lp = min(float(x @ lum) for x in far)
+    namalowane = np.zeros((mod.h, mod.w), bool)                               # the texels made glass or seal so far
+    for okno in okna:
+        widok, box = okno[0], okno[1]; obrys = okno[2] if len(okno) > 2 else None
+        uvf = T.WIDOKI[widok][1]
         vis = mod.widoczne(widok, box, cos=.15, glebia=.12, margines=0)
-        u, v = T.WIDOKI[widok][1](mod.cen)
+        u, v = uvf(mod.cen)
         vis &= (u >= box[0]) & (u <= box[1]) & (v >= box[2]) & (v <= box[3])
         f = vis & (d > 10) & (kol.max(1) > cien)
-        u0, u1, v0, v1 = box; nu, nv = int(np.ceil((u1 - u0) / krok)) + 1, int(np.ceil((v1 - v0) / krok)) + 1
+        # the view's grid: the box and 10 cm round it (the paint beside the window is cleaned too)
+        u0, u1, v0, v1 = box; g0, g1, h0, h1 = u0 - .1, u1 + .1, v0 - .1, v1 + .1
+        nu, nv = int(np.ceil((g1 - g0) / krok)) + 1, int(np.ceil((h1 - h0) / krok)) + 1
         # the glass faces drawn whole into the view's grid (a low-poly van has faces of a decimetre)
         M8 = np.zeros((nv, nu), np.uint8)
-        tu, tv = T.WIDOKI[widok][1](mod.P[mod.I[f]])
-        tri = np.stack([(tu - u0) / krok, (v1 - tv) / krok], -1)
+        tu, tv = uvf(mod.P[mod.I[f]])
+        tri = np.stack([(tu - g0) / krok, (h1 - tv) / krok], -1)
         if len(tri): cv2.fillPoly(M8, list(np.round(tri * 4).astype(np.int32)), 1, shift=2)
+        # (the glass inside its box: a big face's corner past it is not window)
+        bu0, bv1 = int(round((u0 - g0) / krok)), int(round((h1 - v1) / krok)); bu1, bv0 = bu0 + int(round((u1 - u0) / krok)), bv1 + int(round((v1 - v0) / krok))
+        M8[:bv1] = 0; M8[bv0 + 1:] = 0; M8[:, :bu0] = 0; M8[:, bu1 + 1:] = 0
         M = ndimage.binary_dilation(M8 > 0, iterations=1)
         M = ndimage.binary_closing(M, structure=np.ones((5, 5)), iterations=1)
         M = ndimage.binary_fill_holes(M)
@@ -277,33 +307,95 @@ def szyby_malowane(mod, okna, farby, cien=.10, krok=.01):
         lab, n = ndimage.label(M)
         # each window as the glass is: its outline straight and clean (the convex hull of what Tripo painted there - a
         # car's window is convex), not the ragged edge of the painting; the window itself, not a speck beside it
-        H = np.zeros(M.shape, np.uint8)
+        kadluby = []
         for i in range(1, n + 1):
             yx = np.argwhere(lab == i)
             if len(yx) * krok * krok < .02: continue
-            cv2.fillPoly(H, [cv2.convexHull(yx[:, ::-1].astype(np.int32))], 1)
-        M = H > 0
-        Min = ndimage.binary_erosion(M, iterations=max(1, int(round(.015 / krok))))
-        iu = np.clip(((u - u0) / krok).astype(int), 0, nu - 1); iv = np.clip(((v1 - v) / krok).astype(int), 0, nv - 1)
-        sel |= vis & ((M[iv, iu] & (d > 6)) | Min[iv, iu])
-        # the texels too: the window's own painting (the blurred inside, the streaks) becomes the glass' dark tint, smooth
-        # and not metal - a face left on the body at the window's edge then looks the same as the glass beside it
-        ys, xs, pts = mod.teksele(vis)
-        pu, pv = T.WIDOKI[widok][1](pts)
-        ju = np.clip(((pu - u0) / krok).astype(int), 0, nu - 1); jv = np.clip(((v1 - pv) / krok).astype(int), 0, nv - 1)
-        inbox = (pu >= u0) & (pu <= u1) & (pv >= v0) & (pv <= v1)
-        dt = roznica(mod.img[ys, xs], far)
-        t = inbox & (Min[jv, ju] | (M[jv, ju] & (dt > 8)))
-        # and 2 texels past the islands' edges where the glass' painting is (the atlas seams would show as light lines)
-        mk = np.zeros((mod.h, mod.w), np.uint8); mk[ys[t], xs[t]] = 1
-        rim = (cv2.dilate(mk, np.ones((5, 5), np.uint8)) > 0) & (mk == 0)
-        ry, rx = np.nonzero(rim); rr = roznica(mod.img[ry, rx], far) > 8
-        Y = np.concatenate([ys[t], ry[rr]]); X = np.concatenate([xs[t], rx[rr]])
-        mod.img[Y, X] = np.array(SZKLO, np.float32) / 255
-        for k, mp in mod.mapy.items():
-            hh, ww = mp.shape[:2]; yy = np.clip(Y * hh // mod.h, 0, hh - 1); xx = np.clip(X * ww // mod.w, 0, ww - 1)
-            mp[yy, xx] = (128, 128, 255) if k == "normal" else (255, 24, 0)
-        mod.log.append("szyba %s %s: %d texels" % (widok, box, int(t.sum())))
+            h = cv2.convexHull(yx[:, ::-1].astype(np.float32)).reshape(-1, 2)
+            kadluby.append(np.stack([g0 + (h[:, 0] + .5) * krok, h1 - (h[:, 1] + .5) * krok], -1))
+        # or the window's outline measured off the model's own painting (its frame, the vent's post): exactly that
+        if obrys: kadluby = [zaokraglij(o) for o in obrys]
+
+        def odl(pu, pv):
+            """how far inside the windows (m; less than 0 outside): the hulls' straight edges exactly, not their 1 cm grid"""
+            out = np.full(len(pu), -1.0)
+            for h in kadluby:
+                a = h; b = np.roll(h, -1, 0); e = b - a; L = np.linalg.norm(e, axis=1); ok = L > 1e-6
+                a, e, L = a[ok], e[ok], L[ok]
+                znak = np.sign(np.sum(a[:, 0] * np.roll(a[:, 1], -1) - np.roll(a[:, 0], -1) * a[:, 1])) or 1.0
+                nrm = np.stack([-e[:, 1], e[:, 0]], -1) / L[:, None] * znak          # inward
+                dd = (pu[:, None] - a[None, :, 0]) * nrm[None, :, 0] + (pv[:, None] - a[None, :, 1]) * nrm[None, :, 1]
+                out = np.maximum(out, dd.min(1))
+            return out
+        # the faces seen there - where the outline is measured, at the window's edge aslant too (the frame's slope left its
+        # colour as notches in the outline) and 10 cm round it (the paint beside it cleaned)
+        dv = T.WIDOKI[widok][0]; eu, ev = (np.array(x, float) for x in uvf(np.eye(3)))
+        kand = vis | (mod.widoczne(widok, (g0, g1, h0, h1), cos=.02, glebia=.12, margines=0) & (u >= g0) & (u <= g1) & (v >= h0) & (v <= h1)) if obrys else vis
+        wb_f = (u >= u0) & (u <= u1) & (v >= v0) & (v <= v1)
+        # the window's surface: a smooth sheet fitted to the depth of the faces inside it (a raked windscreen curving into
+        # the roof); what stands 4 cm proud of it is not glass (a mirror), nor what lies behind it (seen through a gap); the
+        # glass' own faces those turned less than 45 degrees from it (not a pillar's side Tripo painted as glass)
+        dep_c = mod.cen @ dv; cin = kand & wb_f & (odl(u, v) > 0)
+        rz = lambda pu, pv: np.stack([np.ones(len(pu)), pu, pv, pu * pu, pu * pv, pv * pv], 1)
+        kp = np.zeros(6); kp[0] = np.inf
+        if cin.sum() > 30:
+            # (from the faces near the median depth: the far side's inside seen through a gap left out)
+            A, yy = rz(u[cin], v[cin]), dep_c[cin]; ok = np.abs(yy - np.median(yy)) < .3
+            for _ in range(4):
+                kp = np.linalg.lstsq(A[ok], yy[ok], rcond=None)[0]; r = np.abs(yy - A @ kp); ok = r < max(.015, 2.5 * np.median(r[ok]))
+        plaszcz = lambda pu, pv: rz(pu, pv) @ kp
+        # (the turn measured from the window's middle: Tripo's windscreen wraps round into the pillars, which a real one
+        # does not)
+        um, vm = (float(np.mean(u[cin])), float(np.mean(v[cin]))) if cin.any() else (0.0, 0.0)
+        N0 = dv - (kp[1] + 2 * kp[3] * um + kp[4] * vm) * eu - (kp[2] + kp[4] * um + 2 * kp[5] * vm) * ev; N0 /= np.linalg.norm(N0)
+        wc = dep_c - plaszcz(u, v); okienne = (np.abs(mod.n @ N0) > .7) & (wc < .04) & (wc > -.08)
+        t1, t2 = mod.teksele(kand & okienne), mod.teksele(kand & ~okienne)
+        ys, xs, pts = (np.concatenate([x1, x2]) for x1, x2 in zip(t1, t2))
+        grp = np.arange(len(ys)) < len(t1[0])                                   # a texel of the window's own surface
+        pu, pv = uvf(pts); od = odl(pu, pv); wyst = pts @ dv - plaszcz(pu, pv)
+        # at the window's surface (not behind it, not a mirror): where its outline is measured; Tripo's own glass painting
+        # elsewhere taken whole, as found
+        blisko = ((wyst < .04) & (wyst > -.08)) if obrys else np.ones(len(ys), bool)
+        wbox = (pu >= u0) & (pu <= u1) & (pv >= v0) & (pv <= v1) & blisko
+        # the glass inside (all that lies at its surface: Tripo's faces turn every way), 1.5 cm of rubber round it
+        szk = wbox & (od > .015)
+        usz = wbox & (od > 0) & (od <= .015)
+        # the glass' own faces (its glossy material) only those wholly inside the glass: a face of Tripo's 3-5 cm reaching
+        # past the window's straight outline would draw its saw-teeth over the seal and the paint
+        pu3, pv3 = uvf(mod.P[mod.I].reshape(-1, 3))
+        w3 = ((odl(pu3, pv3) > .015) & (pu3 >= u0) & (pu3 <= u1) & (pv3 >= v0) & (pv3 <= v1)).reshape(-1, 3).all(1)
+        if przyciemniane: sel |= vis & w3 & okienne
+        # beside the window, 3.5 cm: the dark Tripo smeared along its edge (not the paint, darker than it, not standing proud
+        # as a mirror does, not turned from the window's surface as a mirror's back is) takes the paint of the nearest body
+        # texel beyond: the outline the seal's alone
+        if usz.any():
+            c = mod.img[ys, xs]; dc = roznica(c, far)
+            brud = grp & (od <= 0) & (od > -.035) & (dc > 12) & (c @ lum < .8 * Lp) & blisko & ~namalowane[ys, xs]
+            zr = (od <= -.035) & (dc <= 10) & blisko
+            if brud.any() and zr.sum() > 20:
+                _, j = cKDTree(pts[zr]).query(pts[brud])
+                Y, X, SY, SX = ys[brud], xs[brud], ys[zr][j], xs[zr][j]
+                mod.img[Y, X] = mod.img[SY, SX]
+                for k, mp in mod.mapy.items():
+                    hh, ww = mp.shape[:2]
+                    mp[np.clip(Y * hh // mod.h, 0, hh - 1), np.clip(X * ww // mod.w, 0, ww - 1)] = mp[np.clip(SY * hh // mod.h, 0, hh - 1), np.clip(SX * ww // mod.w, 0, ww - 1)]
+                mod.log.append("szyba %s: obok oczyszczone %d texels" % (widok, int(brud.sum())))
+        # inside, the window's own painting (the blurred inside, the streaks) becomes the glass' dark tint, smooth and not
+        # metal; round it a 1.5 cm black rubber seal, as the cars of the time had - the outline clean
+        # (clear glass, not tinted: Tripo's own painting of it kept - the inside seen through it, the sky in it - smooth)
+        for t, kolor, mrk in ((szk, SZKLO if przyciemniane else None, (255, 24, 0)), (usz, USZCZELKA, (255, 175, 0))):
+            # and 2 texels past the islands' edges where that painting is (the atlas seams would show as light lines)
+            mk = np.zeros((mod.h, mod.w), np.uint8); mk[ys[t], xs[t]] = 1
+            rim = (cv2.dilate(mk, np.ones((5, 5), np.uint8)) > 0) & (mk == 0)
+            ry, rx = np.nonzero(rim); rr = roznica(mod.img[ry, rx], far) > 8
+            if kolor is None: rr[:] = False
+            Y = np.concatenate([ys[t], ry[rr]]); X = np.concatenate([xs[t], rx[rr]])
+            if kolor is not None: mod.img[Y, X] = np.array(kolor, np.float32) / 255
+            namalowane[Y, X] = True
+            for k, mp in mod.mapy.items():
+                hh, ww = mp.shape[:2]; yy = np.clip(Y * hh // mod.h, 0, hh - 1); xx = np.clip(X * ww // mod.w, 0, ww - 1)
+                mp[yy, xx] = (128, 128, 255) if k == "normal" else mrk
+        mod.log.append("szyba %s %s: %d texels" % (widok, box, int((szk | usz).sum())))
     return sel
 
 
@@ -493,7 +585,7 @@ def przygotuj_model(name, m, src, out, podglad=None):
     # the glass
     szklo = np.zeros(len(I), bool); panes = []
     if info.get("okna"):
-        szklo = szyby_malowane(mod, info["okna"], info.get("farby_okien", info.get("farby", [])))
+        szklo = szyby_malowane(mod, info["okna"], info.get("farby_okien", info.get("farby", [])), przyciemniane=info.get("przyciemniane", True))
         if info.get("szyby_w_teksturze"): szklo[:] = False       # a low-poly van: decimetre faces would zigzag the edge
         log.append("szyby malowane: %d faces" % szklo.sum())
     if info.get("otwory"):
@@ -516,11 +608,28 @@ def przygotuj_model(name, m, src, out, podglad=None):
     if info.get("opony"):                                        # the tyres' sidewalls: Tripo's garbled letters off
         for i, k in enumerate(kola): zmaz_opone(mod, part == i + 1, k, info["opony"])
         log += [l for l in mod.log[-len(kola):]]
+    dopelnij_szwy(mod, U, I, log)
     nazwy = []
     for k in kola:
         if k["bok"] == 0: nazwy.append("kolo_przod" if k["pol"] > 0 else "kolo_tyl")
         else: nazwy.append("kolo_%s_%s" % ("przod" if k["pol"] > 0 else "tyl", "lewe" if k["bok"] > 0 else "prawe"))
     return dict(name=name, m=m, P=P, N=N, U=U, I=I, mod=mod, part=part, kola=kola, nazwy=nazwy, panes=panes, info=info, log=log, skala=d["skala"])
+
+
+def dopelnij_szwy(mod, U, I, log):
+    """the atlas' gutters (the texels no face covers) each the colour of the nearest covered texel, in every map: what the
+    restoration painted (a window, a plate, a stripe) then carries to its island's edge, and no seam of the old paint shows
+    as a hairline where the GPU blends across it"""
+    for nazwa, a in [("kolor", mod.img)] + list(mod.mapy.items()):
+        h, w = a.shape[:2]; cov = np.zeros((h, w), np.uint8)
+        tri = np.round(U[I] * [w, h] * 4).astype(np.int32)
+        cv2.fillPoly(cov, list(tri), 1, shift=2)
+        for t in tri: cv2.polylines(cov, [t], True, 1, shift=2)              # the thinnest faces too
+        pusto = cov == 0
+        if not pusto.any() or pusto.all(): continue
+        iy, ix = ndimage.distance_transform_edt(pusto, return_distances=False, return_indices=True)
+        a[pusto] = a[iy[pusto], ix[pusto]]
+        if nazwa == "kolor": log.append("szwy: %d texels poza ścianami dopełnione" % int(pusto.sum()))
 
 
 def zapisz_model(r, out):

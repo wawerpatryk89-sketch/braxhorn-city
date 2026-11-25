@@ -4,7 +4,8 @@ nowe", "trzeba odrestaurować, napisy poprawić ... wyraźnie", "wszystko odrest
 Every box is in a view's metres (tekstura.WIDOKI: L the left side seen from +x with u = -z, P the right side with u = z,
 F the front with u = x, T the rear with u = -x; v up from the ground) - read off the gridded orthographic pictures of
 the vehicle at its real size. A recipe returns what przygotuj_klasyki needs besides the map:
-  okna    the painted windows (view, box) - their faces become the tinted glass;
+  okna    the painted windows (view, box[, outlines measured off the painting]) - their faces become the tinted glass
+          (przyciemniane=False: the glass clear, Tripo's painting of it kept);
   otwory  the open windows (view, box round the opening and its frame) - a pane is built in each;
   farby   the body's paints (sRGB 0-255): a window face of that colour is body, not glass;
   napisy  the lettering laid (for the catalogue).
@@ -76,10 +77,22 @@ def maluch(mod):
             stare=[("F", (-0.30, 0.24, 0.26, 0.37)), ("T", (-0.26, 0.14, 0.495, 0.625))])
     mod.odnow([BEZ], tol=.18)
     mod.napis("F", "126p", 0.205, 0.555, .026, kolor=(196, 198, 200))
-    return dict(farby=[BEZ], napisy=["126p", "KRA 4416"],
-                okna=[("L", (-0.57, 0.39, 0.85, 1.25)), ("L", (0.47, 1.07, 0.85, 1.24)),
-                      ("P", (-0.45, 0.42, 0.85, 1.22)), ("P", (-1.12, -0.52, 0.85, 1.22)),
-                      ("F", (-0.57, 0.57, 0.86, 1.26)), ("T", (-0.53, 0.47, 0.87, 1.27))])
+    # its glass clear, as the 126p's was: Tripo painted it so (the seats seen through it, the sky in the windscreen)
+    return dict(farby=[BEZ], napisy=["126p", "KRA 4416"], okna=MALUCH_OKNA, przyciemniane=False)
+
+
+# the 126p's windows as Tripo painted them, measured on its gridded views (the outer edge of the rubber; the door's vent
+# window parted from the drop glass by its post; the windscreen's and the back window's rounded corners)
+MALUCH_OKNA = [
+    ("L", (-0.40, 0.42, 0.84, 1.23), [[(-0.22, 1.21, .02), (-0.165, 1.21, 0), (-0.165, 0.862, 0), (-0.357, 0.862, .02), (-0.352, 0.93, .02)],
+                                      [(-0.165, 1.21, 0), (0.395, 1.21), (0.395, 0.862), (-0.165, 0.862, 0)]]),
+    ("L", (0.48, 1.10, 0.85, 1.23), [[(0.51, 1.2025, .04), (0.87, 1.2025), (1.07, 0.935, .04), (1.06, 0.8775, .04), (0.51, 0.8775, .04)]]),
+    ("P", (-0.43, 0.47, 0.84, 1.23), [[(0.16, 1.2075, 0), (0.20, 1.2075, .02), (0.44, 0.90, .02), (0.44, 0.8675, .02), (0.16, 0.8675, 0)],
+                                      [(-0.4025, 1.2075), (0.16, 1.2075, 0), (0.16, 0.8675, 0), (-0.4025, 0.8675)]]),
+    ("P", (-1.11, -0.49, 0.84, 1.23), [[(-0.895, 1.20), (-0.517, 1.20, .04), (-0.517, 0.868, .04), (-1.07, 0.868, .04), (-1.085, 0.94, .04)]]),
+    ("F", (-0.60, 0.62, 0.86, 1.30), [[(-0.50, 1.28, .05), (0.50, 1.28, .05), (0.595, 0.89, .04), (-0.565, 0.89, .04)]]),
+    ("T", (-0.50, 0.49, 0.87, 1.25), [[(-0.44, 1.225, .12), (0.43, 1.225, .12), (0.465, 0.895, .05), (-0.475, 0.895, .05)]]),
+]
 
 
 def syrena(mod):

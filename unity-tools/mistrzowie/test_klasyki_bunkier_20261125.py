@@ -65,6 +65,13 @@ class Narzedzie(unittest.TestCase):
         self.assertIn("convexHull", src)                                     # a window's outline straight, not ragged
         self.assertIn("1.01, 1.04", src)                                     # the mudguard over the hub stays on the body
         self.assertIn('"kolo_%s_%s"', src)
+        # the 126p's windows (owner 25.11 00:55 "Szyby w maluchu?"): measured outlines, the glass clear as it was, the
+        # rubber round it; the atlas' gutters filled (no seam of the old paint)
+        P = (KL / "przepisy.py").read_text()
+        self.assertIn("okna=MALUCH_OKNA, przyciemniane=False", P)
+        self.assertEqual(sorted({o[0] for o in self.P.MALUCH_OKNA}), ["F", "L", "P", "T"])
+        self.assertIn("def zaokraglij", src); self.assertIn("def dopelnij_szwy", src)
+        self.assertIn("USZCZELKA", src)
         # parts without pictures inside or linked (Unity reads no texture per part)
         z = src[src.index("def zapisz_glb"):src.index("# ------", src.index("def zapisz_glb"))]
         self.assertNotIn('"images"', z); self.assertNotIn("baseColorTexture", z)
