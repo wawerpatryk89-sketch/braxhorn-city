@@ -141,7 +141,7 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
     S = Siatka()
     jezdnie, glowne, piesze, parkingi, boiska, place, rowery = [], [], [], [], [], [], []
     jezdnie_kostka, parkingi_kostka, parkingi_czerwone = [], [], []
-    serwis = []
+    serwis = []; parkingi_asfalt = []
     for u in d["ulice"]:
         if len(u["linia"]) < 2: continue
         ln = LineString(u["linia"])
@@ -163,7 +163,12 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
         except Exception: continue
         if t["rodzaj"] == "parking":
             parkingi.append(p)
-            if t.get("nawierzchnia") in ("paving_stones", "sett", "concrete:plates"): parkingi_kostka.append(p)   # bez znacznika: szary asfalt (25.11)
+            # 25.11 18:46–18:49 (właściciel: „nie widzę poprawnego parkingu nigdzie”; satelita IMG_2164/2165, Street View
+            # IMG_2128): parkingi przy blokach to szara kostka jak alejki, bez malowanych linii; asfalt z liniami tylko tam,
+            # gdzie OSM mówi asphalt, i przed marketem (IMG_2141–2144: ciemny asfalt). Tył marketu: kostka (IMG_2138).
+            przed_marketem = t.get("osm") == "w128459442"
+            if t.get("nawierzchnia") != "asphalt" and not przed_marketem: parkingi_kostka.append(p)
+            else: parkingi_asfalt.append(p)
             # 25.11 (właściciel 15:18/15:22: „kort tenisowy?”, „parkingi z dupy wzięte, czerwone”): bez czerwonych zatok
         elif t["rodzaj"] == "pitch": boiska.append(p)
         elif t["rodzaj"] == "playground": place.append(p)
@@ -219,7 +224,8 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
     # wycięte z nawierzchni (żadnych nakładających się płaszczyzn)
     lp = []
     alejki = [LineString(u["linia"]) for u in d["ulice"] if u["klasa"] == "service" and len(u["linia"]) > 1]
-    for q in getattr(PARK, "geoms", [PARK]):
+    PARK_A = unary_union(parkingi_asfalt).intersection(PARK) if parkingi_asfalt else Polygon()
+    for q in getattr(PARK_A, "geoms", [PARK_A]):                        # linie tylko na parkingach asfaltowych
         if q.is_empty or q.area < 25: continue
         moje = [a_.intersection(q.buffer(4)) for a_ in alejki if a_.distance(q) < 1.0]
         moje = [g_ for a_ in moje for g_ in getattr(a_, "geoms", [a_]) if g_.geom_type == "LineString" and g_.length > 4]

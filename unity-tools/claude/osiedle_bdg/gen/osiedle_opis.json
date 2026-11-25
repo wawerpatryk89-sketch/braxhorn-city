@@ -524,7 +524,7 @@
  "budki": 4,
  "teren": {
   "jezdnie": 34103,
-  "parkingi": 18610,
+  "parkingi": 18937,
   "chodniki": 42524,
   "trawa": 143906,
   "boiska": 3278,
@@ -533,7 +533,7 @@
   "boiska_asfalt": 720
  },
  "drzew": 803,
- "latarni": 264,
+ "latarni": 262,
  "wyposazenie": {
   "przystanki": 3,
   "sygnalizacje": 10,
@@ -550,9 +550,9 @@
   "blokady_parkingowe": 3,
   "kontener_braz": 1,
   "wiaty_smietnikowe": 1,
-  "latarnie": 265,
+  "latarnie": 263,
   "pojemniki_odziez": 2,
   "paliki": 56
  },
- "trojkatow": 880317
+ "trojkatow": 875145
 }

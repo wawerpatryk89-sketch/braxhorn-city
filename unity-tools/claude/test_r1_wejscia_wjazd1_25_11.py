@@ -121,3 +121,11 @@ def test_okolice_32_i_parking_bez_paska():
     import json
     op = json.loads((ROOT / "unity-tools/claude/osiedle_bdg/gen/osiedle_opis.json").read_text(encoding="utf-8"))["wyposazenie"]
     assert op.get("plot_zielony_32") == 1 and op.get("wiaty_smietnikowe") == 1 and op.get("pojemniki_odziez") == 2
+
+
+def test_parkingi_przy_blokach_kostka_bez_linii():
+    """25.11 18:46–18:49 (satelita IMG_2164/2165, IMG_2128): parkingi przy blokach — szara kostka jak alejki, bez linii;
+    asfalt z liniami tylko z OSM asphalt i przed marketem."""
+    t = (ROOT / "unity-tools/claude/osiedle_bdg/teren.py").read_text(encoding="utf-8")
+    assert 'if t.get("nawierzchnia") != "asphalt" and not przed_marketem: parkingi_kostka.append(p)' in t
+    assert "for q in getattr(PARK_A, \"geoms\", [PARK_A]):" in t
