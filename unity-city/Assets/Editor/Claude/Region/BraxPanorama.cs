@@ -68,11 +68,16 @@ public static class BraxPanorama
         }
         catch (System.Exception ex) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_PANORAMA nasza wyspa: " + ex.Message); }
         // ---- LĄD: 3 plany (kąty od +x co 15°, tylko tam, gdzie w tej odległości jest ląd) ----
+        int bezBydgoszcz = 0;
         foreach (var (D, glab, hMin, hMax, plan) in new[] { (1800f, 650f, 35f, 110f, 1), (3200f, 950f, 70f, 210f, 2), (7000f, 2600f, 380f, 900f, 3) })
             for (float kat = 60f; kat <= 300f; kat += 15f)
             {
                 float a = kat * Mathf.Deg2Rad; var off = new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * (D + glab * .5f);
                 var p = Ref + off; if (Morze(p.x, p.y)) continue;
+                // 25.11 (właściciel 16:44, przejście miasto → osiedle: „ta góra, co tam jest, ona tylko wszystko psuje […] trzeba
+                // coś usunąć”): skalista góra za lasem to plan 3 (7 km, 380–900 m ≈ 7° nad horyzontem) na północy. Na północ od
+                // miasta leży Bydgoszcz (osiedle, Stary Rynek) — płasko: na kierunkach 45°…135° (północ) bez gór i wzgórz pierścienia
+                if (BraxBydgoszcz.Wlaczone && kat >= 45f && kat <= 135f) { bezBydgoszcz++; continue; }
                 var m = Pasmo(D, glab, 17f * Mathf.Deg2Rad, a, hMin, hMax, plan, kat * 3.1f + plan * 97f);
                 lista.Add(Element(root, "Ląd za miastem: plan " + plan + " (" + (D / 1000f).ToString("F1") + " km, " + kat.ToString("F0") + "°)", m, new Vector3(off.x, 0f, off.y), 120f + 380f * D / 9000f));
                 if (plan == 3) nGor++; else nWzg++;
@@ -95,7 +100,7 @@ public static class BraxPanorama
             rr.lightProbeUsage = LightProbeUsage.Off; rr.reflectionProbeUsage = ReflectionProbeUsage.Off;
         }
         foreach (var cc in root.GetComponentsInChildren<Collider>(true)) { UnityEngine.Object.DestroyImmediate(cc); kolizjeUsuniete++; }
-        string log = "BRAXHORN_PANORAMA wyspy=" + nWysp + " poprawione_cienie=" + bezCienia + " kolizje_usuniete=" + kolizjeUsuniete + " latarnie=" + nLatarni + " nasza_wyspa=tak wzgorza=" + nWzg + " gory=" + nGor + " pominiete_na_ladzie=" + pominiete
+        string log = "BRAXHORN_PANORAMA wyspy=" + nWysp + " poprawione_cienie=" + bezCienia + " kolizje_usuniete=" + kolizjeUsuniete + " latarnie=" + nLatarni + " nasza_wyspa=tak wzgorza=" + nWzg + " gory=" + nGor + " bez_na_polnocy_bydgoszcz=" + bezBydgoszcz + " pominiete_na_ladzie=" + pominiete
             + " pasmo_zdjecia=wylaczone grzbiety_2D=wylaczone smugi=0 (pierścień 3D z kamerą, głębia za sceną)";
         Debug.Log(log); BraxRegion.Note(log);
     }
