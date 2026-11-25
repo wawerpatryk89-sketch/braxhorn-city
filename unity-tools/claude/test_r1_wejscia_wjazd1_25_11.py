@@ -106,3 +106,18 @@ def test_wiata_szklo_przezroczyste_i_napis_szpitala():
     assert (ROOT / "unity-city/Assets/Source/Claude/Bydgoszcz/napis_sor.png").exists()
     cs = (ROOT / "unity-city/Assets/Editor/Claude/Region/BraxBydgoszcz.cs").read_text(encoding="utf-8")
     assert "public float przezr;" in cs and "d.przezr > 0f" in cs
+
+
+def test_okolice_32_i_parking_bez_paska():
+    """25.11 16:57–18:18 (IMG_2118/2122/2123/2127/2128): zielony płot przy bloku 32, rząd przy 32a (wiata śmietnikowa,
+    latarnia, 2 pojemniki na odzież, paczkomat); alejka przez parking jest parkingiem — bez pasa jezdni/kostki przez środek."""
+    w = (ROOT / "unity-tools/claude/osiedle_bdg/wyposazenie.py").read_text(encoding="utf-8")
+    assert "    okolice_32(S, d, G, ile)\n" in w
+    for f in ("def plot_zielony", "def wiata_smietnikowa", "def kontener_odziez", "def blokada", "def kontener_1100"):
+        assert f in w
+    t = (ROOT / "unity-tools/claude/osiedle_bdg/teren.py").read_text(encoding="utf-8")
+    assert "JEZ = unary_union(jezdnie).difference(alejki)" in t
+    assert "KOS = unary_union(jezdnie_kostka).intersection(JEZ)" in t
+    import json
+    op = json.loads((ROOT / "unity-tools/claude/osiedle_bdg/gen/osiedle_opis.json").read_text(encoding="utf-8"))["wyposazenie"]
+    assert op.get("plot_zielony_32") == 1 and op.get("wiaty_smietnikowe") == 1 and op.get("pojemniki_odziez") == 2

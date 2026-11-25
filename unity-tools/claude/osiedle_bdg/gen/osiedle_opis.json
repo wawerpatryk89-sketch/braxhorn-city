@@ -523,8 +523,8 @@
  },
  "budki": 4,
  "teren": {
-  "jezdnie": 38683,
-  "parkingi": 14142,
+  "jezdnie": 34103,
+  "parkingi": 18610,
   "chodniki": 42524,
   "trawa": 143906,
   "boiska": 3278,
@@ -533,7 +533,7 @@
   "boiska_asfalt": 720
  },
  "drzew": 803,
- "latarni": 262,
+ "latarni": 264,
  "wyposazenie": {
   "przystanki": 3,
   "sygnalizacje": 10,
@@ -541,13 +541,18 @@
   "lawki": 14,
   "szlabany": 6,
   "kontenery": 3,
-  "paczkomaty": 6,
+  "paczkomaty": 7,
   "ploty": 46,
   "zywoploty_na_plot": 20,
   "slupki": 3,
   "ploty_szpital": 12,
-  "latarnie": 262,
+  "plot_zielony_32": 1,
+  "blokady_parkingowe": 3,
+  "kontener_braz": 1,
+  "wiaty_smietnikowe": 1,
+  "latarnie": 265,
+  "pojemniki_odziez": 2,
   "paliki": 56
  },
- "trojkatow": 869153
+ "trojkatow": 872853
 }

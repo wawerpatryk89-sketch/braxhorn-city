@@ -177,6 +177,7 @@ def zbuduj(d, G, szer, okno, drzewa, latarnie):
         for g in geoms:
             if g.length < 2.0: continue
             plot(S, list(g.coords)); ile("ploty_szpital")
+    okolice_32(S, d, G, ile)
     latarnie = [q for q in latarnie if not zajete.contains(Point(q[0], q[1]))]
     for (x, z, typ) in latarnie:
         dr = droga_przy((x, z), ulice, 20)
@@ -278,6 +279,9 @@ def paczkomat(S, o, t):
     g = "wyposazenie"; n = np.array([-t[2], 0, t[0]])
     B(S, g, "paczkomat", o, t, n, 2.4, 1.9, .65)
     B(S, g, "paczkomat_ekran", o + UP * 1.05 - n * .33, t, n, .35, .45, .02)
+    # 25.11 (IMG_2128): jasnoszara obudowa, czerwony kwadrat w górnym rogu (bez nazwy firmy), daszek
+    B(S, g, "szlaban_czerwony", o - t * .85 + UP * 1.5 - n * .33, t, n, .4, .3, .02)
+    B(S, g, "paczkomat", o + UP * 1.9, t, n, 2.5, .06, .75)
 
 
 def kontenery(S, o, t):
@@ -414,3 +418,108 @@ def paliki(S, o):
         f0, f1 = 2 * math.pi * k / 3, 2 * math.pi * (k + 1) / 3
         p0 = o + np.array([math.cos(f0) * .45, 1.2, math.sin(f0) * .45]); p1 = o + np.array([math.cos(f1) * .45, 1.2, math.sin(f1) * .45])
         S.rura(g, "palik", p0, p1, .025, seg=5)
+
+
+def okolice_32(S, d, G, ile):
+    """25.11 (właściciel 16:57–16:59, Street View IMG_2118, IMG_2122, IMG_2123): przy bloku 32 zielony płot z prętów
+    zamyka przejście między końcem rzędu garaży a narożnikiem bloku (tablica „teren prywatny”, przed płotem blokady
+    parkingowe i brązowy kontener); między muralem (bar 34b) a wieżowcem wiata śmietnikowa przy drodze z szlabanem."""
+    gar = blok = None
+    for b in d["budynki"]:
+        c = b["poly"].centroid
+        if b.get("rodzaj") == "garages" and abs(c.x + 54.3) < 3 and abs(c.y - 17.8) < 3: gar = b["poly"]
+        if b.get("nr") == "32" and (b.get("ulica") or "").startswith("Marii") and b["pole_m2"] > 300: blok = b["poly"]
+    if gar is not None and blok is not None:
+        rg = list(gar.minimum_rotated_rectangle.exterior.coords)[:4]; rb = list(blok.minimum_rotated_rectangle.exterior.coords)[:4]
+        pa, pb = min(((a, b) for a in rg for b in rb), key=lambda q: np.hypot(q[0][0] - q[1][0], q[0][1] - q[1][1]))
+        plot_zielony(S, [pa, pb]); ile("plot_zielony_32")
+        a, b = X3(pa[0], .1, pa[1]), X3(pb[0], .1, pb[1]); L = float(np.linalg.norm(b - a)); t = (b - a) / L
+        n = np.array([-t[2], 0, t[0]]); n = n if n[2] < 0 else -n             # strona placu przed garażami (południe)
+        B(S, "wyposazenie", "tablica_biala", a + t * (L / 2 - .25) + UP * .95 + n * .05, t, n, .5, .35, .02)
+        for k in (1, 2, 3):
+            blokada(S, a + t * (L * k / 4) + n * 2.2, t); ile("blokady_parkingowe")
+        kontener_1100(S, b - t * 1.6 + n * .9, t); ile("kontener_braz")
+    # Między 32a a „Restauracją Osiedlową” (bar 34b z muralem) — właściciel 18:08–18:09, IMG_2118/2127/2128: po zachodniej
+    # stronie drogi ze szlabanem (30,8; 20,2) → (41,1; −16,0), za chodnikiem, w rzędzie od północy: wiata śmietnikowa
+    # naprzeciw muralu, latarnia, dwa pojemniki na odzież, paczkomat; za nimi (na płd.-zach.) wieżowiec 32a (IMG_2128).
+    A, Bp = np.array([30.8, 0., 20.2]), np.array([41.1, 0., -16.0])
+    t = nrm(Bp - A); n = np.array([-t[2], 0., t[0]]); n = n if n[0] < 0 else -n          # n: od drogi na zachód
+    zaj = unary_union([G["JEZ"], G["PARK"]])
+    rzad = ((4.0, 7.2), (7.8, .4), (9.3, 1.2), (10.6, 1.2), (12.6, 2.4))          # (u środka, długość): wiata, latarnia, 2 pojemniki, paczkomat
+    for off in (5.0, 5.5, 6.0, 6.5, 7.0):
+        kol = [u for u, L in rzad if Polygon([tuple((A + t * (u + du) + n * (off + dv))[[0, 2]]) for du, dv in
+                                            ((-L / 2, -1.3), (L / 2, -1.3), (L / 2, 1.3), (-L / 2, 1.3))]).intersects(zaj)]
+        if not kol: break
+    if kol: print("UWAGA: przy 32a na jezdni/parkingu stoją elementy u =", kol)
+    print("rząd przy 32a: odsunięcie od osi drogi", off)
+    o = lambda u: A + t * u + n * off + UP * .12
+    wiata_smietnikowa(S, o(4.0), t, -n); ile("wiaty_smietnikowe")                       # drzwi od drogi
+    latarnia(S, o(7.8) + n * .8, -n, False); ile("latarnie")
+    for u in (9.3, 10.6): kontener_odziez(S, o(u), t, -n); ile("pojemniki_odziez")
+    paczkomat(S, o(12.6), -t); ile("paczkomaty")
+
+
+def plot_zielony(S, pts):
+    """Zielony płot z prętów 1,5 m (IMG_2122/2123): słupki co 2,5 m, dwie poprzeczki, pręty (alfa)."""
+    g = "wyposazenie"; H = 1.5
+    for (x0, z0), (x1, z1) in zip(pts, pts[1:]):
+        a, b = X3(x0, .1, z0), X3(x1, .1, z1); L = float(np.linalg.norm(b - a))
+        if L < .2: continue
+        t = (b - a) / L; n = np.array([-t[2], 0, t[0]])
+        for s_ in list(np.arange(0, L, 2.5)) + [L]:
+            S.box(g, "plot_rama_ziel", a + t * s_ - t * .03 - n * .03, t, UP, n, .06, H + .05, .06)
+        for y in (.15, H - .15):
+            S.box(g, "plot_rama_ziel", a + UP * y - n * .02, t, UP, n, L, .04, .04)
+        S.quad(g, "plot_prety_ziel", a + UP * .05, b + UP * .05, b + UP * H, a + UP * H, t=t, kier=n)
+        S.quad(g, "plot_prety_ziel", b + UP * .05, a + UP * .05, a + UP * H, b + UP * H, t=-t, kier=-n)
+
+
+def blokada(S, o, t):
+    """Blokada parkingowa U (rura ocynk, pas czerwony) 0,9 × 0,55 m."""
+    g = "wyposazenie"
+    a, b = o - t * .45, o + t * .45
+    S.rura(g, "blokada_parking", a, a + UP * .5, .025, seg=6); S.rura(g, "blokada_parking", b, b + UP * .5, .025, seg=6)
+    S.rura(g, "blokada_parking", a + UP * .5, b + UP * .5, .025, seg=6)
+    S.rura(g, "szlaban_czerwony", a + t * .25 + UP * .5, b - t * .25 + UP * .5, .028, seg=6)
+
+
+def kontener_1100(S, o, t):
+    """Kontener 1100 l (brązowy, IMG_2122): skrzynia 1,37 × 1,07 × 1,1 m, pokrywa, kółka."""
+    g = "wyposazenie"; n = np.array([-t[2], 0, t[0]])
+    B(S, g, "kontener_braz", o + UP * .12, t, n, 1.37, 1.0, 1.07)
+    B(S, g, "kontener_braz", o + UP * 1.12, t, n, 1.43, .1, 1.13)
+    for (u, v) in ((-.55, -.4), (.55, -.4), (-.55, .4), (.55, .4)):
+        S.rura(g, "opona", o + t * u + n * v, o + t * u + n * v + UP * .12, .06, seg=6)
+
+
+def wiata_smietnikowa(S, o, t, n):
+    """Wiata śmietnikowa (IMG_2118, IMG_2127/2128): 7,2 × 2,4 × 2,2 m, rama z kształtowników co 1,8 m, dół panele
+    z nadrukiem liści do 1,2 m, wyżej siatka, daszek z blachy spadający do tyłu, dwie pary drzwi od frontu (n)."""
+    g = "wiata_smiec"; Lw, Dw, H = 7.2, 2.4, 2.2
+    P = lambda u, v, y: o + t * u + n * v + UP * y
+    for u in np.arange(-Lw / 2, Lw / 2 + .01, 1.8):
+        for v in (-Dw / 2, Dw / 2):
+            S.box(g, "wiata_smiec_rama", P(u - .04, v - .04, 0), t, UP, n, .08, H + (.1 if v > 0 else 0), .08)
+    for (u0, v0, u1, v1) in ((-Lw / 2, Dw / 2, Lw / 2, Dw / 2), (-Lw / 2, -Dw / 2, Lw / 2, -Dw / 2),
+                             (-Lw / 2, -Dw / 2, -Lw / 2, Dw / 2), (Lw / 2, -Dw / 2, Lw / 2, Dw / 2)):
+        a, b = P(u0, v0, 0), P(u1, v1, 0); L = float(np.linalg.norm(b - a)); tt = (b - a) / L; nn = np.array([-tt[2], 0, tt[0]])
+        S.box(g, "wiata_smiec_rama", a + UP * 1.2 - nn * .03, tt, UP, nn, L, .05, .06)
+        S.box(g, "wiata_smiec_rama", a + UP * (H - .06) - nn * .03, tt, UP, nn, L, .06, .06)
+        S.quad(g, "wiata_smiec_panel", a + UP * .08, b + UP * .08, b + UP * 1.2, a + UP * 1.2, t=tt, kier=nn)
+        S.quad(g, "wiata_smiec_panel", b + UP * .08, a + UP * .08, a + UP * 1.2, b + UP * 1.2, t=-tt, kier=-nn)
+        S.quad(g, "wiata_smiec_siatka", a + UP * 1.25, b + UP * 1.25, b + UP * (H - .06), a + UP * (H - .06), t=tt, kier=nn)
+        S.quad(g, "wiata_smiec_siatka", b + UP * 1.25, a + UP * 1.25, a + UP * (H - .06), b + UP * (H - .06), t=-tt, kier=-nn)
+    # daszek: blacha 7,4 × 2,6, spadek 10 cm do tyłu
+    a = P(-Lw / 2 - .1, Dw / 2 + .1, H + .12); b = P(Lw / 2 + .1, Dw / 2 + .1, H + .12)
+    c = P(Lw / 2 + .1, -Dw / 2 - .1, H + .02); e = P(-Lw / 2 - .1, -Dw / 2 - .1, H + .02)
+    S.quad(g, "wiata_smiec_dach", a, b, c, e, kier=UP); S.quad(g, "wiata_smiec_dach", b, a, e, c, kier=-UP)
+    # kartka z ogłoszeniem i zamek przy drzwiach
+    B(S, g, "tablica_biala", P(-.6, Dw / 2 + .03, 1.35), t, n, .42, .3, .01)
+
+
+def kontener_odziez(S, o, t, n):
+    """Pojemnik na odzież (IMG_2127/2128): beżowa blacha 1,2 × 1,1 × 2,0 m, skośny daszek, klapa wrzutowa od frontu (n)."""
+    g = "wyposazenie"
+    B(S, g, "kontener_odziez", o, t, n, 1.2, 1.85, 1.1)
+    B(S, g, "kontener_odziez", o + UP * 1.85 + n * .05, t, n, 1.26, .12, 1.2)
+    B(S, g, "kontener_odziez_klapa", o + UP * 1.2 + n * .57, t, n, .8, .35, .06)

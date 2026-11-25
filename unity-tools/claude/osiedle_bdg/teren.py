@@ -141,6 +141,7 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
     S = Siatka()
     jezdnie, glowne, piesze, parkingi, boiska, place, rowery = [], [], [], [], [], [], []
     jezdnie_kostka, parkingi_kostka, parkingi_czerwone = [], [], []
+    serwis = []
     for u in d["ulice"]:
         if len(u["linia"]) < 2: continue
         ln = LineString(u["linia"])
@@ -149,6 +150,7 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
             if u.get("jednokier") == "yes" and (u.get("pasy") or "").isdigit(): w = int(u["pasy"]) * 3.4
             g = ln.buffer(w / 2, cap_style=2, join_style=1)
             jezdnie.append(g)
+            if u["klasa"] == "service": serwis.append(g)
             if czy_kostka(u): jezdnie_kostka.append(g)
             if u["klasa"] in GLOWNE: glowne.append(g)
         elif u["klasa"] == "cycleway":
@@ -166,7 +168,10 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
         elif t["rodzaj"] == "pitch": boiska.append(p)
         elif t["rodzaj"] == "playground": place.append(p)
     bud = unary_union(budynki_poly)
-    JEZ = unary_union(jezdnie).intersection(OKNO)
+    # 25.11 18:18 (właściciel: „po co ten parking z tym paskiem?”): alejka dojazdowa (droga serwisowa z mapy) w obrębie
+    # parkingu jest nawierzchnią parkingu — bez osobnego pasa jezdni przez środek parkingu
+    alejki = unary_union(serwis).intersection(unary_union(parkingi)) if serwis and parkingi else Polygon()
+    JEZ = unary_union(jezdnie).difference(alejki).intersection(OKNO)
     GLOW = unary_union(glowne).intersection(OKNO)
     PARK = unary_union(parkingi).difference(JEZ).intersection(OKNO)
     POZIOM0 = unary_union([JEZ, PARK])
@@ -205,7 +210,7 @@ def zbuduj(d, budynki_poly, przedpola=(), boiska_asf=(), zebry=(), las=None):
     ASF = JEZ.difference(LIN)
     # nawierzchnia (właściciel 23.11, 18:03, IMG_1758–1765): uliczki osiedlowe i dojazdy bez znacznika surface w OSM to
     # szara kostka, zatoki parkingowe przy blokach — czerwona kostka; asfalt tam, gdzie OSM mówi asphalt, i na głównych
-    KOS = unary_union(jezdnie_kostka).intersection(OKNO).difference(GLOW).difference(LIN) if jezdnie_kostka else Polygon()
+    KOS = unary_union(jezdnie_kostka).intersection(JEZ).difference(GLOW).difference(LIN) if jezdnie_kostka else Polygon()   # 25.11: tylko jezdnia (alejka w parkingu = parking)
     if las is not None: KOS = KOS.difference(las)
     ASF = ASF.difference(KOS)
     PARK_K = unary_union(parkingi_kostka).intersection(PARK) if parkingi_kostka else Polygon()

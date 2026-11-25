@@ -86,7 +86,7 @@ P = {
     "szlaban_bialy": {"tex": None, "kol": [236, 236, 232], "szorst": .45},
     "beton_lawka": {"tex": BET, "m": 1.5, "kol": [160, 158, 152], "szorst": 1.0},
     "lawka_drewno": {"tex": "weathered_brown_planks", "m": 1.2, "kol": [128, 88, 58], "szorst": .8},
-    "paczkomat": {"tex": None, "kol": [84, 88, 92], "szorst": .45, "metal": .4}, "paczkomat_ekran": {"tex": None, "kol": [20, 24, 28], "szorst": .1},
+    "paczkomat": {"tex": None, "kol": [206, 206, 200], "szorst": .45, "metal": .4}, "paczkomat_ekran": {"tex": None, "kol": [20, 24, 28], "szorst": .1},
     "kontener_zielony": {"tex": None, "kol": [40, 110, 56], "szorst": .6}, "kontener_zolty": {"tex": None, "kol": [222, 186, 40], "szorst": .6},
     "kontener_niebieski": {"tex": None, "kol": [36, 76, 150], "szorst": .6},
     "hydrant": {"tex": None, "kol": [190, 30, 26], "szorst": .5, "metal": .3},
@@ -160,6 +160,20 @@ def tint(v):
     return [round(((c / 255) ** 2.2 / (s ** 2.2)) ** (1 / 2.2), 4) for c, s in zip(v["kol"], a)]
 
 
+# 25.11 (zdjęcia właściciela IMG_2118/2122/2123/2127/2128): zielony płot z prętów przy bloku 32, wiaty śmietnikowe
+# (rama ze stali, siatka, panele z nadrukiem liści, daszek z blachy), kontener brązowy 1100 l, blokady parkingowe
+P["plot_rama_ziel"] = {"tex": None, "kol": [96, 176, 64], "szorst": .5, "metal": .3}
+P["plot_prety_ziel"] = {"tex": None, "kol": [96, 176, 64], "szorst": .5, "metal": .3, "alfa": "plot_prety.png"}
+P["wiata_smiec_rama"] = {"tex": None, "kol": [62, 66, 68], "szorst": .5, "metal": .5}
+P["wiata_smiec_siatka"] = {"tex": None, "kol": [52, 56, 58], "szorst": .5, "metal": .5, "alfa": "plot_prety.png"}
+P["wiata_smiec_panel"] = {"tex": None, "kol": [150, 170, 132], "szorst": .7}
+P["wiata_smiec_dach"] = {"tex": "painted_metal_shutter", "m": 1.2, "kol": [70, 74, 78], "szorst": .6}
+P["kontener_braz"] = {"tex": None, "kol": [104, 66, 40], "szorst": .6}
+P["kontener_odziez"] = {"tex": None, "kol": [206, 194, 160], "szorst": .6}
+P["kontener_odziez_klapa"] = {"tex": None, "kol": [168, 158, 128], "szorst": .6}
+P["blokada_parking"] = {"tex": None, "kol": [180, 182, 184], "szorst": .4, "metal": .6}
+P["tablica_biala"] = {"tex": None, "kol": [236, 236, 232], "szorst": .5}
+
 # 23.11, 17:58 właściciel: „dosłownie wszystko ma mieć tekstury premium”. Malowana blacha, stal, PCV, farba na jezdni,
 # drzwi i drobne wyposażenie dostają skan lakierowanej blachy (blue_metal_plate z Poly Haven odbarwiony do szarości —
 # lakier_blacha: ta sama faktura, nierówności i normalne, barwę daje kol). Bez tekstury zostaje tylko szkło (gładkie,
@@ -169,7 +183,7 @@ LAKIER = ["plycina", "listwa_braz", "pcv", "parapet", "obrobka", "drzwi_czerwone
           "balustrada_blacha_biala", "balustrada_blacha_braz", "okap_blacha", "pas_pomarancz", "pas_granat", "linia_biala",
           "stal_ocynk", "sygnal_szary", "sygnal_czarny", "wiata_rama", "szlaban_pomarancz", "szlaban_czerwony", "szlaban_bialy",
           "paczkomat", "kontener_zielony", "kontener_zolty", "kontener_niebieski", "hydrant", "plot_rama", "latarnia_stal", "oprawa",
-          "market_niebieski", "market_rama", "lamele", "ladowisko_krzyz_tlo", "ladowisko_krzyz", "ladowisko_okrag", "pole_logo"]
+          "market_niebieski", "market_rama", "lamele", "plot_rama_ziel", "wiata_smiec_rama", "kontener_braz", "blokada_parking", "kontener_odziez", "kontener_odziez_klapa", "tablica_biala", "ladowisko_krzyz_tlo", "ladowisko_krzyz", "ladowisko_okrag", "pole_logo"]
 for _k in LAKIER:
     if _k in P and not P[_k].get("tex"):
         P[_k] = dict(P[_k], tex="lakier_blacha", m=2.5, szorst=max(.6, P[_k].get("szorst", .6)))
