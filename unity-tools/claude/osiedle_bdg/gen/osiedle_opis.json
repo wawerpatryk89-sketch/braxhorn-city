@@ -1,28 +1,28 @@
 {
  "wiezowce": {
   "28a": {
-   "trojkatow": 36584,
+   "trojkatow": 36754,
    "okien": 352,
    "kat": 11.5,
    "x": -141.55,
    "z": -53.05
   },
   "30a": {
-   "trojkatow": 36584,
+   "trojkatow": 36754,
    "okien": 352,
    "kat": 12.25,
    "x": -68.99,
    "z": -33.14
   },
   "32a": {
-   "trojkatow": 36584,
+   "trojkatow": 36754,
    "okien": 352,
    "kat": 11.5,
    "x": -12.29,
    "z": -13.7
   },
   "34a": {
-   "trojkatow": 36584,
+   "trojkatow": 36754,
    "okien": 352,
    "kat": 11.0,
    "x": 21.03,
@@ -525,8 +525,8 @@
  "teren": {
   "jezdnie": 38683,
   "parkingi": 14142,
-  "chodniki": 42547,
-  "trawa": 143906,
+  "chodniki": 42513,
+  "trawa": 143896,
   "boiska": 3278,
   "place_zabaw": 1594,
   "krawezniki": 2266,
@@ -542,12 +542,12 @@
   "szlabany": 6,
   "kontenery": 3,
   "paczkomaty": 6,
-  "ploty": 30,
-  "zywoploty_pominiete": 20,
+  "ploty": 46,
+  "zywoploty_na_plot": 20,
   "slupki": 3,
   "ploty_szpital": 12,
   "latarnie": 262,
   "paliki": 56
  },
- "trojkatow": 867913
+ "trojkatow": 871485
 }

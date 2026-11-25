@@ -332,8 +332,8 @@ def wiezowce(dst):
         B = blok_32a
         # ściana wejściowa (północ połówki zachodniej) i ślepa ściana z napisem — przed nimi kostka do uliczki (IMG_1427)
         PRZEDPOLA.append((swiat(kat, tx, tz, 0, B.DL), swiat(kat, tx, tz, B.SZ_POL, B.DL), kier(kat, 0, 1), 16.0, "kostka"))
-        # doświetle piwnicy przed ścianą wejściową: od 25.11 teren pod nim zostaje (żwir leży na kostce, nic na wylot)
-        # (do 24.11 wycinano tu teren x lokalne −0,4…7,85, do 1,39 m od ściany — w grze dawało to prześwit pod spód)
+        # zejście do piwnicy przed ścianą wejściową (blok_32a.klatka, 25.11): wykop z dnem i ścianami — teren go omija
+        MODELE.append(Polygon([tuple(swiat(kat, tx, tz, x, z)) for x, z in ((-.4, B.DL), (7.85, B.DL), (7.85, B.DL + 1.39), (-.4, B.DL + 1.39))]))
         PRZEDPOLA.append((swiat(kat, tx, tz, B.SZ_POL, B.DL + B.USKOK), swiat(kat, tx, tz, 2 * B.SZ_POL, B.DL + B.USKOK), kier(kat, 0, 1), 14.0, "kostka"))
         opis[nr] = {"trojkatow": trojkaty(S), "okien": okien, "kat": kat, "x": tx, "z": tz}
     return opis

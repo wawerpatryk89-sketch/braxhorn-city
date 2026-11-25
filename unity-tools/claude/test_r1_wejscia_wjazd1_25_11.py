@@ -23,25 +23,24 @@ def _pudla(S, g, m):
     return [v[i:i + 24] for i in range(0, len(v), 24)]
 
 
-def test_32a_podest_przy_drzwiach_i_doswietle_zamkniete():
+def test_32a_podest_przy_drzwiach_i_zejscie_do_piwnicy():
     S, _ = B.zbuduj("32a", 0)
     pudla = _pudla(S, "klatka", "beton_schody")
-    # podest: najwyższy stopień (do +1,00) zaczyna się na licu ściany (z = DL)
     podest = [p for p in pudla if abs(p[:, 1].max() - B.COKOL_Z) < 1e-3 and p[:, 1].min() < 0]
     assert podest and abs(podest[0][:, 2].min() - B.DL) < 1e-3, "podest schodów ma stać przy drzwiach"
-    # oba końce doświetla: ścianki od lica ściany do murka
-    konce = [p for p in pudla if abs(p[:, 2].min() - B.DL) < 1e-3 and p[:, 1].max() < .5 and (p[:, 0].max() - p[:, 0].min()) < .2]
-    assert len(konce) == 2, "doświetle piwnicy zamknięte z obu końców"
-    zw = np.array(S.cz[("klatka", "zwir")]["v"])
-    assert zw[:, 1].min() > .12, "żwir doświetla nad kostką (+0,12), nic na wylot"
     daszek = np.array(S.cz[("klatka", "beton_daszek")]["v"])
     assert abs(daszek[:, 2].min() - B.DL) < 1e-3, "daszek przy ścianie"
+    # 25.11 (właściciel 15:35, 16:50): zejście schodami w dół do drzwi piwnicy, nie zamknięte doświetle
+    v = np.array(S.cz[("klatka", "beton_schody")]["v"])
+    assert v[:, 1].min() < -1.8, "dno zejścia ok. −1,86"
+    assert ("klatka", "drzwi_stal") in S.cz, "drzwi piwnicy na dole zejścia"
+    assert ("klatka", "zwir") not in S.cz
 
 
-def test_osiedle_nie_wycina_terenu_pod_doswietlem():
+def test_teren_omija_zejscie_do_piwnicy():
     src = (ROOT / "unity-tools/claude/osiedle_bdg/osiedle.py").read_text(encoding="utf-8")
     kod = [ln for ln in src.split("def wiezowce")[1].split("\ndef ")[0].splitlines() if not ln.strip().startswith("#")]
-    assert not any("MODELE.append" in ln and "B.DL + 1.39" in ln for ln in kod), "teren pod doświetlem zostaje"
+    assert any("MODELE.append" in ln and "B.DL + 1.39" in ln for ln in kod), "wykop zejścia wycięty z terenu"
 
 
 def test_blok4_klatka_wysunieta_przed_sciane():

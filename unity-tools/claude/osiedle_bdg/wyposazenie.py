@@ -147,10 +147,11 @@ def zbuduj(d, G, szer, okno, drzewa, latarnie):
     # przecięte wszędzie, gdzie przechodzą przez jezdnię, parking albo chodnik (+0,4 m) — w tych miejscach przejście
     przejscia = unary_union([G["JEZ"], G["PARK"], G["CHOD"]]).buffer(.4)
     for (pts, t) in linie:
-        if t.get("barrier") == "hedge":                 # 25.11, 15:21/15:23: „w ogóle nie ma być tego” — żywopłoty usunięte
-            ile("zywoploty_pominiete"); continue
+        # 25.11, 15:21/15:23: „w ogóle nie ma być tego” — bez żywopłotów; 15:46: „masz zamienić na coś normalnego, jakiś płot”
+        # → w miejscu żywopłotu z mapy płot z prętów (ten sam co przy szpitalu), przecięty na każdym przejściu
+        if t.get("barrier") == "hedge": ile("zywoploty_na_plot")
         L = LineString(pts).intersection(okno).difference(zajete)
-        if t.get("barrier") in ("fence", "wall", None) or t.get("barrier") not in ("bollard", "kerb"):
+        if t.get("barrier") in ("fence", "wall", "hedge", None) or t.get("barrier") not in ("bollard", "kerb"):
             L = L.difference(przejscia)
         if L.is_empty: continue
         geoms = [L] if L.geom_type == "LineString" else [g for g in getattr(L, "geoms", []) if g.geom_type == "LineString"]
