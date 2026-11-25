@@ -28,6 +28,11 @@ GLB_DIRS = [
     "Source/CityRebuild/landscape",     # park_shrub.glb (16 MB)
     "Source/Claude/Ludzie",             # przechodnie (Mixamo, zdekodowane z wersji przeglądarkowej — dekoduj_glb.mjs)
     "Source/Claude/Auta",               # auta (zdekodowane z public/assets/cars-src)
+    # 25.11 (MIASTO R1, gra wylatuje po starcie): modele właściciela z paczek szyfrowanych (odszyfrowane w CI przed tym
+    # krokiem — install_sklep_modele.py) miały obrazy wbudowane w .glb → glTFast robił z nich nieskompresowane RGBA32:
+    # autobus BX 10006 119 MB, 5 aut komisu 62–94 MB, bus z bosną 16 MB, linoskoczek 12 MB (build-size 55c140a).
+    # Pliki obok modelu powstają tylko w kopii roboczej CI — repo i paczki bez zmian.
+    "Source/Prywatne/Miasto",
 ]
 # Drzewa osiedla (Verdant, 4 LOD-y w jednym .glb): LOD0 46 tys. trójkątów liści — w parku i alei kilkadziesiąt drzew
 # naraz = miliony trójkątów na klatkę (ŚREDNIA 14–17 kl./s u właściciela, 1.11). gltfpack upraszcza każdy LOD

@@ -213,6 +213,28 @@ public static class BraxGymBuild
             sb.Append("  WSPÓLNE (zasoby, ustawienia): ").Append(common/1048576).Append(" MB\n");
             foreach(var kv in byType.OrderByDescending(k=>k.Value).Take(12))sb.Append("  TYPE ").Append(kv.Value/1048576).Append(" MB  ").Append(kv.Key).Append('\n');
             foreach(var kv in byAsset.OrderByDescending(k=>k.Value).Take(60))sb.Append("  ASSET ").Append(kv.Value/1048576).Append(" MB  ").Append(kv.Key).Append('\n');
+            // 25.11 (MIASTO R1, gra wylatuje po starcie, scena główna 2128 MB): co dokładnie siedzi w każdym obszarze ponad 100 MB —
+            // 40 największych zasobów sceny i typy (bez tego wiadomo tylko, ile waży scena, a nie co ją waży)
+            var naScene=new Dictionary<int,Dictionary<string,long>>();var typScena=new Dictionary<int,Dictionary<string,long>>();
+            foreach(var pack in result.packedAssets)
+            {
+                var m=System.Text.RegularExpressions.Regex.Match(Path.GetFileName(pack.shortPath??""),@"^(?:level|sharedassets)(\d+)");
+                if(!m.Success)continue;int i=int.Parse(m.Groups[1].Value);
+                if(!naScene.ContainsKey(i)){naScene[i]=new Dictionary<string,long>();typScena[i]=new Dictionary<string,long>();}
+                foreach(var c in pack.contents)
+                {
+                    string a=string.IsNullOrEmpty(c.sourceAssetPath)?"(scena/wbudowane "+(c.type!=null?c.type.Name:"?")+")":c.sourceAssetPath;string t=c.type!=null?c.type.Name:"?";
+                    naScene[i][a]=(naScene[i].ContainsKey(a)?naScene[i][a]:0)+(long)c.packedSize;typScena[i][t]=(typScena[i].ContainsKey(t)?typScena[i][t]:0)+(long)c.packedSize;
+                }
+            }
+            foreach(var kv in naScene)
+            {
+                long sum=0;foreach(var v in kv.Value.Values)sum+=v;if(sum<100L*1048576)continue;
+                string n=kv.Key<names.Length?names[kv.Key].ToString():"scena "+kv.Key;
+                sb.Append("  W OBSZARZE ").Append(n).Append(" (").Append(sum/1048576).Append(" MB):").Append('\n');
+                foreach(var t in typScena[kv.Key].OrderByDescending(x=>x.Value).Take(6))sb.Append("    TYP ").Append(t.Value/1048576).Append(" MB  ").Append(t.Key).Append('\n');
+                foreach(var a in kv.Value.OrderByDescending(x=>x.Value).Take(40))sb.Append("    ").Append(a.Value/1048576).Append(" MB  ").Append(a.Key).Append('\n');
+            }
             Debug.Log(sb.ToString());
             File.WriteAllText(Path.Combine(Generated,"build-size.txt"),sb.ToString());
         }
