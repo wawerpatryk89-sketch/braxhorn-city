@@ -1,0 +1,94 @@
+{
+  "category": "Kreskówka – postacie gościnne",
+  "date": "2026-11-27",
+  "owner_visual_acceptance": true,
+  "storage_status": "PENDING_BINARY_UPLOAD",
+  "unity_ready": false,
+  "archive": {
+    "name": "BRAXHORN_CITY_Kreskowka_postacie_goscinne_20261127.zip",
+    "bytes": 137210219,
+    "sha256": "a434e7b696f43826e013497a663262cd24ff559e121bdbca56fc768bc6a23c54",
+    "file_count": 60,
+    "uploaded": false
+  },
+  "characters": [
+    {
+      "name": "Bolek",
+      "id": "8f5ed505",
+      "role": "kierowca",
+      "source_sha256": "606c30a310c38de1b24d6a69bce4b709d0a26cd43ec45e0ee9442c452d12858c",
+      "locomotion": "ruch_v2",
+      "face": "mimika_v2",
+      "actions": [
+        "spoczynek",
+        "chód",
+        "bieg",
+        "gest komediowy",
+        "rozmowa",
+        "wsiadanie",
+        "prowadzenie",
+        "wysiadanie"
+      ],
+      "conversation_arm_clearance": {
+        "frames": 112,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "Lolek",
+      "id": "62609351",
+      "role": "pasażer",
+      "source_sha256": "5bb1db85fea55d23119b9f7900d2f7721c65e69b782329b72ee4e899030a60ac",
+      "face": "mimika_v5",
+      "actions": [
+        "chód",
+        "bieg",
+        "gest",
+        "rozmowa",
+        "siad pasażera",
+        "spoczynek siedzący"
+      ],
+      "conversation_arm_clearance": {
+        "frames": 105,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "Don Pedro Caramba",
+      "id": "f47ddc6c",
+      "source_sha256": "21f5ec8752fe245cbd32f27aef691da66f3e42d43865a9d8e3dc7c0699dfe78c",
+      "only_spoken_word": "Caramba!",
+      "actions": [
+        "skradanie",
+        "chwyt ściany",
+        "wychylanie zza ściany",
+        "chwyt parapetu",
+        "wychylanie z okna",
+        "okrzyk",
+        "podskok",
+        "ucieczka"
+      ],
+      "scenes": [
+        {
+          "name": "sciana",
+          "frames": 168,
+          "hand_wall_intersection_frames": 0,
+          "other_mesh_intersection_frames": 9
+        },
+        {
+          "name": "okno",
+          "frames": 168,
+          "hand_wall_intersection_frames": 0,
+          "other_mesh_intersection_frames": 0
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Kategoria poza ligą. Bez gardy bojowej dla Bolka.",
+    "Mimika i mruganie wszystkich postaci; głosy testowe.",
+    "Testy obwiedni nie zastępują kontroli pełnej siatki w Unity.",
+    "Dane NPZ i oryginalne modele FBX; brak eksportu gotowych Unity AnimationClips, prefabów i dopasowania do pojazdu.",
+    "Nie uruchamiać buildu bez zgody."
+  ]
+}
