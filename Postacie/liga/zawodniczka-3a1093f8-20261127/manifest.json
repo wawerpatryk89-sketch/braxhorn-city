@@ -1,0 +1,89 @@
+{
+  "id": "3a1093f8",
+  "display_name": null,
+  "working_name": "Dobermanka",
+  "category": "liga",
+  "date": "2026-11-27",
+  "owner_visual_acceptance": true,
+  "accepted_revision": "V5",
+  "storage_status": "PENDING_BINARY_UPLOAD",
+  "unity_ready": false,
+  "style": "aggressive MMA / boxing / kicks / knee / sweep",
+  "model": "tripo_convert_3a1093f8-0f3f-40bd-afad-0208be0946f7.zip",
+  "clips": [
+    "Boxing (1)",
+    "Boxing (2)",
+    "Hook (4)",
+    "Boxing (5)",
+    "Mma Kick (2)",
+    "Mma Kick (4)",
+    "Knee Kick Lead (1)",
+    "Leg Sweep (2)",
+    "Left Pivot",
+    "Center Block (1)",
+    "Center Block (3)",
+    "Light Hit To Head",
+    "Rib Hit",
+    "Shoved Reaction With Spin",
+    "Dying (1)",
+    "Rise_03",
+    "Strut Walking",
+    "Regular_HeavyCHECK",
+    "FightingIdle",
+    "Step Backward",
+    "Run Forward",
+    "Jump",
+    "Threatening",
+    "Victory",
+    "Jab Cross",
+    "Boxing (3)",
+    "Double Leg Takedown - Victim (1)"
+  ],
+  "audit": {
+    "clip_count": 27,
+    "sampled_frames": 1323,
+    "clips_with_deformation_warnings": 21,
+    "unity_tested": false,
+    "paired_grapple_verified": false
+  },
+  "supercombo": {
+    "fps": 30,
+    "frames": 127,
+    "duration_s": 4.2,
+    "transition_frames": 3,
+    "sequence": [
+      "Boxing (2)",
+      "Hook (4)",
+      "Knee Kick Lead (1)",
+      "Mma Kick (4)",
+      "Leg Sweep (2)"
+    ],
+    "return_to": "FightingIdle",
+    "frames_over_threshold": 79,
+    "opponent_contact_verified": false
+  },
+  "conversation": {
+    "version": "V5",
+    "duration_s": 10.708333333333334,
+    "frames": 257,
+    "fps": 24,
+    "source_clips": [
+      "Documentary_PsstToCamera_mixamo_79e5214.fbx",
+      "Pointing.fbx",
+      "Regular_Medium_mixamo_4851799.fbx"
+    ],
+    "blink_full_samples": 4,
+    "teeth_upper": 16,
+    "teeth_lower": 16,
+    "prototype": true,
+    "test_voice": true,
+    "lip_sync_approximate": true
+  },
+  "archive": {
+    "name": "BRAXHORN_CITY_LIGA_3a1093f8_zaakceptowana_V5.zip",
+    "bytes": 45612382,
+    "sha256": "b2fe7c46c2c872181ba0dcf2177791f96e625d8e6a6b811a340f94c9b593babd",
+    "uploaded": false
+  },
+  "notes": "Akceptacja wizualna właściciela po poprawce uzębienia V5. Pliki binarne pozostają poza GitHubem. NPZ, nie gotowe Unity AnimationClips. Nie uruchamiać APK bez zgody."
+}
