@@ -1,0 +1,90 @@
+{
+  "id": "zawodniczka-f55f1fe4",
+  "display_name": null,
+  "category": "liga",
+  "date": "2026-11-27",
+  "owner_visual_acceptance": true,
+  "storage_status": "PENDING_BINARY_UPLOAD",
+  "unity_ready": false,
+  "style": "kickboxing / Muay Thai / MMA",
+  "source_model": "tripo_convert_f55f1fe4-2791-4464-af94-4abdca155e30.zip",
+  "animations": {
+    "count": 30,
+    "sampled_frames": 1148,
+    "without_stretch_warning": 15,
+    "with_stretch_warning": 15,
+    "format": "NPZ retargeted test data, not Unity AnimationClips",
+    "attacks": [
+      "Lead Jab (1)",
+      "Cross Punch",
+      "Hook (6)",
+      "Illegal Elbow Punch",
+      "Mma Kick (3)",
+      "Roundhouse Kick (2)",
+      "Knee Kick Lead",
+      "Side Kick"
+    ],
+    "other_clips": [
+      "Dodging",
+      "Long Left Side Step",
+      "Step Backward",
+      "Left Block",
+      "Right Block",
+      "Big Stomach Hit",
+      "Medium Hit To Head (1)",
+      "Dying (1)",
+      "Zombie Stand Up",
+      "Strut Walking",
+      "Regular_Light",
+      "FightingIdle",
+      "Walking (3)",
+      "Standard Run",
+      "Jump (1)",
+      "Warming Up",
+      "Taunt (1)",
+      "Victory",
+      "Combo Punch",
+      "Punch Combo (1)",
+      "Fist Fight A",
+      "Double Leg Takedown - Victim"
+    ]
+  },
+  "supercombo": {
+    "state": "SUPER_COMBO",
+    "fps": 30,
+    "frames": 120,
+    "duration_s": 4,
+    "sequence": [
+      "Lead Jab (1)",
+      "Cross Punch",
+      "Knee Kick Lead",
+      "Illegal Elbow Punch",
+      "Roundhouse Kick (2)"
+    ],
+    "transition_to": "FightingIdle",
+    "frames_over_stretch_threshold": 12,
+    "opponent_contact_verified": false,
+    "unity_verified": false
+  },
+  "archives": [
+    {
+      "name": "tripo_convert_f55f1fe4-2791-4464-af94-4abdca155e30.zip",
+      "bytes": 26724177,
+      "sha256": "ec67a027e243b2d15df953ccbd9e98eacb1399d69c80a2498d9db2831f3ba78c",
+      "uploaded": false
+    },
+    {
+      "name": "zawodniczka_liga_proba_V2.zip",
+      "bytes": 11538824,
+      "sha256": "83506195e8fc433a16d29559c2d3f9b2f836e6c04109a87004069094650188bc",
+      "uploaded": false
+    },
+    {
+      "name": "Supercombo_zawodniczka.zip",
+      "bytes": 1626119,
+      "sha256": "60d327a567c37ef3839dad5f257e255b73d9673b19ad1f5602aa8c6f51cd0b87",
+      "uploaded": false
+    }
+  ],
+  "notes": "Akceptacja wizualna właściciela 2026-11-27. Nie traktować wpisu jako dostępnego pakietu gry: brak binariów w GitHub, eksportu animacji Unity, testu chwytów parowanych i testu kontaktu supercombo. Zachować oryginalną geometrię i tekstury. Nie uruchamiać APK bez zgody."
+}
