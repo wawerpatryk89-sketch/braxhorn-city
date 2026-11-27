@@ -99,9 +99,9 @@ concurrency:
 jobs:
   exploration-apk:
     if: ${{ inputs.recovery_run == '' && inputs.etap != 'aktualizacja' && inputs.etap != 'biblioteka' }}
-    # Ubuntu 24.04 as #43, the last APK built (12.11). ubuntu-latest moved to 26.04: #46 there died of "No space left on
-    # device" (the runner's own log), #47 on its /dev/mapper/cow-root variant lost the runner mid-generation (18.11).
-    runs-on: ubuntu-24.04
+    # Both #61 attempts on Ubuntu 24.04 landed on a copy-on-write root without a separate swap disk.
+    # Use another supported x64 runner image and keep the early swap-disk check.
+    runs-on: ubuntu-22.04
     timeout-minutes: 355
     env:
       MISTRZOWIE_PIPELINE: "20261105-A1-T11"
@@ -630,7 +630,6 @@ jobs:
       - name: Zapisz zbudowany świat (zaszyfrowany, magazyn mistrzowie-world-cache)
         id: world_save
         if: ${{ always() && !cancelled() && inputs.etap != 'sceny' && steps.world_restore.outputs.restored != 'true' && hashFiles('unity-city/mistrzowie-swiat-gotowy.txt') != '' && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') == '' }}
-        continue-on-error: true
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
           GH_TOKEN: ${{ github.token }}
