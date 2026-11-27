@@ -1,0 +1,65 @@
+{
+  "id": "liga_lwica_4f12ae60",
+  "nazwa_robocza": "Lwica",
+  "projekt": "BRAXHORN CITY / Unity 6",
+  "role": [
+    "liga"
+  ],
+  "walka": true,
+  "zasieg_spotkan": "cala-gra",
+  "styl": "kickboxing + karate",
+  "status": "profil_zrodel_T_zapisany_model_i_retarget_oczekuja",
+  "model_zrodlowy": {
+    "nazwa": "tripo_convert_4f12ae60-e165-46fd-954a-ea194155225e.zip",
+    "sha256": "54bc308df8c0d171ea61be98a2d529871a1fed4392babab4c770c9ab85866a9b",
+    "uploaded_to_github": false
+  },
+  "profil_ruchow_T": "Postacie/ruchy/mixamo.json#liga_lwica_4f12ae60",
+  "liczba_przypisan_T": 33,
+  "ataki": [
+    "Jab",
+    "Cross",
+    "Hook",
+    "SideKick",
+    "RoundhouseKick",
+    "Knee"
+  ],
+  "powalenie_dodatkowe": "LegSweep",
+  "ruchy_parowane_oczekujace": {
+    "source": "wawerpatryk89-sketch/braxhorn-arena",
+    "reference_fighter": "NYXA",
+    "clips": [
+      "Shoulder Throw, Aggressor",
+      "Shoulder Throw, Victim",
+      "Paired Clinch PUSH",
+      "Paired Clinch RECEIVE"
+    ],
+    "verified": "names in Arena manifest, no clip bytes imported",
+    "paired_contact_validation_required": true
+  },
+  "mimika": {
+    "status": "do_wykonania",
+    "required": [
+      "blink",
+      "jaw",
+      "lips",
+      "head",
+      "eyes",
+      "teeth"
+    ],
+    "preserve_original_appearance": true
+  },
+  "QA": {
+    "status": "not_run",
+    "required": [
+      "verify semantic match of all clips, particularly MMA kick and body hit slots",
+      "validate civilian walk and stand-up direction",
+      "no hand/body penetration",
+      "foot contact",
+      "paired throw contact and timing",
+      "visual film for each clip",
+      "Unity Humanoid avatar validity",
+      "no APK build"
+    ]
+  }
+}
