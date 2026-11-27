@@ -200,8 +200,9 @@ class Workflow(unittest.TestCase):
         save = self.step("Zapisz zbudowany świat")
         for s in ("always() && !cancelled()", "hashFiles('unity-city/mistrzowie-swiat-gotowy.txt') != ''",
                   "hashFiles('build/Android/braxhorn-mistrzowie.gotowe') == ''", "steps.world_restore.outputs.restored != 'true'",
-                  "world_store.sh save unity-city", "continue-on-error: true"):
+                  "world_store.sh save unity-city"):
             self.assertIn(s, save)
+        self.assertNotIn("continue-on-error: true", save)
         unity = WF.index("      - name: Unity 6 - Miasto Mistrzów")
         self.assertLess(unity, WF.index("      - name: Zatrzymaj kontener Unity"))
         self.assertLess(WF.index("      - name: Zatrzymaj kontener Unity"), WF.index("      - name: Zapisz zbudowany świat"))
