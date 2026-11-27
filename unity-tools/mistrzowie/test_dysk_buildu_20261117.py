@@ -25,9 +25,12 @@ class DyskBuildu(unittest.TestCase):
         self.assertIn('(Path(root) / "platforms").glob("android-*/android.jar")', DELIVERY)
         # the picker compiles with the Unity image's JDK and SDK, not the host's
         self.assertIn("android_root=/opt/unity/Editor/Data/PlaybackEngines/AndroidPlayer", PICKER)
-        self.assertIn("sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache /usr/share/swift", WF)
+        self.assertIn("sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/share/swift", WF)
         self.assertNotIn("/opt/hostedtoolcache/CodeQL", WF)
-        self.assertNotIn("setup-python", WF)                                   # python3 is the system one
+        self.assertIn("uses: actions/setup-python@", WF)
+        self.assertIn("python-version: '3.12'", WF)
+        self.assertIn("! -name Python", WF)
+        self.assertIn("assert callable(hashlib.file_digest)", WF)
 
     def test_the_apk_job_uses_a_pinned_alternate_runner_image(self):
         job = WF[WF.index("  exploration-apk:"):]

@@ -129,6 +129,10 @@ jobs:
               echo "::error title=Maszyna z dyskiem copy-on-write::/ to $src. Swap na takim dysku zawiesza maszynę przy pełnej pamięci (#47, #49, #50 padły w połowie). Build zatrzymany po 2 minutach - uruchom go ponownie, GitHub przydziela maszynę losowo."
               exit 1 ;;
           esac
+      - name: Set up Python 3.12 for Champions asset preparation
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
       - name: Resolve the selected Champions source
         id: selected
         env:
@@ -362,17 +366,20 @@ jobs:
           # Keep the host Android SDK's build-tools, platforms and platform-tools: APK certificate/identity verification
           # needs aapt, apksigner and android.jar. #46 (17.11) died of "No space left on device" in Unity's import, so
           # everything else the host never uses goes too: the SDK's NDKs, CMake and emulator (Unity builds in its own
-          # image, the picker compiles with its JDK), the whole tool cache (python3 here is /usr/lib/python3), browsers,
+          # image, the picker compiles with its JDK), unused tool caches, browsers,
           # Azure CLI, Boost, Julia, Miniconda, Homebrew.
           sdk="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
           df -h /
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache /usr/share/swift /usr/local/share/powershell \
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/share/swift /usr/local/share/powershell \
             "$sdk/ndk" "$sdk/ndk-bundle" "$sdk/cmake" "$sdk/emulator" "$sdk/system-images" \
             /usr/local/share/boost /usr/local/share/chromium /opt/google /opt/microsoft /opt/az /usr/share/miniconda \
             /usr/local/julia* /home/linuxbrew \
             /usr/local/lib/node_modules /usr/lib/google-cloud-sdk /usr/local/share/vcpkg /usr/lib/firefox /usr/local/aws-cli \
             /usr/local/aws-sam-cli /opt/pipx /home/runner/.rustup /home/runner/.cargo "$sdk/extras"
           test -d "$sdk/build-tools" && test -d "$sdk/platforms"
+          # The configured Python lives in the hosted tool cache and is needed after cleanup.
+          sudo find "${RUNNER_TOOL_CACHE:?}" -mindepth 1 -maxdepth 1 ! -name Python -exec rm -rf -- {} +
+          python3 -c 'import hashlib; assert callable(hashlib.file_digest)'
           sudo apt-get clean
           sudo docker image prune --all --force
           # the swap on the runner's temporary disk when it has one with room, else on /. 24 GiB since 24.11: #52 finished
