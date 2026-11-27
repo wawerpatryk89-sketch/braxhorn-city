@@ -29,10 +29,10 @@ class DyskBuildu(unittest.TestCase):
         self.assertNotIn("/opt/hostedtoolcache/CodeQL", WF)
         self.assertNotIn("setup-python", WF)                                   # python3 is the system one
 
-    def test_the_apk_job_runs_where_43_was_built(self):
+    def test_the_apk_job_uses_a_pinned_alternate_runner_image(self):
         job = WF[WF.index("  exploration-apk:"):]
         job = job[:job.index("    steps:")]
-        self.assertIn("runs-on: ubuntu-24.04", job)
+        self.assertIn("runs-on: ubuntu-22.04", job)
         self.assertNotIn("runs-on: ubuntu-latest", job)
         for gone in ("/usr/local/lib/node_modules", "/usr/lib/google-cloud-sdk", "/usr/local/share/vcpkg", "/usr/lib/firefox",
                      "/usr/local/aws-cli", "/usr/local/aws-sam-cli", "/opt/pipx", "/home/runner/.rustup", "/home/runner/.cargo",
