@@ -1,0 +1,53 @@
+{
+  "version": "2026-11-27.2",
+  "scope": "all City league fighters, including Arena imports",
+  "status": "requirements_pending_integration_and_visual_acceptance",
+  "requiredActions": {
+    "Combo": {
+      "required": true,
+      "source": "original library clip or sequence of original clips",
+      "individual": true
+    },
+    "SuperCombo": {
+      "required": true,
+      "source": "distinct original library clip or sequence; no invented strike keyframes",
+      "individual": true
+    },
+    "HeavyHitRecoil": {
+      "required": true,
+      "trigger": "confirmed heavy hit",
+      "receiver": true
+    },
+    "ComboFinisherRecoil": {
+      "required": true,
+      "trigger": "confirmed final hit of combo or super combo",
+      "receiver": true
+    },
+    "Fall": {
+      "required": true
+    },
+    "GetUp": {
+      "required": true
+    },
+    "PairedThrow": {
+      "required": true,
+      "roles": [
+        "attacker",
+        "victim"
+      ]
+    }
+  },
+  "rules": [
+    "same number of combat action slots per fighter",
+    "do not replace existing Arena fighters' approved moves",
+    "no duplicated action solely to meet count",
+    "recoil is not triggered by missed or blocked attacks",
+    "verify receiver timing, ground collision, shoulder alignment and original mesh",
+    "render each fighter individually for owner approval before integration; no APK build"
+  ],
+  "qa": {
+    "shoulders": "FAIL on previous Lwica preview per owner; retargeting correction and new render required",
+    "motion": "not approved",
+    "face": "not approved"
+  }
+}
