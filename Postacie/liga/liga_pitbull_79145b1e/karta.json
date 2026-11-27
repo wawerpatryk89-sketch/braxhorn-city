@@ -15,7 +15,7 @@
     "uploaded_to_github": false
   },
   "profil_ruchow_T": "Postacie/ruchy/mixamo.json#liga_pitbull_79145b1e",
-  "liczba_przypisan_T": 39,
+  "liczba_przypisan_T": 42,
   "ataki": [
     "Jab",
     "Cross",
@@ -68,6 +68,10 @@
       "archive_release_id": 443180649,
       "archive_asset_id": 748007669,
       "approved": false
+    },
+    "shoulders": {
+      "status": "FAIL prior Lwica render; retarget source/target rest orientation correction required",
+      "applies_to_both": true
     }
   },
   "warianty_dodatkowe": [
@@ -77,5 +81,19 @@
     "FootworkAlt",
     "HitHeadAlt",
     "WarmUp"
-  ]
+  ],
+  "standard_walki": "Postacie/liga/standard_walki.json",
+  "super_combo": {
+    "source_sequence_candidates": [
+      "Jab Cross",
+      "Punch Combo (1)",
+      "Mma Kick (4)"
+    ],
+    "status": "pending actual blending, contact timing and render; not implemented"
+  },
+  "odrzut": {
+    "heavy": "HeavyHitRecoil",
+    "combo_finisher": "ComboFinisherRecoil",
+    "status": "source candidate assignments only; actual root travel and collision not tested"
+  }
 }
