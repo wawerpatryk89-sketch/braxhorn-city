@@ -3329,7 +3329,10 @@
       "KickAlt": "f54bb11d6ca24862b3a68c329d9323a35ca94fdf0ca58a2f605ae96d6e9176a6",
       "FootworkAlt": "4b87c18ccc192ff38c46faede38580165d4daf2dba6e509bde28b1802643e0e9",
       "HitHeadAlt": "1ba59425238b62c106548c9a1516e698a852183b8572e815b876f19332cc5cb8",
-      "WarmUp": "8d6235835f2d497cd418c473abbac11507f57225815ab15da0d37c8a20469439"
+      "WarmUp": "8d6235835f2d497cd418c473abbac11507f57225815ab15da0d37c8a20469439",
+      "SuperCombo": "5eaea12e4768a6ad831bb4c47911fdb69bf599a35ddb100568012232d22f3554",
+      "HeavyHitRecoil": "e128da8bd1bd8abe9936d52284ac7b9b5ae81cf978424438cbded30415120235",
+      "ComboFinisherRecoil": "4d0b74944f53724c73bbf07ff2d8dd44a94e78f455697f5823f3a8dd28f1d0a7"
     },
     "liga_pitbull_79145b1e": {
       "Idle": "fb2ab37c561a82bb921267ed47b45e84305049b2a8dcaa3216b7b8491ef9504d",
@@ -3370,7 +3373,10 @@
       "KickAlt": "db53103523fa7344d2886dc6124428ea7ebcae759a9f7c102a6a92207dd0769f",
       "FootworkAlt": "fc73af8c7debec0570d0d761aa53e6b0a6af19ce25e7381e71563d4178e872c8",
       "HitHeadAlt": "5f271f2f555c4728b58799a4517171ae676feaa02e735b8f02e3d9920b7a7bb8",
-      "WarmUp": "b7b7e1019afee2fed6dbfd9ce57253d370edcb1af3a7dea1cdfd01e4a76a95ab"
+      "WarmUp": "b7b7e1019afee2fed6dbfd9ce57253d370edcb1af3a7dea1cdfd01e4a76a95ab",
+      "SuperCombo": "d319200a306bb50ddc53c406cf6c16422496a441b7f681aa329acc9d4f9c937e",
+      "HeavyHitRecoil": "ddee9edeffdcab5cb0552e480dc5eafedcfe74a263a6db4f167e41f52ef1114c",
+      "ComboFinisherRecoil": "83698da5e732d8c8665d2ab776ab6beb31be8af1470788147fcdce7f06002bf0"
     }
   },
   "pending": {
