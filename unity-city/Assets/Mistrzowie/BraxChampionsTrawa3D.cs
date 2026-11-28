@@ -34,6 +34,15 @@ public class BraxChampionsTrawa3D : MonoBehaviour
     MaterialPropertyBlock mpb;
     static readonly int IdZasieg = Shader.PropertyToID("_Zasieg"), IdBlisko = Shader.PropertyToID("_Blisko");
 
+    Transform gracz;
+    static readonly int IdSrodek = Shader.PropertyToID("_GrassDistanceOrigin");
+
+    void Start()
+    {
+        var player = FindAnyObjectByType<BraxGymPlayer>();
+        if (player) gracz = player.transform;
+    }
+
     void Awake()
     {
         if (!dane || dane.nx <= 0 || dane.nz <= 0) return;
@@ -94,6 +103,8 @@ public class BraxChampionsTrawa3D : MonoBehaviour
         if (!cam || !dane || !siatka || !material || pierwsza.Length == 0) return;
         Plynnosc();
         Vector3 p = cam.transform.position;
+        if (gracz && (gracz.position - p).sqrMagnitude < 144f) p = gracz.position;
+        mpb.SetVector(IdSrodek, new Vector4(p.x, p.y, p.z, 1f));
         float kaw = dane.kawalek, pol = kaw * .5f, r = biezacyZasieg + kaw * .71f, r2 = r * r, zw = zasieg + kaw * .71f + 2f * kaw;
         for (int i = zrobione.Count - 1; i >= 0; i--)
         {
@@ -115,12 +126,12 @@ public class BraxChampionsTrawa3D : MonoBehaviour
                 {
                     float y = dane.latkaY[l], dx = cx - p.x, dy = y - p.y, dz = cz - p.z;
                     if (dx * dx + dy * dy + dz * dz > r2) continue;
+                    if (!GeometryUtility.TestPlanesAABB(plaszczyzny, new Bounds(new Vector3(cx, y + .25f, cz), new Vector3(kaw + 1f, .9f, kaw + 1f)))) continue;
                     if (porcje[l] == null)
                     {
                         if (nowe >= naKlatke) continue;              // the rest in the next frames (made before they are close)
                         porcje[l] = Zrob(l); zrobione.Add(l); nowe++;
                     }
-                    if (!GeometryUtility.TestPlanesAABB(plaszczyzny, new Bounds(new Vector3(cx, y + .25f, cz), new Vector3(kaw + 1f, .9f, kaw + 1f)))) continue;
                     foreach (var arr in porcje[l])
                     {
                         Graphics.DrawMeshInstanced(siatka, 0, material, arr, arr.Length, mpb, ShadowCastingMode.Off, true, warstwa, cam, LightProbeUsage.Off);

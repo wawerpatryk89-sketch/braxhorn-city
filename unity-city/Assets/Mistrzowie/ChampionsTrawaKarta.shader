@@ -46,6 +46,7 @@ Shader "Braxhorn/ChampionsTrawaKarta"
         #pragma target 3.0
         sampler2D _MainTex, _LawnTex;
         fixed4 _Color; float4 _Dry;
+        float4 _GrassDistanceOrigin;
         float _Zasieg, _Blisko, _Pas, _Nasada, _NasadaPas, _Wiatr, _Gloss;
         float _MacroTile, _MacroMix, _MacroMean, _DryMix, _DryMean, _DryThr, _DryGain, _Stripe, _StripeMix;
         struct Input { float2 uv_MainTex; float3 trawnik; };
@@ -64,7 +65,7 @@ Shader "Braxhorn/ChampionsTrawaKarta"
             float3 root = mul(unity_ObjectToWorld, float4(0, 0, 0, 1)).xyz;
             float los = Los(root.xz);
             // zanik: kępa maleje w ziemię między swoim końcem a pasem przed nim; koniec od _Blisko+_Pas (rzadko) do _Zasieg
-            float d = distance(root, _WorldSpaceCameraPos.xyz);
+            float d = distance(root, lerp(_WorldSpaceCameraPos.xyz, _GrassDistanceOrigin.xyz, _GrassDistanceOrigin.w));
             float koniec = lerp(_Zasieg, _Blisko + _Pas, los);
             float f = saturate((koniec - d) / _Pas);
             // wiatr: czubki (wysokość^2), każda kępa w swojej fazie
