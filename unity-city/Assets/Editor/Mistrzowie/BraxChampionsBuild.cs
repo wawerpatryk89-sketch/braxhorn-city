@@ -218,7 +218,10 @@ public static class BraxChampionsBuild
                 throw new IOException("BRAX_PBR_INTEGRITY missing file/meta "+path);
             string guid=AssetDatabase.AssetPathToGUID(path);
             if(string.IsNullOrEmpty(guid)||!guids.Add(guid)||
-                AssetDatabase.GUIDToAssetPath(guid)!=path||!(AssetImporter.GetAtPath(path) is TextureImporter))
+                AssetDatabase.GUIDToAssetPath(guid)!=path||
+                !(path.EndsWith(".asset", StringComparison.OrdinalIgnoreCase)
+                    ? AssetDatabase.GetMainAssetTypeAtPath(path) != null
+                    : AssetImporter.GetAtPath(path) is TextureImporter))
                 throw new InvalidOperationException("BRAX_PBR_INTEGRITY invalid imported texture/GUID "+path);
             paths.Add(path);
             count++;
@@ -313,7 +316,9 @@ public static class BraxChampionsBuild
         foreach (string line in File.ReadLines(baseline).Skip(1))
         {
             var fields = line.Split('\t');
-            var matches = materials[fields[1]].Where(p => p.StartsWith(root + "/" + fields[0] + "/", StringComparison.Ordinal)).ToArray();
+            var assetName = fields[1].StartsWith("Mistrzowie ", StringComparison.Ordinal)
+                ? fields[1].Substring("Mistrzowie ".Length) : fields[1];
+            var matches = materials[assetName].Where(p => p.StartsWith(root + "/" + fields[0] + "/", StringComparison.Ordinal)).ToArray();
             if (matches.Length != 1) { problems.Add("Material path unavailable or ambiguous: " + line); continue; }
             string path = matches[0];
             var material = AssetDatabase.LoadAssetAtPath<Material>(path);
