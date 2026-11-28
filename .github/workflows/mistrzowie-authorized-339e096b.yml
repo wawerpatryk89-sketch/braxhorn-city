@@ -17,4 +17,4 @@ jobs:
           set -euo pipefail
           active=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow mistrzowie-apk.yml --branch 'gpt/miasto-mistrzow-kasyno-t11-20261105' --json status --jq '[.[]|select(.status!="completed")]|length')
           test "$active" = 0
-          gh workflow run mistrzowie-apk.yml --repo "$GITHUB_REPOSITORY" --ref 'gpt/miasto-mistrzow-kasyno-t11-20261105' -f commit=339e096b5b6e70267a9778057642227ade8646f1 -f etap=apk -f kontrola_tras=true -f zdjecia=false
+          gh workflow run mistrzowie-apk.yml --repo "$GITHUB_REPOSITORY" --ref 'gpt/miasto-mistrzow-kasyno-t11-20261105' -f commit=1d8aefebd83abbfe5f5ba99a43ee02461179b55c -f etap=apk -f kontrola_tras=true -f zdjecia=false
