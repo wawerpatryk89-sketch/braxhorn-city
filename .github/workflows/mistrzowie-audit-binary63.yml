@@ -1,0 +1,33 @@
+name: Miasto Mistrzów – odczyt istniejącego APK 63
+on:
+  push:
+    branches: [audit/mistrzowie-apk63-20261128]
+    paths: [.github/workflows/mistrzowie-audit-binary63.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: unity-tools/mistrzowie/inspect_binary63.py
+          sparse-checkout-cone-mode: false
+      - name: Read delivered APK 63
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download 46032387872 --repo "$GITHUB_REPOSITORY" -n mistrzowie-apk-46032387872-2-6c011e1b172e443405eb7985b8c81ae88535f62d -D original
+      - name: Inspect serialized texture formats and street material references
+        run: |
+          python3 -m venv "$RUNNER_TEMP/audit63"
+          "$RUNNER_TEMP/audit63/bin/pip" install 'UnityPy==1.25.4'
+          "$RUNNER_TEMP/audit63/bin/python" unity-tools/mistrzowie/inspect_binary63.py original/*.apk
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: mistrzowie-apk63-material-audit
+          path: audit63.json
+          retention-days: 7
