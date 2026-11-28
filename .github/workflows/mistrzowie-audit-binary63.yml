@@ -8,6 +8,9 @@ permissions:
   actions: read
 jobs:
   inspect:
+    strategy:
+      matrix:
+        build: [52, 63]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -19,7 +22,12 @@ jobs:
       - name: Read delivered APK 63
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh run download 46032387872 --repo "$GITHUB_REPOSITORY" -n mistrzowie-apk-46032387872-2-6c011e1b172e443405eb7985b8c81ae88535f62d -D original
+        run: |
+          if [ "${{ matrix.build }}" = 52 ]; then
+            gh run download 44372370000 --repo "$GITHUB_REPOSITORY" -n mistrzowie-apk-44372370000-1-d31a41b562736d4186e30925957322f319c47e6b -D original
+          else
+            gh run download 46032387872 --repo "$GITHUB_REPOSITORY" -n mistrzowie-apk-46032387872-2-6c011e1b172e443405eb7985b8c81ae88535f62d -D original
+          fi
       - name: Inspect serialized texture formats and street material references
         run: |
           python3 -m venv "$RUNNER_TEMP/audit63"
@@ -28,6 +36,6 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: mistrzowie-apk63-material-audit
+          name: all-materials-${{ matrix.build }}
           path: audit63.json
           retention-days: 7
