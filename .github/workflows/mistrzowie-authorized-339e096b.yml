@@ -1,0 +1,20 @@
+name: Zlecenie APK Miasto Mistrzów 339e096b
+on:
+  push:
+    branches: [dispatch/mistrzowie-339e096b-apk]
+    paths: [.github/workflows/mistrzowie-authorized-339e096b.yml]
+permissions:
+  actions: write
+  contents: read
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Uruchom zatwierdzony build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          active=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow mistrzowie-apk.yml --branch 'gpt/miasto-mistrzow-kasyno-t11-20261105' --json status --jq '[.[]|select(.status!="completed")]|length')
+          test "$active" = 0
+          gh workflow run mistrzowie-apk.yml --repo "$GITHUB_REPOSITORY" --ref 'gpt/miasto-mistrzow-kasyno-t11-20261105' -f commit=339e096b5b6e70267a9778057642227ade8646f1 -f etap=apk -f kontrola_tras=true -f zdjecia=false
