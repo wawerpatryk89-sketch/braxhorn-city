@@ -81,10 +81,12 @@ public static class BraxChampionsBuild
             // (BraxChampionsEtapy) and restored before Unity started - no generation, the APK only
             if(apk&&!validationOnly&&BraxChampionsEtapy.SwiatPrzywrocony(report.sourceCommit))
             {
-                VerifyGeneratedPbr();
+                VerifyGeneratedPbr(true);
                 PlayerSettings.colorSpace=ColorSpace.Linear;
                 var gotowa=EditorSceneManager.OpenScene(BraxChampionsExplorer.ScenePath,OpenSceneMode.Single);
                 report.rendererCount=gotowa.GetRootGameObjects().Sum(o=>o.GetComponentsInChildren<Renderer>(true).Length);
+                report.explorationSceneReloadPassed=true;
+                CheckAssets(gotowa); // advisory: actual restored main scene, not just a renderer count
                 report.checks.Add("STAGE 2 OF 2: the world of this commit restored from stage 1 ("+BraxChampionsPodzial.Sceny().Length+
                     " area scenes) - generation skipped, the APK only");
                 BuildExplorationApk();
@@ -191,11 +193,12 @@ public static class BraxChampionsBuild
     }
 
     // Mandatory source integrity, not a cosmetic quality gate. No texture loads/reimports here.
-    static void VerifyGeneratedPbr()
+    static void VerifyGeneratedPbr(bool restored=false)
     {
         const string dir="Assets/PlayableGenerated/Mistrzowie/Textures";
         if(!Directory.Exists(dir))throw new IOException("BRAX_PBR_INTEGRITY missing "+dir);
         var guids=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var paths=new List<string>();
         int count=0;
         foreach(string raw in Directory.GetFiles(dir,"*",SearchOption.AllDirectories))
         {
@@ -213,9 +216,18 @@ public static class BraxChampionsBuild
             if(string.IsNullOrEmpty(guid)||!guids.Add(guid)||
                 AssetDatabase.GUIDToAssetPath(guid)!=path||!(AssetImporter.GetAtPath(path) is TextureImporter))
                 throw new InvalidOperationException("BRAX_PBR_INTEGRITY invalid imported texture/GUID "+path);
+            paths.Add(path);
             count++;
         }
         if(count==0)throw new IOException("BRAX_PBR_INTEGRITY empty "+dir);
+        const string inventory="mistrzowie-swiat-pbr-expected.txt";
+        paths.Sort(StringComparer.Ordinal);
+        if(restored)
+        {
+            if(!File.Exists(inventory)||!paths.SequenceEqual(File.ReadAllLines(inventory),StringComparer.Ordinal))
+                throw new IOException("BRAX_PBR_INTEGRITY restored map set differs from Unity stage 1");
+        }
+        else File.WriteAllLines(inventory,paths,new System.Text.UTF8Encoding(false));
         Debug.Log("BRAX_PBR_INTEGRITY verified "+count+" generated maps");
     }
 

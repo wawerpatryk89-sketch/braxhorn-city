@@ -45,6 +45,11 @@ pbr_inventory() (
     esac
   done < <(find "$dir" -type f -print0)
   [[ "$count" -gt 0 ]] || { echo "BRAX_PBR_INTEGRITY empty $dir" >&2; exit 1; }
+  # Compare with the independent inventory written by Unity before the world-ready marker.
+  [[ -s mistrzowie-swiat-pbr-expected.txt ]] && \
+    cmp -s <(find "$dir" -type f ! -name '*.meta' | sort) mistrzowie-swiat-pbr-expected.txt || {
+      echo "BRAX_PBR_INTEGRITY map set differs from Unity stage 1" >&2; exit 1;
+    }
   find "$dir" -type f -print0 | sort -z | xargs -0 -r sha256sum
 )
 
@@ -61,7 +66,7 @@ case "$mode" in
         \( -newer "$start" -o -cnewer "$start" -o -path 'Assets/PlayableGenerated/Mistrzowie/*' -o -path 'Assets/PlayableGenerated/Mistrzowie.meta' \) -print0
       # New paths must be included even if their mtime predates the marker.
       comm -13 "$before" "$work/after.txt" | awk '!/^Assets\/StreamingAssets\//' | tr '\n' '\0'
-      printf 'mistrzowie-swiat-gotowy.txt\0mistrzowie-swiat-usuniete.txt\0mistrzowie-swiat-pbr.sha256\0'; } | sort -zu > "$work/files"
+      printf 'mistrzowie-swiat-gotowy.txt\0mistrzowie-swiat-usuniete.txt\0mistrzowie-swiat-pbr.sha256\0mistrzowie-swiat-pbr-expected.txt\0'; } | sort -zu > "$work/files"
     files=$(tr -cd '\0' < "$work/files" | wc -c)
     tar --null -T "$work/files" -cf - | zstd -T0 -3 | openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:KLUCZ -out "$work/archive.enc"
     run="${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}"
@@ -85,7 +90,11 @@ case "$mode" in
     if [[ "$stored" != "$key" ]]; then echo "BRAX_WORLD_STORE miss: key $stored != $key; full run"; exit 0; fi
     parts=$(grep -v '^#' "$work/$name.sha256" | awk '{print $2}')
     [[ -n "$parts" ]] || { echo "BRAX_WORLD_STORE miss: empty manifest; full run"; exit 0; }
-    for p in $parts; do gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$p" --dir "$work"; done
+    for p in $parts; do
+      if ! gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern "$p" --dir "$work"; then
+        echo "BRAX_WORLD_STORE miss: missing archive part $p; full run"; exit 0
+      fi
+    done
     if ! (cd "$work" && grep -v '^#' "$name.sha256" | sha256sum -c --quiet); then
       echo "BRAX_WORLD_STORE miss: a part failed its SHA-256; full run"; exit 0
     fi

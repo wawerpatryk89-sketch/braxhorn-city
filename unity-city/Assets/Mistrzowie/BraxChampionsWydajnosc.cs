@@ -85,7 +85,7 @@ public sealed class BraxChampionsWydajnosc : MonoBehaviour
     void Lampy(Vector3 p)
     {
         int n = lampy.Length; if (n == 0) return;
-        int ile = Mathf.Max(64, n / 4);
+        int ile = Mathf.Min(n, Mathf.Max(64, n / 4));
         for (int i = 0; i < ile; i++)
         {
             var x = lampy[kursor]; kursor = (kursor + 1) % n;
@@ -109,6 +109,7 @@ public sealed class BraxChampionsWydajnosc : MonoBehaviour
             var tr = m.transform; var d = p - tr.position; float d2 = d.sqrMagnitude;
             if (d2 > m.maximumViewDistance * m.maximumViewDistance) continue;
             if (Vector3.Dot(tr.forward, d) <= .03f) continue;                 // behind the glass
+            if (!m.mirrorRenderer || !GeometryUtility.TestPlanesAABB(stozek, m.mirrorRenderer.bounds)) continue; // no live reflection outside camera view
             bool maKopie = kopie.ContainsKey(m);
             if (d2 >= bd && maKopie) continue;                                 // neither nearer nor in need of a picture
             if (!Widac(p, tr.position + tr.forward * .06f)) continue;
