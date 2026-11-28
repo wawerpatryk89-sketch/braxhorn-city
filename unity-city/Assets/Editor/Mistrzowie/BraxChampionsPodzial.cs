@@ -26,7 +26,7 @@ public static class BraxChampionsPodzial
 {
     public const string Folder = "Assets/PlayableGenerated/Mistrzowie/Obszary";
     const float MinRozmiar = 2.5f;
-    const int MaxTrisLodNaObiekt = 1500, MinTrisNaMaterial = 24;
+    const int MaxTrisLodNaObiekt = 1500;
 
     struct Plan { public string scena, poczatek, koniec; public float wczytaj, zwolnij; public int maxTris; }
     static Plan Strefa(string scena, string poczatek, float wczytaj = 150f, float zwolnij = 280f, int maxTris = 60000, string koniec = null)
@@ -194,10 +194,17 @@ public static class BraxChampionsPodzial
                 string.Join(" ; ", przez.Take(8).Select(k => k.z.name + " -[" + k.co + "]-> " + k.d.name)));
             return null;
         }
-        // 3) the far copy from the same nodes, before they leave (a failed copy does not stop the split)
+        // 3) the far copy from the same nodes, before they leave
         GameObject kopia = null;
         try { kopia = ZDaleka(main, plan.scena, wezly, .5f, plan.maxTris, ref daleko); }
         catch (Exception e) { Debug.LogWarning("A1_PODZIAL far copy " + plan.scena + ": " + e.Message); }
+        // A surface building stays in the main scene when its distant mesh could not be built.
+        // Underground stations can legitimately have no exterior mesh.
+        if (!kopia && plan.koniec == null)
+        {
+            Debug.LogWarning("A1_PODZIAL_SKIPPED " + plan.scena + ": no far copy; building stays visible");
+            return null;
+        }
         // 4) bounds and numbers
         Bounds gr = default; bool any = false; int siatki = 0, obiekty = wSrodku.Count;
         foreach (var w in wezly) { Granice(w, ref gr, ref any); siatki += w.GetComponentsInChildren<MeshFilter>(true).Length; }
@@ -295,7 +302,7 @@ public static class BraxChampionsPodzial
                 if (lod && !ostatni.Contains(r)) continue;                       // nearer LOD levels are not seen from far
                 var b = r.bounds; if (Mathf.Max(b.size.x, b.size.y, b.size.z) < MinRozmiar) continue;
                 bool dokladne = lod || mats.Any(Alfa);
-                if (dokladne && Tris(mf.sharedMesh) > MaxTrisLodNaObiekt) continue;   // glass and cut-out surfaces only when light
+                if (dokladne && Tris(mf.sharedMesh) > MaxTrisLodNaObiekt) dokladne = false; // rank connected pieces within the same area budget
                 res.Add(new Zrodlo { r = r, m = mf.sharedMesh, l2w = r.transform.localToWorldMatrix, dokladne = dokladne });
             }
         return res;
@@ -430,7 +437,7 @@ public static class BraxChampionsPodzial
         float uzyta = prog / BraxClaudeOsiedle.K;
         var kub = Zloz(zr, wybrane, cache, out long tris);
         cache.Clear();
-        var kubly = kub.Values.Where(k => k.i.Count / 3 >= MinTrisNaMaterial).ToList();
+        var kubly = kub.Values.Where(k => k.i.Count >= 3).ToList();
         if (kubly.Count == 0) { Debug.Log("A1_Z_DALEKA " + scena + ": no big pieces, no copy"); return null; }
         var mesh = new Mesh { name = "Z daleka: " + scena };
         int nv = kubly.Sum(k => k.v.Count);
