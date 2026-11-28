@@ -230,7 +230,62 @@ public static class BraxChampionsBuild
                 throw new IOException("BRAX_PBR_INTEGRITY restored map set differs from Unity stage 1");
         }
         else File.WriteAllLines(inventory,paths,new System.Text.UTF8Encoding(false));
+        VerifyMaterialBindings(restored);
         Debug.Log("BRAX_PBR_INTEGRITY verified "+count+" generated maps");
+    }
+
+    // Keep the first pass's actual material slots. This also covers derived materials
+    // whose colour maps, UV scales and tints were customized by a building generator.
+    static void VerifyMaterialBindings(bool restored)
+    {
+        const string region = "Assets/PlayableGenerated/Mistrzowie";
+        const string record = "ProjectSettings/MistrzowiePbrBindings.tsv";
+        if (!restored)
+        {
+            var rows = new List<string>();
+            foreach (string path in Directory.GetFiles(region, "*.mat", SearchOption.AllDirectories))
+            {
+                string asset = path.Replace('\\', '/');
+                var material = AssetDatabase.LoadAssetAtPath<Material>(asset);
+                if (!material) throw new IOException("Unreadable generated material: " + asset);
+                foreach (var slot in material.GetTexturePropertyNames())
+                {
+                    var texture = material.GetTexture(slot);
+                    if (!texture) continue;
+                    string map = AssetDatabase.GetAssetPath(texture);
+                    if (!string.IsNullOrEmpty(map) && map.StartsWith(region + "/Textures/", StringComparison.Ordinal))
+                        rows.Add(string.Join("\t", asset, slot, map));
+                }
+            }
+            if (rows.Count == 0) throw new IOException("Empty generated PBR material inventory");
+            rows.Sort(StringComparer.Ordinal);
+            File.WriteAllLines(record, rows, new System.Text.UTF8Encoding(false));
+            Debug.Log("BRAX_PBR_BINDINGS saved " + rows.Count);
+            return;
+        }
+
+        int count = 0;
+        foreach (var row in File.ReadLines(record))
+        {
+            var fields = row.Split('\t');
+            if (fields.Length != 3) throw new IOException("Invalid generated PBR material record");
+            var material = AssetDatabase.LoadAssetAtPath<Material>(fields[0]);
+            if (!material || !material.HasProperty(fields[1]))
+                throw new IOException("Missing restored material or slot: " + row);
+            var current = material.GetTexture(fields[1]);
+            if (!current || AssetDatabase.GetAssetPath(current) != fields[2])
+            {
+                var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(fields[2]);
+                if (!texture) throw new IOException("Missing restored PBR texture: " + row);
+                material.SetTexture(fields[1], texture);
+                EditorUtility.SetDirty(material);
+                AssetDatabase.SaveAssetIfDirty(material);
+                Debug.Log("BRAX_PBR_BINDING_RESTORED " + row);
+            }
+            count++;
+        }
+        if (count == 0) throw new IOException("Empty restored PBR material inventory");
+        Debug.Log("BRAX_PBR_BINDINGS verified " + count);
     }
 
     // PHOTOS FIRST (owner 12.11 19:32 "Miałeś teraz mieć zdjęcia? Gdzie są"): the 12.11 scene run 43220934508 worked 3 hours and

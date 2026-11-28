@@ -412,9 +412,15 @@ public static class BraxChampionsFoundation
     public static void RestorePavementMaps()
     {
         var sources = Sources();
-        foreach (var id in new[] { "asphalt", "paving", "prom_paving", "cycle_lane", "cycle_mark" })
+        var surfaces = new (string material, string maps)[]
         {
-            string mapId = id == "cycle_lane" ? "asphalt" : id == "cycle_mark" ? "paving" : id;
+            ("asphalt", "asphalt"), ("paving", "paving"), ("prom_paving", "prom_paving"),
+            ("cycle_lane", "asphalt"), ("cycle_mark", "paving"),
+            ("arena_parking_asphalt", "asphalt"), ("arena_arrival_paving", "paving"),
+            ("t03_drive_asphalt", "asphalt"), ("t03_sidewalk_paving", "paving")
+        };
+        foreach (var (id, mapId) in surfaces)
+        {
             string path = Output + "/Materials/" + id + ".mat";
             var material = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (!material) throw new FileNotFoundException("Missing generated surface material", path);
