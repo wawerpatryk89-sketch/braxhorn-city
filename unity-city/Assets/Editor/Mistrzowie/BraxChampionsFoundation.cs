@@ -407,6 +407,39 @@ public static class BraxChampionsFoundation
         if(old){EditorUtility.CopySerialized(value,old);UnityEngine.Object.DestroyImmediate(value);EditorUtility.SetDirty(old);return old;}
         AssetDatabase.CreateAsset(value,path);return value;
     }
+    // Use the same verified sources and generated GUIDs as MaterialFor. Some surfaces
+    // intentionally share the maps of another material while retaining their own tint/UVs.
+    public static void RestorePavementMaps()
+    {
+        var sources = Sources();
+        foreach (var id in new[] { "asphalt", "paving", "prom_paving", "cycle_lane", "cycle_mark" })
+        {
+            string mapId = id == "cycle_lane" ? "asphalt" : id == "cycle_mark" ? "paving" : id;
+            string path = Output + "/Materials/" + id + ".mat";
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (!material) throw new FileNotFoundException("Missing generated surface material", path);
+            var maps = sources[mapId];
+            BindSurfaceMap(material, "_MainTex", maps.color, "color", mapId);
+            BindSurfaceMap(material, "_BumpMap", maps.normal, "normal", mapId);
+            BindSurfaceMap(material, "_ARM", maps.arm, "arm", mapId);
+        }
+    }
+
+    static void BindSurfaceMap(Material material, string slot, string source, string role, string id)
+    {
+        string path = Output + "/Textures/" + id + "_" + role + Path.GetExtension(source);
+        if (!material.HasProperty(slot))
+            throw new InvalidOperationException(material.name + " shader lacks " + slot);
+        var current = material.GetTexture(slot);
+        if (current && AssetDatabase.GetAssetPath(current) == path && File.Exists(path)) return;
+        var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        if (!texture || !File.Exists(path)) texture = CopyMap(source, role, id);
+        material.SetTexture(slot, texture);
+        EditorUtility.SetDirty(material);
+        AssetDatabase.SaveAssetIfDirty(material);
+        Debug.Log("BRAX_SURFACE_MAP_RESTORED " + material.name + " " + slot + " " + path);
+    }
+
     static Texture2D CopyMap(string source,string role,string id)
     {
         string destination=Output+"/Textures/"+id+"_"+role+Path.GetExtension(source);

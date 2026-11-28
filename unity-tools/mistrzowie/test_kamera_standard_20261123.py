@@ -1,5 +1,5 @@
 """Camera closer to the character (ZASADY 10.8, owner 23.11 15:48): the numbers come from Assets/Claude/BraxKameraStandard.cs
-(main's copy, unchanged) and BraxGymPlayer reads them - on foot 4.2 (was 5.8), behind the car 5.5-7.5 by speed (was 8.4)."""
+(branch standard) and BraxGymPlayer reads them - on foot 3.6 (was 4.2), behind the car 5.5-7.5 by speed (was 8.4)."""
 import re
 import unittest
 from pathlib import Path
@@ -15,7 +15,7 @@ def bez_komentarzy(t):
 
 class Kamera(unittest.TestCase):
     def test_standard_numbers(self):
-        self.assertIn("public const float Pieszo = 4.2f;", STD)
+        self.assertIn("public const float Pieszo = 3.6f;", STD)
         self.assertIn("public const float AutoMin = 5.5f;", STD)
         self.assertIn("public const float AutoMaks = 7.5f;", STD)
 

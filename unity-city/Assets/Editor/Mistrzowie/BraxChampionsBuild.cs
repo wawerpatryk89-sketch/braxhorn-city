@@ -81,6 +81,7 @@ public static class BraxChampionsBuild
             // (BraxChampionsEtapy) and restored before Unity started - no generation, the APK only
             if(apk&&!validationOnly&&BraxChampionsEtapy.SwiatPrzywrocony(report.sourceCommit))
             {
+                BraxChampionsFoundation.RestorePavementMaps();
                 VerifyGeneratedPbr(true);
                 PlayerSettings.colorSpace=ColorSpace.Linear;
                 var gotowa=EditorSceneManager.OpenScene(BraxChampionsExplorer.ScenePath,OpenSceneMode.Single);
@@ -146,6 +147,7 @@ public static class BraxChampionsBuild
             report.playerClips=BraxChampionsExplorer.Validate(scene);
             CheckAssets(scene);report.explorationSceneReloadPassed=true;
             if(validationOnly)Gate(report,()=>VerifyArenaCasinoAssembly(scene,report,"exploration-serialized"));
+            BraxChampionsFoundation.RestorePavementMaps();
             if(validationOnly)Gate(report,()=>VerifyArenaCasinoCarAssembly(scene,report));
             report.checks.Add("Exploration scene reopened; player quality and traversability require manual device review");
             if(validationOnly)

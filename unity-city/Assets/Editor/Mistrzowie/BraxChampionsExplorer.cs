@@ -57,8 +57,9 @@ public static class BraxChampionsExplorer
         var start = Ground(new Vector3(600, .16f, 700) * K);
         body.enabled = false; player.transform.position = start + Vector3.up * .04f; body.enabled = true;
         player.transform.rotation = Quaternion.identity; runtime.worldSpawn = player.transform.position;
-        camera.transform.position = player.transform.position + new Vector3(0, 3.5f, -5.5f);
-        camera.transform.LookAt(player.transform.position + Vector3.up * 1.65f);
+        var cameraTarget = player.transform.position + Vector3.up * 1.65f;
+        camera.transform.position = cameraTarget + Quaternion.Euler(19f, 0f, 0f) * Vector3.back * BraxKameraStandard.Pieszo;
+        camera.transform.LookAt(cameraTarget);
         var points = new List<BraxCityPoint> {
             new BraxCityPoint { id="champion_north", label="CHAMPION ARENA — PÓŁNOC", position=start },
             new BraxCityPoint { id="hotel_braxhorn", label="Hotel BRAXHORN — wejście", position=Ground(new Vector3(828,.16f,815)*K) }

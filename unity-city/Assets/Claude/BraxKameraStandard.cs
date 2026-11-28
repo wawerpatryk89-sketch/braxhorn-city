@@ -17,9 +17,9 @@ using UnityEngine;
 // Jednostki: jednostki gry. 1 m świata = 1,294 jednostki (ZASADY 6.5), bohater ma 2,33.
 public static class BraxKameraStandard
 {
-    /// <summary>Pieszo: odległość kamery od celu (cel = 1,65 nad stopami). 4,2 j. = ok. 3,2 m.
-    /// Przy polu widzenia 55° postać zajmuje około połowy wysokości ekranu (przy 5,8 — nieco ponad jedną trzecią).</summary>
-    public const float Pieszo = 4.2f;
+    /// <summary>Pieszo: odległość kamery od celu (cel = 1,65 nad stopami). 3,6 j. = ok. 2,8 m.
+    /// Kolizje kamery mogą chwilowo skrócić ten dystans.</summary>
+    public const float Pieszo = 3.6f;
 
     /// <summary>Za autem na postoju.</summary>
     public const float AutoMin = 5.5f;
