@@ -3,8 +3,8 @@
 # Owner 25.11.2026 17:22 "Go" on: "Build jak u R1: limit czasu: jak Unity nie zdąży, kończy czysto po zbudowaniu świata,
 # zapis świata, także po przerwaniu, drugi przebieg robi tylko APK".
 #   save:    after the Unity step, when Unity wrote mistrzowie-swiat-gotowy.txt (BraxChampionsEtapy: the world is complete),
-#            every file Unity created or changed under Assets/ and ProjectSettings/ (newer than the marker touched right
-#            before Unity; built bundles in StreamingAssets excluded) plus the list of files Unity deleted, as one archive
+#            all new or changed files (mtime or ctime), the entire generated Champions world regardless of timestamps,
+#            a verified PBR inventory and the list of deleted files (excluding built bundles), as one archive
 #            encrypted with the repository's key (AES-256) in parts < 2 GiB of the release mistrzowie-world-cache; the
 #            manifest is uploaded LAST, so a half-finished upload is never restored; older worlds go only after it;
 #   restore: before Unity, only the world of the same key (source commit + Unity + pipeline + packages): every part's
@@ -25,6 +25,29 @@ export LC_ALL=C
 rm -rf "$work"; mkdir -p "$work"
 trap 'rm -rf "$work"' EXIT
 
+# #63: File.Copy can keep an older source mtime; never trust the timestamp for generated assets.
+# Validate the full PBR file/meta set before packing and again in staging before overlay.
+pbr_inventory() (
+  cd "$1" || exit 1
+  dir=Assets/PlayableGenerated/Mistrzowie/Textures
+  [[ -d "$dir" ]] || { echo "BRAX_PBR_INTEGRITY missing $dir" >&2; exit 1; }
+  count=0
+  while IFS= read -r -d '' f; do
+    case "$f" in
+      *.meta)
+        [[ -e "${f%.meta}" ]] || { echo "BRAX_PBR_INTEGRITY orphan $f" >&2; exit 1; }
+        ;;
+      *)
+        [[ -s "$f" && -s "$f.meta" ]] || { echo "BRAX_PBR_INTEGRITY missing file/meta $f" >&2; exit 1; }
+        grep -Eq '^guid: [0-9a-f]{32}[[:space:]]*$' "$f.meta" || { echo "BRAX_PBR_INTEGRITY invalid GUID $f.meta" >&2; exit 1; }
+        count=$((count + 1))
+        ;;
+    esac
+  done < <(find "$dir" -type f -print0)
+  [[ "$count" -gt 0 ]] || { echo "BRAX_PBR_INTEGRITY empty $dir" >&2; exit 1; }
+  find "$dir" -type f -print0 | sort -z | xargs -0 -r sha256sum
+)
+
 case "$mode" in
   save)
     start=${WORLD_START:?marker touched right before Unity}
@@ -33,8 +56,12 @@ case "$mode" in
     cd "$project"
     find Assets ProjectSettings -type f | sort > "$work/after.txt"
     comm -23 "$before" "$work/after.txt" > mistrzowie-swiat-usuniete.txt
-    { find Assets ProjectSettings -type f -newer "$start" ! -path 'Assets/StreamingAssets/*' -print0
-      printf 'mistrzowie-swiat-gotowy.txt\0mistrzowie-swiat-usuniete.txt\0'; } > "$work/files"
+    pbr_inventory "$project" > mistrzowie-swiat-pbr.sha256
+    { find Assets ProjectSettings -type f ! -path 'Assets/StreamingAssets/*' \
+        \( -newer "$start" -o -cnewer "$start" -o -path 'Assets/PlayableGenerated/Mistrzowie/*' -o -path 'Assets/PlayableGenerated/Mistrzowie.meta' \) -print0
+      # New paths must be included even if their mtime predates the marker.
+      comm -13 "$before" "$work/after.txt" | awk '!/^Assets\/StreamingAssets\//' | tr '\n' '\0'
+      printf 'mistrzowie-swiat-gotowy.txt\0mistrzowie-swiat-usuniete.txt\0mistrzowie-swiat-pbr.sha256\0'; } | sort -zu > "$work/files"
     files=$(tr -cd '\0' < "$work/files" | wc -c)
     tar --null -T "$work/files" -cf - | zstd -T0 -3 | openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:KLUCZ -out "$work/archive.enc"
     run="${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}"
@@ -69,6 +96,12 @@ case "$mode" in
     fi
     (cd "$work" && rm -f $parts)
     test -f "$work/x/mistrzowie-swiat-gotowy.txt" || { echo "BRAX_WORLD_STORE miss: no world marker in the archive; full run"; exit 0; }
+    if ! test -s "$work/x/mistrzowie-swiat-pbr.sha256" ||
+       ! pbr_inventory "$work/x" > "$work/restored-pbr.sha256" ||
+       ! cmp -s "$work/x/mistrzowie-swiat-pbr.sha256" "$work/restored-pbr.sha256"; then
+      echo "BRAX_WORLD_STORE miss: missing or inconsistent PBR inventory; full run without restoring"; exit 0
+    fi
+    echo "BRAX_PBR_INTEGRITY checkpoint verified"
     restored=$(cd "$work/x" && find . -type f | wc -l)
     cp -a "$work/x/." "$project/"
     removed=0

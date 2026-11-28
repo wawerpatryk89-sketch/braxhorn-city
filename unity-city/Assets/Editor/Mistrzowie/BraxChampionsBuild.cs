@@ -81,6 +81,7 @@ public static class BraxChampionsBuild
             // (BraxChampionsEtapy) and restored before Unity started - no generation, the APK only
             if(apk&&!validationOnly&&BraxChampionsEtapy.SwiatPrzywrocony(report.sourceCommit))
             {
+                VerifyGeneratedPbr();
                 PlayerSettings.colorSpace=ColorSpace.Linear;
                 var gotowa=EditorSceneManager.OpenScene(BraxChampionsExplorer.ScenePath,OpenSceneMode.Single);
                 report.rendererCount=gotowa.GetRootGameObjects().Sum(o=>o.GetComponentsInChildren<Renderer>(true).Length);
@@ -160,6 +161,7 @@ public static class BraxChampionsBuild
                 CompressGlbTextures(scene,report);
                 SplitIntoAreas(report);
                 // the world is complete: saved, marked, packed by the workflow even if the APK below fails or runs out of time
+                VerifyGeneratedPbr();
                 BraxChampionsEtapy.SwiatGotowy(report.sourceCommit);
                 if(BraxChampionsEtapy.KoniecEtapu1(report.sourceCommit))
                 {
@@ -186,6 +188,35 @@ public static class BraxChampionsBuild
         }
         catch(Exception e){report.status="FAILED: "+e.Message;Debug.LogException(e);throw;}
         finally {if(BraxBuildQuality.Advisory)report.status+="_QUALITY_ADVISORY_MANUAL_REVIEW_REQUIRED";if(skipWalkChecks)report.status+="_WALK_CHECKS_SKIPPED";File.WriteAllText(reports+"/unity-validation.json",JsonUtility.ToJson(report,true));Debug.Log("BRAX_MISTRZOWIE_UNITY "+JsonUtility.ToJson(report));}
+    }
+
+    // Mandatory source integrity, not a cosmetic quality gate. No texture loads/reimports here.
+    static void VerifyGeneratedPbr()
+    {
+        const string dir="Assets/PlayableGenerated/Mistrzowie/Textures";
+        if(!Directory.Exists(dir))throw new IOException("BRAX_PBR_INTEGRITY missing "+dir);
+        var guids=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        int count=0;
+        foreach(string raw in Directory.GetFiles(dir,"*",SearchOption.AllDirectories))
+        {
+            string path=raw.Replace('\\','/');
+            if(path.EndsWith(".meta",StringComparison.Ordinal))
+            {
+                string asset=path.Substring(0,path.Length-5);
+                if(!File.Exists(asset)&&!Directory.Exists(asset))
+                    throw new IOException("BRAX_PBR_INTEGRITY orphan "+path);
+                continue;
+            }
+            if(new FileInfo(path).Length==0||!File.Exists(path+".meta"))
+                throw new IOException("BRAX_PBR_INTEGRITY missing file/meta "+path);
+            string guid=AssetDatabase.AssetPathToGUID(path);
+            if(string.IsNullOrEmpty(guid)||!guids.Add(guid)||
+                AssetDatabase.GUIDToAssetPath(guid)!=path||!(AssetImporter.GetAtPath(path) is TextureImporter))
+                throw new InvalidOperationException("BRAX_PBR_INTEGRITY invalid imported texture/GUID "+path);
+            count++;
+        }
+        if(count==0)throw new IOException("BRAX_PBR_INTEGRITY empty "+dir);
+        Debug.Log("BRAX_PBR_INTEGRITY verified "+count+" generated maps");
     }
 
     // PHOTOS FIRST (owner 12.11 19:32 "Miałeś teraz mieć zdjęcia? Gdzie są"): the 12.11 scene run 43220934508 worked 3 hours and

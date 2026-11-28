@@ -261,6 +261,14 @@ class StoreRoundTrip(unittest.TestCase):
             (proj / "Assets/PlayableGenerated/M").mkdir(parents=True)
             (proj / "Assets/PlayableGenerated/M/s.unity").write_text("scena")
             (proj / "Assets/PlayableGenerated/M/s.unity.meta").write_text("guid: 1")
+            # File.Copy/cp -p may preserve timestamps older than WORLD_START (#63).
+            maps = "Assets/PlayableGenerated/Mistrzowie/Textures"
+            (proj / maps).mkdir(parents=True)
+            for idx, role in enumerate(("color", "normal", "arm"), 1):
+                image = proj / maps / ("asphalt_" + role + ".jpg")
+                image.write_bytes(b"original " + role.encode())
+                os.utime(image, (800_000_000, 800_000_000))
+                image.with_name(image.name + ".meta").write_text(f"guid: {idx:032x}\n")
             (proj / "ProjectSettings/x.asset").write_text("po")
             (proj / "Assets/stary.txt").unlink()
             (proj / "Assets/StreamingAssets/BraxContent").mkdir(parents=True)
@@ -289,6 +297,20 @@ class StoreRoundTrip(unittest.TestCase):
             self.assertEqual((proj2 / "Assets/PlayableGenerated/M/s.unity").read_text(), "scena")
             self.assertEqual((proj2 / "Assets/PlayableGenerated/M/s.unity.meta").read_text(), "guid: 1")
             self.assertEqual((proj2 / "ProjectSettings/x.asset").read_text(), "po")
+            for idx, role in enumerate(("color", "normal", "arm"), 1):
+                image = proj2 / maps / ("asphalt_" + role + ".jpg")
+                self.assertEqual(image.read_bytes(), b"original " + role.encode())
+                self.assertEqual(image.with_name(image.name + ".meta").read_text(), f"guid: {idx:032x}\n")
+            self.assertIn("BRAX_PBR_INTEGRITY checkpoint verified", r.stdout)
+            # A missing image with surviving meta must not overwrite the last valid checkpoint.
+            manifest = rel / "tag" / f"mistrzowie-world-{key}.sha256"
+            previous = manifest.read_bytes()
+            (proj / maps / "asphalt_color.jpg").unlink()
+            r = subprocess.run(["bash", store, "save", str(proj), key], env=dict(env, WORLD_START=str(start), WORLD_BEFORE=str(before)),
+                               capture_output=True, text=True)
+            self.assertNotEqual(r.returncode, 0)
+            self.assertIn("BRAX_PBR_INTEGRITY orphan", r.stderr)
+            self.assertEqual(manifest.read_bytes(), previous)
             self.assertFalse((proj2 / "Assets/stary.txt").exists())
             self.assertTrue((proj2 / "Assets/zostaje.txt").exists())
             self.assertFalse((proj2 / "Assets/StreamingAssets").exists())
