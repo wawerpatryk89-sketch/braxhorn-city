@@ -82,6 +82,7 @@ public static class BraxChampionsBuild
             if(apk&&!validationOnly&&BraxChampionsEtapy.SwiatPrzywrocony(report.sourceCommit))
             {
                 BraxChampionsFoundation.RestorePavementMaps();
+                RestoreHistoricalMaterialSlots();
                 VerifyGeneratedPbr(true);
                 PlayerSettings.colorSpace=ColorSpace.Linear;
                 var gotowa=EditorSceneManager.OpenScene(BraxChampionsExplorer.ScenePath,OpenSceneMode.Single);
@@ -148,6 +149,7 @@ public static class BraxChampionsBuild
             CheckAssets(scene);report.explorationSceneReloadPassed=true;
             if(validationOnly)Gate(report,()=>VerifyArenaCasinoAssembly(scene,report,"exploration-serialized"));
             BraxChampionsFoundation.RestorePavementMaps();
+            RestoreHistoricalMaterialSlots();
             if(validationOnly)Gate(report,()=>VerifyArenaCasinoCarAssembly(scene,report));
             report.checks.Add("Exploration scene reopened; player quality and traversability require manual device review");
             if(validationOnly)
@@ -286,6 +288,53 @@ public static class BraxChampionsBuild
         }
         if (count == 0) throw new IOException("Empty restored PBR material inventory");
         Debug.Log("BRAX_PBR_BINDINGS verified " + count);
+    }
+
+    // This table contains formerly populated slots proven empty in the delivered APK.
+    // The original standalone materials and maps are resolved by their generated paths.
+    [Serializable] sealed class MaterialRecoveryReport
+    {
+        public int present, restored;
+        public List<string> unresolved = new List<string>();
+    }
+
+    static void RestoreHistoricalMaterialSlots()
+    {
+        const string root = "Assets/PlayableGenerated/Mistrzowie";
+        const string baseline = "../unity-tools/mistrzowie/material-bindings-52-63.tsv";
+        var textures = Directory.EnumerateFiles(root + "/Textures", "*", SearchOption.AllDirectories)
+            .Where(path => !path.EndsWith(".meta", StringComparison.Ordinal))
+            .ToLookup(path => Path.GetFileNameWithoutExtension(path), StringComparer.Ordinal);
+        var materials = Directory.EnumerateFiles(root, "*.mat", SearchOption.AllDirectories)
+            .Select(path => path.Replace('\\', '/'))
+            .ToLookup(path => Path.GetFileNameWithoutExtension(path), StringComparer.Ordinal);
+        var problems = new List<string>();
+        int verified = 0, repaired = 0;
+        foreach (string line in File.ReadLines(baseline).Skip(1))
+        {
+            var fields = line.Split('\t');
+            var matches = materials[fields[1]].Where(p => p.StartsWith(root + "/" + fields[0] + "/", StringComparison.Ordinal)).ToArray();
+            if (matches.Length != 1) { problems.Add("Material path unavailable or ambiguous: " + line); continue; }
+            string path = matches[0];
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (!material || !material.HasProperty(fields[2]))
+            {
+                problems.Add("Material or slot unavailable: " + line);
+                continue;
+            }
+            if (material.GetTexture(fields[2])) { verified++; continue; }
+            var candidates = textures[fields[3]].ToArray();
+            var map = candidates.Length == 1 ? AssetDatabase.LoadAssetAtPath<Texture2D>(candidates[0]) : null;
+            if (!map) { problems.Add("Original map unavailable or ambiguous: " + line); continue; }
+            material.SetTexture(fields[2], map);
+            EditorUtility.SetDirty(material);
+            AssetDatabase.SaveAssetIfDirty(material);
+            repaired++;
+        }
+        var report = new MaterialRecoveryReport { present = verified, restored = repaired, unresolved = problems };
+        File.WriteAllText("../mistrzowie-evidence/material-recovery.json", JsonUtility.ToJson(report, true));
+        if (problems.Count > 0) BraxBuildQuality.Warn("BRAX_PBR unresolved historical slots: " + problems.Count +
+            "; see material-recovery.json");
     }
 
     // PHOTOS FIRST (owner 12.11 19:32 "Miałeś teraz mieć zdjęcia? Gdzie są"): the 12.11 scene run 43220934508 worked 3 hours and
